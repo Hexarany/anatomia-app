@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(npx ts-node src/scripts/seed-complete-atlas.ts)",
+      "Bash(curl:*)",
+      "Bash(python -m json.tool:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git config:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

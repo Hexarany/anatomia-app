@@ -1,0 +1,98 @@
+{
+  "app": {
+    "title": "Anatomia Interactive",
+    "subtitle": "Studiu interactiv al anatomiei"
+  },
+  "nav": {
+    "home": "Acasă",
+    "categories": "Categorii",
+    "quizzes": "Teste",
+    "admin": "Admin",
+    "language": "Limba"
+  },
+  "home": {
+    "welcome": "Bun venit la aplicația interactivă de anatomie",
+    "description": "Studiați anatomia umană cu ajutorul modelelor 3D, atlaselor detaliate, videoclipurilor și testelor",
+    "getStarted": "Începeți să învățați",
+    "features": {
+      "title": "Caracteristicile aplicației",
+      "3d": {
+        "title": "Modele 3D",
+        "description": "Modele 3D interactive ale oaselor, mușchilor și organelor"
+      },
+      "atlas": {
+        "title": "Atlase Anatomice",
+        "description": "Imagini detaliate cu etichete în rusă și română"
+      },
+      "quiz": {
+        "title": "Teste și Chestionare",
+        "description": "Testați-vă cunoștințele cu teste interactive"
+      },
+      "video": {
+        "title": "Materiale Video",
+        "description": "Videoclipuri educaționale și animații pentru o mai bună înțelegere"
+      }
+    }
+  },
+  "categories": {
+    "osteology": {
+      "name": "Osteologie",
+      "description": "Studiul sistemului osos uman"
+    },
+    "myology": {
+      "name": "Miologie",
+      "description": "Studiul sistemului muscular"
+    },
+    "arthrology": {
+      "name": "Artrologie",
+      "description": "Studiul articulațiilor și ligamentelor"
+    },
+    "nervous": {
+      "name": "Sistemul nervos",
+      "description": "Studiul sistemului nervos central și periferic"
+    },
+    "cardiovascular": {
+      "name": "Sistemul cardiovascular",
+      "description": "Studiul inimii și vaselor de sânge"
+    }
+  },
+  "topic": {
+    "back": "Înapoi",
+    "description": "Descriere",
+    "3dModel": "Model 3D",
+    "images": "Imagini",
+    "videos": "Videoclipuri",
+    "relatedQuiz": "Faceți testul"
+  },
+  "quiz": {
+    "title": "Test",
+    "question": "Întrebare",
+    "of": "din",
+    "submit": "Trimiteți răspunsul",
+    "next": "Următoarea întrebare",
+    "finish": "Finalizați testul",
+    "results": "Rezultatele testului",
+    "score": "Scorul dvs.",
+    "correct": "răspunsuri corecte",
+    "tryAgain": "Încercați din nou",
+    "backToHome": "La pagina principală"
+  },
+  "admin": {
+    "title": "Panou administrator",
+    "dashboard": "Tabloul de bord",
+    "categories": "Categorii",
+    "topics": "Subiecte",
+    "quizzes": "Teste",
+    "media": "Fișiere media",
+    "logout": "Deconectare",
+    "add": "Adăugați",
+    "edit": "Editați",
+    "delete": "Ștergeți",
+    "save": "Salvați",
+    "cancel": "Anulați"
+  },
+  "footer": {
+    "copyright": "© 2024 Anatomia Interactive. Toate drepturile rezervate.",
+    "description": "Platformă educațională pentru studiul anatomiei umane"
+  }
+}
