@@ -94,5 +94,14 @@
   "footer": {
     "copyright": "© 2024 Anatomia Interactive. Toate drepturile rezervate.",
     "description": "Platformă educațională pentru studiul anatomiei umane"
+  },
+  "contentLock": {
+    "title": "Acces complet pentru utilizatorii înregistrați",
+    "description": "Înregistrați-vă gratuit pentru a obține acces la materialele complete: descrieri detaliate, tabele, tehnici de masaj, exerciții și multe altele!",
+    "register": "Înregistrare",
+    "login": "Am deja cont",
+    "benefit1": "Înregistrare gratuită",
+    "benefit2": "Acces la toate materialele",
+    "benefit3": "Actualizări de conținut"
   }
 }

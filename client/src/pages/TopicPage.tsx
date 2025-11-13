@@ -21,8 +21,10 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import QuizIcon from '@mui/icons-material/Quiz'
 import Model3DViewer from '@/components/Model3DViewer'
 import EnhancedMarkdown from '@/components/EnhancedMarkdown'
+import ContentLock from '@/components/ContentLock'
 import { getTopicById } from '@/services/api'
 import type { Topic } from '@/types'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -42,6 +44,7 @@ const TopicPage = () => {
   const { topicId } = useParams<{ topicId: string }>()
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const lang = i18n.language as 'ru' | 'ro'
 
   const [topic, setTopic] = useState<Topic | null>(null)
@@ -89,6 +92,12 @@ const TopicPage = () => {
   const hasVideos = topic.videos && topic.videos.length > 0
   const has3DModel = topic.model3D
 
+  // Get preview text (first 300 characters of content)
+  const getPreviewText = (content: string) => {
+    const plainText = content.replace(/[#*`>\[\]()]/g, '').substring(0, 300)
+    return plainText + '...'
+  }
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Breadcrumbs */}
@@ -133,7 +142,11 @@ const TopicPage = () => {
 
       {/* Tab Panels */}
       <TabPanel value={activeTab} index={0}>
-        <EnhancedMarkdown>{topic.content[lang]}</EnhancedMarkdown>
+        {isAuthenticated ? (
+          <EnhancedMarkdown>{topic.content[lang]}</EnhancedMarkdown>
+        ) : (
+          <ContentLock previewText={getPreviewText(topic.content[lang])} />
+        )}
       </TabPanel>
 
       {has3DModel && (
