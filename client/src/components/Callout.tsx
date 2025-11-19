@@ -1,88 +1,93 @@
-import React from 'react'
-import { Alert, AlertTitle, Box } from '@mui/material'
-import InfoIcon from '@mui/icons-material/Info'
-import WarningIcon from '@mui/icons-material/Warning'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import BlockIcon from '@mui/icons-material/Block'
-
-// Импортируем сам EnhancedMarkdown для рекурсивного рендеринга
-// ВАЖНО: Это потребует обновить импорт, чтобы избежать циклической зависимости,
-// но для простоты я предполагаю, что EnhancedMarkdown может быть импортирован.
-// В реальном проекте лучше использовать отдельный компонент рендера или библиотеку
-// (Здесь я использую условный импорт, чтобы показать структуру)
-// import RecursiveMarkdown from './RecursiveMarkdown' 
+// client/src/components/Callout.tsx
+import React from 'react';
+import { Box, Paper, Typography, Alert, AlertTitle } from '@mui/material';
+import WarningIcon from '@mui/icons-material/Warning';
+import InfoIcon from '@mui/icons-material/Info';
+import ErrorIcon from '@mui/icons-material/Error';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+// NOTE: Здесь не нужно импортировать EnhancedMarkdown, так как он передается через children
 
 interface CalloutProps {
-  type: 'info' | 'warning' | 'danger' | 'clinical' | 'success' | string
-  title?: string
-  content: string
+  type: 'warning' | 'info' | 'danger' | 'success' | 'clinical' | string;
+  title?: string;
+  children: React.ReactNode; // Принимаем дочерний компонент (EnhancedMarkdown)
 }
 
-const Callout: React.FC<CalloutProps> = ({ type, title, content }) => {
-  const normalizedType = type.toLowerCase()
+const Callout: React.FC<CalloutProps> = ({ type, title, children }) => {
+  const normalizedType = (type || 'info').toLowerCase();
 
-  let severity: 'info' | 'warning' | 'error' | 'success' = 'info'
-  let icon = <InfoIcon />
-  let defaultTitle = ''
+  const config = {
+    warning: {
+      icon: <WarningIcon />,
+      bgcolor: '#fffbe6',
+      borderColor: '#ffc107',
+      color: '#856404',
+      iconColor: '#ffc107',
+      defaultTitle: 'Внимание',
+    },
+    info: {
+      icon: <InfoIcon />,
+      bgcolor: '#d1ecf1',
+      borderColor: '#17a2b8',
+      color: '#0c5460',
+      iconColor: '#17a2b8',
+      defaultTitle: 'Информация',
+    },
+    danger: {
+      icon: <ErrorIcon />,
+      bgcolor: '#f8d7da',
+      borderColor: '#dc3545',
+      color: '#721c24',
+      iconColor: '#dc3545',
+      defaultTitle: 'ОПАСНОСТЬ',
+    },
+    success: {
+      icon: <CheckCircleIcon />,
+      bgcolor: '#d4edda',
+      borderColor: '#28a745',
+      color: '#155724',
+      iconColor: '#28a745',
+      defaultTitle: 'Рекомендация',
+    },
+    clinical: {
+      icon: <LocalHospitalIcon />,
+      bgcolor: '#e7f3ff',
+      borderColor: '#2196f3',
+      color: '#0d47a1',
+      iconColor: '#2196f3',
+      defaultTitle: 'Клиническое значение',
+    },
+  };
 
-  switch (normalizedType) {
-    case 'warning':
-    case 'danger':
-      severity = 'warning'
-      icon = <WarningIcon />
-      defaultTitle = 'Внимание'
-      break
-    case 'clinical':
-      severity = 'info'
-      icon = <BlockIcon />
-      defaultTitle = 'Клиническое значение'
-      break
-    case 'success':
-      severity = 'success'
-      icon = <CheckCircleIcon />
-      defaultTitle = 'Рекомендация'
-      break
-    case 'info':
-    default:
-      severity = 'info'
-      icon = <InfoIcon />
-      defaultTitle = 'Информация'
-      break
-  }
-
-  // ВАЖНО: В Production вы должны использовать компонент, который
-  // может рекурсивно рендерить Markdown (например, RecursiveMarkdown)
-  // Мы используем простой <p> для демонстрации, но в реальном коде
-  // здесь должен быть рекурсивный рендер.
-  // const ContentRenderer = (
-  //   <RecursiveMarkdown content={content} />
-  // )
+  const currentConfig = (config as any)[normalizedType] || config.info;
 
   return (
-    <Alert 
-      severity={severity} 
-      icon={icon} 
-      sx={{ 
-        my: 2, 
-        borderLeft: `5px solid ${severity === 'warning' ? 'orange' : severity === 'success' ? 'green' : 'blue'}`, 
-        backgroundColor: severity === 'warning' ? '#fffbe6' : severity === 'success' ? '#f6ffed' : '#e6f7ff',
-        color: '#333'
+    <Paper
+      elevation={0}
+      sx={{
+        display: 'flex',
+        gap: 2,
+        p: 2,
+        my: 2,
+        bgcolor: currentConfig.bgcolor,
+        borderLeft: `4px solid ${currentConfig.borderColor}`,
+        color: currentConfig.color,
       }}
     >
-      <AlertTitle sx={{ fontWeight: 'bold' }}>{title || defaultTitle}</AlertTitle>
-      
-      {/* ВНИМАНИЕ: Для финальной версии здесь должен быть компонент, 
-        который рекурсивно обрабатывает Markdown в 'content'.
-        Я использую DangerouslySetInnerHTML для демонстрации, что 
-        ContentRender получил чистый HTML/текст, который должен быть
-        обработан Markdown-рендером.
-      */}
-      <div 
-        dangerouslySetInnerHTML={{ __html: content }} 
-        style={{ color: '#333' }}
-      />
-    </Alert>
-  )
-}
+      <Box sx={{ color: currentConfig.iconColor, flexShrink: 0, pt: 0.5 }}>{currentConfig.icon}</Box>
+      <Box sx={{ flex: 1 }}>
+        {title && (
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: currentConfig.color }}>
+            {title || currentConfig.defaultTitle}
+          </Typography>
+        )}
+        
+        {/* Рендерим дочерний компонент (EnhancedMarkdown) */}
+        <Box sx={{ '& p:last-child': { mb: 0 }, color: currentConfig.color }}>{children}</Box>
+      </Box>
+    </Paper>
+  );
+};
 
-export default Callout
+export default Callout;

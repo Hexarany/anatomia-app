@@ -13,7 +13,8 @@
     "seed:cardio-nervous-systems": "ts-node src/scripts/seed-cardio-nervous-systems.ts",
     "update:final-content": "ts-node src/scripts/update-remaining-topics.ts",
     "seed:regional-myology-final": "ts-node src/scripts/seed-regional-myology-final.ts",
-    "cleanup:illustrations": "ts-node src/scripts/final-illustration-cleanup.ts"
+    "cleanup:illustrations": "ts-node src/scripts/final-illustration-cleanup.ts",
+    "create-admin": "ts-node src/scripts/create-admin.ts"
   },
   "keywords": [],
   "author": "",

@@ -35,8 +35,8 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import Model3DViewer from '@/components/Model3DViewer'
 import EnhancedMarkdown from '@/components/EnhancedMarkdown'
 import ContentLock from '@/components/ContentLock'
-import { getTopicById } from '@/services/api'
-import type { Topic } from '@/types'
+import { getTopicById, getQuizzesByTopic } from '@/services/api' // <-- Добавлен getQuizzesByTopic
+import type { Topic, Quiz } from '@/types' // <-- Добавлен Quiz type
 import { useAuth } from '@/contexts/AuthContext'
 import { useFavorites } from '@/contexts/FavoritesContext'
 
@@ -63,25 +63,31 @@ const TopicPage = () => {
   const lang = i18n.language as 'ru' | 'ro'
 
   const [topic, setTopic] = useState<Topic | null>(null)
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]) // <-- НОВЫЙ СТЕЙТ
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState(0)
 
   useEffect(() => {
-    const fetchTopic = async () => {
+    const fetchTopicData = async () => { // <-- ИМЕНУЕМ ФУНКЦИЮ, ЧТОБЫ ЗАГРУЖАТЬ ВСЕ
       if (!topicId) return
 
       try {
         setLoading(true)
-        const data = await getTopicById(topicId)
-        setTopic(data)
+        // Загрузка темы и связанных тестов параллельно
+        const [topicData, quizzesData] = await Promise.all([
+          getTopicById(topicId),
+          getQuizzesByTopic(topicId), // <-- ЗАГРУЗКА ТЕСТОВ
+        ])
+        setTopic(topicData)
+        setQuizzes(quizzesData) // <-- СОХРАНЯЕМ ТЕСТЫ
       } catch (error) {
-        console.error('Failed to fetch topic:', error)
+        console.error('Failed to fetch topic data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchTopic()
+    fetchTopicData()
   }, [topicId])
 
   if (loading) {
@@ -105,21 +111,39 @@ const TopicPage = () => {
 
   const hasImages = topic.images && topic.images.length > 0
   const hasVideos = topic.videos && topic.videos.length > 0
-  const has3DModel = topic.model3D
+  const has3DModel = topic.model3D // <-- Используем model3D
+  const hasQuiz = quizzes.length > 0 // <-- Проверяем наличие связанного теста
+  
+  // Получаем текст превью (используя новую логику)
+  // NOTE: Если бэкенд возвращает topic.content.ru с троеточием '...', это уже превью
+  const isContentLocked = !isAuthenticated // Используем простую логику аутентификации
 
-  // Get preview text (first 300 characters of content)
   const getPreviewText = (content: string) => {
+    // В идеале, бэкенд должен возвращать точное превью, но здесь мы делаем fallback
     const plainText = content.replace(/[#*`>\[\]()]/g, '').substring(0, 300)
     return plainText + '...'
   }
+
+  // --- Динамическое определение индексов вкладок ---
+  // 0: Описание
+  // 1: 3D Модель (если есть)
+  // 2: Изображения (если есть)
+  // 3: Видео (если есть)
+
+  let tabIndex = 1;
+  const modelTabIndex = has3DModel ? tabIndex++ : -1;
+  const imagesTabIndex = hasImages ? tabIndex++ : -1;
+  const videosTabIndex = hasVideos ? tabIndex++ : -1;
+  // ------------------------------------------------
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Back Button */}
       <Button
         startIcon={<ArrowBackIcon />}
+        // Возвращаемся на страницу категории, используя categoryId
         component={RouterLink}
-        to={`/category/${topic.categoryId}`}
+        to={`/category/${topic.categoryId}`} 
         sx={{ mb: 2 }}
         variant="outlined"
       >
@@ -141,7 +165,8 @@ const TopicPage = () => {
           {t('nav.home')}
         </Link>
         <Link component={RouterLink} to={`/category/${topic.categoryId}`} color="inherit">
-          {t('nav.categories')}
+          {/* NOTE: В идеале здесь должно быть имя категории, но используем t('nav.categories') */}
+          {t('nav.categories')} 
         </Link>
         <Typography color="text.primary">{topic.name[lang]}</Typography>
       </Breadcrumbs>
@@ -179,7 +204,7 @@ const TopicPage = () => {
               {has3DModel && (
                 <Chip
                   icon={<ViewInArIcon />}
-                  label={lang === 'ru' ? '3D Модель' : 'Model 3D'}
+                  label={t('topic.3dModel')}
                   color="primary"
                   size="small"
                 />
@@ -187,7 +212,7 @@ const TopicPage = () => {
               {hasImages && (
                 <Chip
                   icon={<ImageIcon />}
-                  label={`${topic.images.length} ${lang === 'ru' ? 'фото' : 'imagini'}`}
+                  label={`${topic.images.length} ${t('topic.images')}`}
                   color="success"
                   size="small"
                 />
@@ -195,10 +220,25 @@ const TopicPage = () => {
               {hasVideos && (
                 <Chip
                   icon={<VideoLibraryIcon />}
-                  label={`${topic.videos.length} ${lang === 'ru' ? 'видео' : 'video'}`}
+                  label={`${topic.videos.length} ${t('topic.videos')}`}
                   color="error"
                   size="small"
                 />
+              )}
+              
+              {/* Quiz Button (НОВАЯ ФУНКЦИОНАЛЬНОСТЬ) */}
+              {hasQuiz && (
+                <Button
+                    component={RouterLink}
+                    to={`/quiz/${quizzes[0].slug}`} // Используем slug для маршрутизации
+                    variant="contained"
+                    startIcon={<QuizIcon />}
+                    size="small"
+                    color="secondary"
+                    sx={{ ml: 2, fontWeight: 600 }}
+                >
+                    {t('topic.relatedQuiz')}
+                </Button>
               )}
 
               {/* Favorite Button */}
@@ -296,22 +336,24 @@ const TopicPage = () => {
           {isAuthenticated ? (
             <EnhancedMarkdown>{topic.content[lang]}</EnhancedMarkdown>
           ) : (
+            // NOTE: Предполагаем, что topic.content.ru уже содержит превью, если бэкенд настроен правильно.
             <ContentLock previewText={getPreviewText(topic.content[lang])} />
           )}
         </Paper>
       </TabPanel>
 
       {has3DModel && (
-        <TabPanel value={activeTab} index={1}>
-          <Model3DViewer modelUrl={topic.model3D} autoRotate={true} />
+        <TabPanel value={activeTab} index={modelTabIndex}>
+          {/* NOTE: Используем model3D, так как это поле есть в схеме */}
+          <Model3DViewer modelUrl={topic.model3D} autoRotate={true} /> 
         </TabPanel>
       )}
 
       {hasImages && (
-        <TabPanel value={activeTab} index={has3DModel ? 2 : 1}>
+        <TabPanel value={activeTab} index={imagesTabIndex}>
           <Grid container spacing={3}>
             {topic.images.map((image, index) => (
-              <Grid item xs={12} sm={6} md={4} key={index}>
+              <Grid item xs={12} sm={6} md={4} key={image.url || index}>
                 <Card
                   sx={{
                     height: '100%',
@@ -346,10 +388,10 @@ const TopicPage = () => {
       )}
 
       {hasVideos && (
-        <TabPanel value={activeTab} index={has3DModel && hasImages ? 3 : has3DModel || hasImages ? 2 : 1}>
+        <TabPanel value={activeTab} index={videosTabIndex}>
           <Grid container spacing={3}>
             {topic.videos.map((video, index) => (
-              <Grid item xs={12} md={6} key={index}>
+              <Grid item xs={12} md={6} key={video.url || index}>
                 <Card
                   sx={{
                     height: '100%',
