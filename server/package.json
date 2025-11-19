@@ -12,7 +12,8 @@
     "seed:joints-muscles": "ts-node src/scripts/seed-complete-muscles-joints.ts",
     "seed:cardio-nervous-systems": "ts-node src/scripts/seed-cardio-nervous-systems.ts",
     "update:final-content": "ts-node src/scripts/update-remaining-topics.ts",
-    "seed:regional-myology-final": "ts-node src/scripts/seed-regional-myology-final.ts"
+    "seed:regional-myology-final": "ts-node src/scripts/seed-regional-myology-final.ts",
+    "cleanup:illustrations": "ts-node src/scripts/final-illustration-cleanup.ts"
   },
   "keywords": [],
   "author": "",
