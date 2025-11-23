@@ -17,7 +17,7 @@ router.post(
 // ADMIN ONLY: Защищенный маршрут для получения списка файлов
 router.get('/list', authenticateToken, authorizeRole('admin'), getMediaList)
 
-// ADMIN ONLY: Защищенный маршрут для удаления
-router.delete('/:filename', authenticateToken, authorizeRole('admin'), deleteMedia)
+// ADMIN ONLY: Защищенный маршрут для удаления (по ID)
+router.delete('/:id', authenticateToken, authorizeRole('admin'), deleteMedia)
 
 export default router

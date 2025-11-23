@@ -23,8 +23,10 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 // ВАЖНО: Предполагаем, что uploadMedia был добавлен в client/src/services/api.ts
 
 interface UploadedFile {
+  _id: string
   url: string
   filename: string
+  originalName?: string
   mimetype: string
   size: number
 }
@@ -69,13 +71,9 @@ const MediaManager = () => {
     try {
       // Использование API-сервиса для загрузки
       const result = await uploadMedia(file, token)
-      const newFile: UploadedFile = {
-        url: result.url,
-        filename: result.filename,
-        mimetype: result.mimetype,
-        size: result.size,
-      }
-      setFiles(prev => [newFile, ...prev])
+      // После загрузки перезагружаем весь список, чтобы получить _id
+      const mediaList = await getMediaList(token)
+      setFiles(mediaList)
       showSnackbar(`Файл ${file.name} успешно загружен!`, 'success')
     } catch (error) {
       console.error('Upload error:', error)
@@ -89,14 +87,14 @@ const MediaManager = () => {
     }
   }
 
-  const handleDeleteFile = async (filename: string) => {
-    if (!confirm(`Вы уверены, что хотите удалить файл ${filename}?`)) return
+  const handleDeleteFile = async (id: string, displayName: string) => {
+    if (!confirm(`Вы уверены, что хотите удалить файл ${displayName}?`)) return
     if (!token) return
 
     try {
-      await deleteMedia(filename, token)
-      setFiles(prev => prev.filter(f => f.filename !== filename))
-      showSnackbar(`Файл ${filename} успешно удален.`, 'success')
+      await deleteMedia(id, token)
+      setFiles(prev => prev.filter(f => f._id !== id))
+      showSnackbar(`Файл ${displayName} успешно удален.`, 'success')
     } catch (error) {
       console.error('Delete error:', error)
       showSnackbar('Ошибка при удалении файла.', 'error')
@@ -174,10 +172,10 @@ const MediaManager = () => {
             </ListItem>
           ) : (
             files.map((file, index) => (
-              <Box key={file.filename}>
+              <Box key={file._id}>
                 <ListItem>
                   <ListItemText
-                    primary={file.filename}
+                    primary={file.originalName || file.filename}
                     secondary={`Тип: ${file.mimetype} | Размер: ${formatFileSize(file.size)} | URL: ${file.url}`}
                   />
                   <ListItemSecondaryAction>
@@ -188,7 +186,7 @@ const MediaManager = () => {
                     >
                       <ContentCopyIcon color="primary" />
                     </IconButton>
-                    <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(file.filename)}>
+                    <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(file._id, file.originalName || file.filename)}>
                       <DeleteIcon color="error" />
                     </IconButton>
                   </ListItemSecondaryAction>

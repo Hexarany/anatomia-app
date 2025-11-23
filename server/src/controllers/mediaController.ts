@@ -121,9 +121,9 @@ export const uploadMedia = async (req: Request, res: Response) => {
 
 export const deleteMedia = async (req: Request, res: Response) => {
   try {
-    const { filename } = req.params
+    const { id } = req.params
 
-    const media = await Media.findOne({ filename })
+    const media = await Media.findById(id)
 
     if (!media) {
       return res.status(404).json({ error: { message: 'Файл не найден' } })
@@ -145,9 +145,9 @@ export const deleteMedia = async (req: Request, res: Response) => {
     }
 
     // Удаляем запись из БД
-    await Media.deleteOne({ filename })
+    await Media.findByIdAndDelete(id)
 
-    res.json({ message: `Файл ${filename} успешно удален` })
+    res.json({ message: `Файл ${media.originalName} успешно удален` })
   } catch (error) {
     console.error('Error deleting file from Cloudinary:', error)
     res.status(500).json({ error: { message: 'Ошибка при удалении файла' } })

@@ -174,8 +174,8 @@ export const getMediaList = async (token: string): Promise<any[]> => {
   return response.data
 }
 
-export const deleteMedia = async (filename: string, token: string): Promise<void> => {
-  await api.delete(`/media/${filename}`, {
+export const deleteMedia = async (id: string, token: string): Promise<void> => {
+  await api.delete(`/media/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
