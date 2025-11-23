@@ -12,11 +12,8 @@ interface CustomRequest extends Request {
 
 // Helper: Проверяет, авторизован ли пользователь для получения полного контента
 const isAuthorizedForFullContent = (req: CustomRequest): boolean => {
-  const userRole = req.userRole;
-  const hasActiveSubscription = (req as any).hasActiveSubscription; 
-  if (userRole === 'admin') return true;
-  if (hasActiveSubscription) return true;
-  return false;
+  // Если пользователь авторизован (есть userRole), даем полный доступ
+  return !!req.userRole;
 };
 
 // Helper: Применяет блокировку контента
@@ -60,7 +57,7 @@ export const getTopicById = async (req: Request, res: Response) => {
       : { slug: slugOrId };
 
     const topic = await Topic.findOne(query).populate('categoryId', 'name slug');
-    
+
     if (!topic) {
       return res.status(404).json({ error: { message: 'Topic not found' } })
     }
@@ -122,5 +119,151 @@ export const deleteTopic = async (req: Request, res: Response) => {
     res.json({ message: 'Topic deleted successfully' })
   } catch (error) {
     res.status(500).json({ error: { message: 'Failed to delete topic' } })
+  }
+}
+
+// Управление иллюстрациями
+export const addImageToTopic = async (req: Request, res: Response) => {
+  try {
+    const { topicId } = req.params
+    const { url, filename, caption } = req.body
+
+    const topic = await Topic.findById(topicId)
+    if (!topic) {
+      return res.status(404).json({ error: { message: 'Topic not found' } })
+    }
+
+    // Добавляем изображение в массив images
+    topic.images.push({
+      url,
+      filename,
+      caption: caption || { ru: '', ro: '' },
+      type: 'image'
+    } as any)
+
+    await topic.save()
+    res.json(topic)
+  } catch (error) {
+    console.error('Error adding image to topic:', error)
+    res.status(500).json({ error: { message: 'Failed to add image to topic' } })
+  }
+}
+
+export const removeImageFromTopic = async (req: Request, res: Response) => {
+  try {
+    const { topicId, imageId } = req.params
+
+    const topic = await Topic.findById(topicId)
+    if (!topic) {
+      return res.status(404).json({ error: { message: 'Topic not found' } })
+    }
+
+    // Удаляем изображение по _id
+    topic.images = topic.images.filter((img: any) => img._id.toString() !== imageId)
+
+    await topic.save()
+    res.json(topic)
+  } catch (error) {
+    console.error('Error removing image from topic:', error)
+    res.status(500).json({ error: { message: 'Failed to remove image from topic' } })
+  }
+}
+
+export const updateImageCaption = async (req: Request, res: Response) => {
+  try {
+    const { topicId, imageId } = req.params
+    const { caption } = req.body
+
+    const topic = await Topic.findById(topicId)
+    if (!topic) {
+      return res.status(404).json({ error: { message: 'Topic not found' } })
+    }
+
+    // Находим изображение и обновляем подпись
+    const image = topic.images.find((img: any) => img._id.toString() === imageId)
+    if (!image) {
+      return res.status(404).json({ error: { message: 'Image not found' } })
+    }
+
+    image.caption = caption
+
+    await topic.save()
+    res.json(topic)
+  } catch (error) {
+    console.error('Error updating image caption:', error)
+    res.status(500).json({ error: { message: 'Failed to update image caption' } })
+  }
+}
+
+// Управление видео
+export const addVideoToTopic = async (req: Request, res: Response) => {
+  try {
+    const { topicId } = req.params
+    const { url, filename, caption } = req.body
+
+    const topic = await Topic.findById(topicId)
+    if (!topic) {
+      return res.status(404).json({ error: { message: 'Topic not found' } })
+    }
+
+    // Добавляем видео в массив videos
+    topic.videos.push({
+      url,
+      filename,
+      caption: caption || { ru: '', ro: '' },
+      type: 'video'
+    } as any)
+
+    await topic.save()
+    res.json(topic)
+  } catch (error) {
+    console.error('Error adding video to topic:', error)
+    res.status(500).json({ error: { message: 'Failed to add video to topic' } })
+  }
+}
+
+export const removeVideoFromTopic = async (req: Request, res: Response) => {
+  try {
+    const { topicId, videoId } = req.params
+
+    const topic = await Topic.findById(topicId)
+    if (!topic) {
+      return res.status(404).json({ error: { message: 'Topic not found' } })
+    }
+
+    // Удаляем видео по _id
+    topic.videos = topic.videos.filter((vid: any) => vid._id.toString() !== videoId)
+
+    await topic.save()
+    res.json(topic)
+  } catch (error) {
+    console.error('Error removing video from topic:', error)
+    res.status(500).json({ error: { message: 'Failed to remove video from topic' } })
+  }
+}
+
+export const updateVideoCaption = async (req: Request, res: Response) => {
+  try {
+    const { topicId, videoId } = req.params
+    const { caption } = req.body
+
+    const topic = await Topic.findById(topicId)
+    if (!topic) {
+      return res.status(404).json({ error: { message: 'Topic not found' } })
+    }
+
+    // Находим видео и обновляем подпись
+    const video = topic.videos.find((vid: any) => vid._id.toString() === videoId)
+    if (!video) {
+      return res.status(404).json({ error: { message: 'Video not found' } })
+    }
+
+    video.caption = caption
+
+    await topic.save()
+    res.json(topic)
+  } catch (error) {
+    console.error('Error updating video caption:', error)
+    res.status(500).json({ error: { message: 'Failed to update video caption' } })
   }
 }

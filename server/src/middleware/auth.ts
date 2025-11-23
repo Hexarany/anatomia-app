@@ -40,6 +40,33 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   }
 }
 
+// Опциональный middleware - устанавливает userRole если токен есть, но НЕ требует его
+export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    if (!token) {
+      // Токена нет - продолжаем без аутентификации
+      return next()
+    }
+
+    // Токен есть - проверяем и устанавливаем userRole
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+      if (!err && decoded) {
+        const payload = decoded as JwtPayload
+        ;(req as any).userId = payload.userId
+        ;(req as any).userEmail = payload.email
+        ;(req as any).userRole = payload.role
+      }
+      next()
+    })
+  } catch (error) {
+    // Ошибка - продолжаем без аутентификации
+    next()
+  }
+}
+
 // Middleware для проверки роли пользователя
 export const authorizeRole = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {

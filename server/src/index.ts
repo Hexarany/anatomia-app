@@ -3,6 +3,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
 import dotenv from 'dotenv'
+import path from 'path'
 import { connectDB } from './config/database'
 import categoryRoutes from './routes/categoryRoutes'
 import topicRoutes from './routes/topicRoutes'
@@ -11,6 +12,9 @@ import mediaRoutes from './routes/mediaRoutes'
 import authRoutes from './routes/auth'
 import subscriptionRoutes from './routes/subscriptionRoutes'
 import paypalRoutes from './routes/paypalRoutes'
+import massageProtocolRoutes from './routes/massageProtocolRoutes'
+import hygieneGuidelineRoutes from './routes/hygieneGuidelineRoutes'
+import anatomyModel3DRoutes from './routes/anatomyModel3DRoutes'
 
 // Load environment variables
 dotenv.config()
@@ -19,7 +23,10 @@ const app = express()
 const PORT = process.env.PORT || 3000
 
 // Middleware
-app.use(helmet())
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false
+}))
 app.use(compression())
 app.use(cors({
   origin: (origin, callback) => {
@@ -47,8 +54,15 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-// Static files (uploads)
-app.use('/uploads', express.static('uploads'))
+// Static files (uploads) - using absolute path with CORS
+const uploadsPath = path.join(__dirname, '..', 'uploads')
+console.log('📁 Uploads directory:', uploadsPath)
+// Применяем CORS для статических файлов
+app.use('/uploads', cors({
+  origin: '*',
+  methods: ['GET'],
+  credentials: false
+}), express.static(uploadsPath))
 
 // Routes
 app.use('/api/auth', authRoutes)
@@ -58,6 +72,9 @@ app.use('/api/quizzes', quizRoutes)
 app.use('/api/media', mediaRoutes)
 app.use('/api/subscriptions', subscriptionRoutes)
 app.use('/api/paypal', paypalRoutes)
+app.use('/api/massage-protocols', massageProtocolRoutes)
+app.use('/api/hygiene-guidelines', hygieneGuidelineRoutes)
+app.use('/api/anatomy-models-3d', anatomyModel3DRoutes)
 
 // Health check endpoints
 app.get('/health', (req, res) => {

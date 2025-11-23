@@ -57,6 +57,9 @@ const Navbar = () => {
     { name: t('nav.home'), path: '/' },
     { name: t('nav.categories'), path: '/#categories' },
     { name: t('nav.quizzes'), path: '/#quizzes' },
+    { name: i18n.language === 'ru' ? 'Протоколы массажа' : 'Protocoale de masaj', path: '/massage-protocols' },
+    { name: i18n.language === 'ru' ? '3D Модели' : 'Modele 3D', path: '/anatomy-models-3d' },
+    { name: i18n.language === 'ru' ? 'Гигиена и стандарты' : 'Igienă și standarde', path: '/hygiene-guidelines' },
   ]
 
   return (

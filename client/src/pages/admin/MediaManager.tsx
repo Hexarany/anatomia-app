@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from 'react'
-import { useAuth } from '@/contexts/AuthContext' 
-import { uploadMedia } from '@/services/api'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { uploadMedia, getMediaList, deleteMedia } from '@/services/api'
 import {
   Box,
   Button,
@@ -18,6 +18,7 @@ import {
 } from '@mui/material'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import DeleteIcon from '@mui/icons-material/Delete'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 
 // ВАЖНО: Предполагаем, что uploadMedia был добавлен в client/src/services/api.ts
 
@@ -32,13 +33,33 @@ const MediaManager = () => {
   const { token } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
-  // Используем mockFiles, так как реальный список файлов нужно запрашивать через новый API
-  const [mockFiles, setMockFiles] = useState<UploadedFile[]>([]); 
+  const [isLoading, setIsLoading] = useState(false)
+  const [files, setFiles] = useState<UploadedFile[]>([])
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' })
 
   const showSnackbar = (message: string, severity: 'success' | 'error') => {
     setSnackbar({ open: true, message, severity })
   }
+
+  // Загрузка списка файлов при монтировании компонента
+  useEffect(() => {
+    const fetchMediaList = async () => {
+      if (!token) return
+
+      setIsLoading(true)
+      try {
+        const mediaList = await getMediaList(token)
+        setFiles(mediaList)
+      } catch (error) {
+        console.error('Error fetching media list:', error)
+        showSnackbar('Ошибка при загрузке списка файлов.', 'error')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchMediaList()
+  }, [token])
   
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -47,16 +68,17 @@ const MediaManager = () => {
     setIsUploading(true)
     try {
       // Использование API-сервиса для загрузки
-      const result = await uploadMedia(file, token) 
+      const result = await uploadMedia(file, token)
       const newFile: UploadedFile = {
         url: result.url,
         filename: result.filename,
         mimetype: result.mimetype,
         size: result.size,
       }
-      setMockFiles(prev => [newFile, ...prev]);
+      setFiles(prev => [newFile, ...prev])
       showSnackbar(`Файл ${file.name} успешно загружен!`, 'success')
     } catch (error) {
+      console.error('Upload error:', error)
       showSnackbar('Ошибка загрузки файла. Проверьте права и настройки сервера.', 'error')
     } finally {
       setIsUploading(false)
@@ -67,12 +89,32 @@ const MediaManager = () => {
     }
   }
 
-  const handleDeleteFile = (filename: string) => {
-    // В Production здесь был бы API-вызов deleteMedia
-    if (!confirm(`Вы уверены, что хотите удалить файл ${filename}?`)) return;
+  const handleDeleteFile = async (filename: string) => {
+    if (!confirm(`Вы уверены, что хотите удалить файл ${filename}?`)) return
+    if (!token) return
 
-    setMockFiles(prev => prev.filter(f => f.filename !== filename));
-    showSnackbar(`Файл ${filename} удален (локальный Mock).`, 'success');
+    try {
+      await deleteMedia(filename, token)
+      setFiles(prev => prev.filter(f => f.filename !== filename))
+      showSnackbar(`Файл ${filename} успешно удален.`, 'success')
+    } catch (error) {
+      console.error('Delete error:', error)
+      showSnackbar('Ошибка при удалении файла.', 'error')
+    }
+  }
+
+  const handleCopyUrl = async (url: string) => {
+    try {
+      // Формируем полный URL для доступа к файлу
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+      const fullUrl = `${baseUrl}${url}`
+
+      await navigator.clipboard.writeText(fullUrl)
+      showSnackbar('URL скопирован в буфер обмена!', 'success')
+    } catch (error) {
+      console.error('Copy error:', error)
+      showSnackbar('Ошибка при копировании URL.', 'error')
+    }
   }
   
   const formatFileSize = (bytes: number) => {
@@ -88,9 +130,9 @@ const MediaManager = () => {
       <Typography variant="h5" gutterBottom>
         Управление медиафайлами
       </Typography>
-      <Alert severity="warning" sx={{ mb: 3 }}>
-        ВНИМАНИЕ: Загрузка файлов на бэкенде настроена на Mock-режим. Для Production необходимо интегрировать 
-        облачное хранилище (AWS S3 / Cloudinary) в `server/src/controllers/mediaController.ts`.
+      <Alert severity="info" sx={{ mb: 3 }}>
+        Файлы сохраняются в папку `server/uploads` на сервере.
+        Для Production рекомендуется настроить облачное хранилище (AWS S3 / Cloudinary).
       </Alert>
 
       <Paper sx={{ p: 3, mb: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -116,16 +158,22 @@ const MediaManager = () => {
       </Paper>
 
       <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
-        Загруженные файлы (Mock List)
+        Загруженные файлы
       </Typography>
       <Paper>
         <List>
-          {mockFiles.length === 0 ? (
+          {isLoading ? (
+            <ListItem>
+              <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', p: 2 }}>
+                <CircularProgress />
+              </Box>
+            </ListItem>
+          ) : files.length === 0 ? (
             <ListItem>
               <ListItemText secondary="Нет загруженных файлов." />
             </ListItem>
           ) : (
-            mockFiles.map((file, index) => (
+            files.map((file, index) => (
               <Box key={file.filename}>
                 <ListItem>
                   <ListItemText
@@ -133,12 +181,19 @@ const MediaManager = () => {
                     secondary={`Тип: ${file.mimetype} | Размер: ${formatFileSize(file.size)} | URL: ${file.url}`}
                   />
                   <ListItemSecondaryAction>
+                    <IconButton
+                      aria-label="copy"
+                      onClick={() => handleCopyUrl(file.url)}
+                      sx={{ mr: 1 }}
+                    >
+                      <ContentCopyIcon color="primary" />
+                    </IconButton>
                     <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(file.filename)}>
                       <DeleteIcon color="error" />
                     </IconButton>
                   </ListItemSecondaryAction>
                 </ListItem>
-                {index < mockFiles.length - 1 && <Divider />}
+                {index < files.length - 1 && <Divider />}
               </Box>
             ))
           )}

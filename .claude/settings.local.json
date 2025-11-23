@@ -15,7 +15,12 @@
       "Bash(git push:*)",
       "Bash(node -e:*)",
       "Bash(dir:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git restore:*)",
+      "Bash(categories.json)",
+      "Bash(\"C:\\Users\\User\\Desktop\\Anatomia\\client\\src\\pages\\admin\\HygieneGuidelinesManager.tsx\")",
+      "Bash(\"C:\\Users\\User\\Desktop\\Anatomia\\server\\src\\models\\AnatomyModel3D.ts\")"
     ],
     "deny": [],
     "ask": []

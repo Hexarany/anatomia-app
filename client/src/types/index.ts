@@ -56,6 +56,43 @@ export interface MediaFile {
   type: 'image' | 'video' | '3d-model'
 }
 
+export interface MassageProtocol {
+  _id: string
+  name: {
+    ru: string
+    ro: string
+  }
+  description: {
+    ru: string
+    ro: string
+  }
+  content: {
+    ru: string
+    ro: string
+  }
+  type: string
+  duration: number
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  benefits: {
+    ru: string
+    ro: string
+  }
+  contraindications: {
+    ru: string
+    ro: string
+  }
+  technique: {
+    ru: string
+    ro: string
+  }
+  images: MediaFile[]
+  videos: MediaFile[]
+  slug: string
+  order: number
+  createdAt?: string | Date
+  updatedAt?: string | Date
+}
+
 export interface Quiz {
   _id: string
   topicId?: string
@@ -148,4 +185,47 @@ export interface CurrentSubscription {
     hasActiveSubscription: boolean
   }
   subscription: Subscription | null
+}
+
+export interface HygieneGuideline {
+  _id: string
+  title: {
+    ru: string
+    ro: string
+  }
+  category: 'sterilization' | 'disinfection' | 'ergonomics' | 'office_requirements' | 'therapist_requirements' | 'dress_code'
+  content: {
+    ru: string
+    ro: string
+  }
+  images: MediaFile[]
+  order: number
+  isPublished: boolean
+  createdAt?: string | Date
+  updatedAt?: string | Date
+}
+
+export interface AnatomyModel3D {
+  _id: string
+  name: {
+    ru: string
+    ro: string
+  }
+  description: {
+    ru: string
+    ro: string
+  }
+  category: 'bones' | 'muscles' | 'organs' | 'nervous_system' | 'cardiovascular_system' | 'other'
+  modelUrl: string
+  previewImage?: string
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  tags: Array<{
+    ru: string
+    ro: string
+  }>
+  slug: string
+  order: number
+  isPublished: boolean
+  createdAt?: string | Date
+  updatedAt?: string | Date
 }

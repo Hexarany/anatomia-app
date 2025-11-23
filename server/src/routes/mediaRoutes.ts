@@ -1,6 +1,6 @@
 // server/src/routes/mediaRoutes.ts
 import express from 'express'
-import { upload, uploadMedia, deleteMedia } from '../controllers/mediaController'
+import { upload, uploadMedia, deleteMedia, getMediaList } from '../controllers/mediaController'
 import { authenticateToken, authorizeRole } from '../middleware/auth'
 
 const router = express.Router()
@@ -13,6 +13,9 @@ router.post(
   upload.single('file'), // 'file' - имя поля в FormData
   uploadMedia
 )
+
+// ADMIN ONLY: Защищенный маршрут для получения списка файлов
+router.get('/list', authenticateToken, authorizeRole('admin'), getMediaList)
 
 // ADMIN ONLY: Защищенный маршрут для удаления
 router.delete('/:filename', authenticateToken, authorizeRole('admin'), deleteMedia)

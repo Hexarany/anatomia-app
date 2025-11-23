@@ -28,6 +28,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import type { Topic, Category } from '@/types'
+import TopicImagesManager from '@/components/TopicImagesManager'
 import { createTopic, updateTopic, deleteTopic } from '@/services/api' // <-- ИМПОРТ НОВЫХ ФУНКЦИЙ
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
@@ -378,7 +379,7 @@ const TopicsManager = () => {
           </TabPanel>
 
           <TabPanel value={activeTab} index={3}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <TextField
                 label="URL изображения"
                 value={formData.imageUrl}
@@ -393,6 +394,23 @@ const TopicsManager = () => {
                 fullWidth
                 helperText="URL файла .glb для 3D визуализации"
               />
+
+              {editingTopic && editingTopic._id && (
+                <>
+                  <Box sx={{ borderTop: 2, borderColor: 'divider', pt: 3, mt: 2 }} />
+                  <TopicImagesManager
+                    topicId={editingTopic._id}
+                    images={editingTopic.images || []}
+                    onUpdate={loadTopics}
+                  />
+                </>
+              )}
+
+              {!editingTopic && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Иллюстрации можно добавить после создания топика
+                </Alert>
+              )}
             </Box>
           </TabPanel>
         </DialogContent>

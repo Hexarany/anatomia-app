@@ -29,15 +29,10 @@ const HomePage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        console.log('Fetching categories from API...')
         const data = await getCategories()
-        console.log('Categories received:', data)
         setCategories(data)
       } catch (error) {
         console.error('Failed to fetch categories:', error)
-        if (error instanceof Error) {
-          console.error('Error message:', error.message)
-        }
       } finally {
         setLoading(false)
       }
@@ -78,15 +73,23 @@ const HomePage = () => {
         sx={{
           bgcolor: 'primary.main',
           color: 'white',
-          py: 12,
+          py: { xs: 6, sm: 8, md: 12 },
           textAlign: 'center',
         }}
       >
         <Container maxWidth="md">
-          <Typography variant="h2" component="h1" gutterBottom>
+          <Typography
+            variant="h2"
+            component="h1"
+            gutterBottom
+            sx={{ fontSize: { xs: '2rem', sm: '2.5rem', md: '3.75rem' } }}
+          >
             {t('home.welcome')}
           </Typography>
-          <Typography variant="h5" sx={{ mb: 4, opacity: 0.9 }}>
+          <Typography
+            variant="h5"
+            sx={{ mb: 4, opacity: 0.9, fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' } }}
+          >
             {t('home.description')}
           </Typography>
           <Button
@@ -95,7 +98,7 @@ const HomePage = () => {
             color="secondary"
             component={RouterLink}
             to="#categories"
-            sx={{ px: 4, py: 1.5 }}
+            sx={{ px: { xs: 3, md: 4 }, py: { xs: 1, md: 1.5 } }}
           >
             {t('home.getStarted')}
           </Button>
@@ -103,13 +106,13 @@ const HomePage = () => {
       </Box>
 
       {/* Features Section */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 } }}>
         <Typography
           variant="h3"
           component="h2"
           align="center"
           gutterBottom
-          sx={{ mb: 6 }}
+          sx={{ mb: { xs: 3, md: 6 }, fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' } }}
         >
           {t('home.features.title')}
         </Typography>
@@ -142,14 +145,14 @@ const HomePage = () => {
       </Container>
 
       {/* Categories Section */}
-      <Box id="categories" sx={{ bgcolor: 'background.default', py: 8 }}>
-        <Container maxWidth="lg">
+      <Box id="categories" sx={{ bgcolor: 'background.default', py: { xs: 4, sm: 6, md: 8 } }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
           <Typography
             variant="h3"
             component="h2"
             align="center"
             gutterBottom
-            sx={{ mb: 6 }}
+            sx={{ mb: { xs: 3, md: 6 }, fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' } }}
           >
             {t('nav.categories')}
           </Typography>

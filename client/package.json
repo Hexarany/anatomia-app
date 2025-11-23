@@ -15,8 +15,8 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.10",
     "@mui/material": "^5.15.10",
-    "@react-three/drei": "^9.96.1",
-    "@react-three/fiber": "^8.15.16",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
     "axios": "^1.6.7",
     "i18next": "^23.8.2",
     "react": "^18.2.0",
@@ -25,6 +25,7 @@
     "react-i18next": "^14.0.5",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^6.22.0",
+    "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "three": "^0.161.0",
     "zustand": "^4.5.0"

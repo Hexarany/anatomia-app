@@ -14,6 +14,9 @@ import CategoriesManager from './CategoriesManager'
 import TopicsManager from './TopicsManager'
 import QuizzesManager from './QuizzesManager'
 import MediaManager from './MediaManager'
+import MassageProtocolsManager from './MassageProtocolsManager'
+import HygieneGuidelinesManager from './HygieneGuidelinesManager'
+import AnatomyModels3DManager from './AnatomyModels3DManager'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -83,6 +86,9 @@ const AdminDashboard = () => {
             <Tab label="Категории / Categorii" />
             <Tab label="Темы / Teme" />
             <Tab label="Тесты / Teste" />
+            <Tab label="Протоколы массажа / Protocoale masaj" />
+            <Tab label="Гигиена и стандарты / Igienă și standarde" />
+            <Tab label="3D Модели / Modele 3D" />
             <Tab label="Медиа / Media" />
           </Tabs>
         </Box>
@@ -97,6 +103,15 @@ const AdminDashboard = () => {
           <QuizzesManager />
         </TabPanel>
         <TabPanel value={activeTab} index={3}>
+          <MassageProtocolsManager />
+        </TabPanel>
+        <TabPanel value={activeTab} index={4}>
+          <HygieneGuidelinesManager />
+        </TabPanel>
+        <TabPanel value={activeTab} index={5}>
+          <AnatomyModels3DManager />
+        </TabPanel>
+        <TabPanel value={activeTab} index={6}>
           <MediaManager />
         </TabPanel>
       </Paper>

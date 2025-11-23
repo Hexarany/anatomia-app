@@ -11,6 +11,11 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import SubscriptionPage from './pages/SubscriptionPage'
 import ProfilePage from './pages/ProfilePage'
+import MassageProtocolsPage from './pages/MassageProtocolsPage'
+import MassageProtocolPage from './pages/MassageProtocolPage'
+import HygieneGuidelinesPage from './pages/HygieneGuidelinesPage'
+import AnatomyModels3DPage from './pages/AnatomyModels3DPage'
+import AnatomyModel3DViewerPage from './pages/AnatomyModel3DViewerPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -27,6 +32,11 @@ function App() {
           <Route path="/category/:categoryId" element={<CategoryPage />} />
           <Route path="/topic/:topicId" element={<TopicPage />} />
           <Route path="/quiz/:quizId" element={<QuizPage />} />
+          <Route path="/massage-protocols" element={<MassageProtocolsPage />} />
+          <Route path="/massage-protocols/:protocolId" element={<MassageProtocolPage />} />
+          <Route path="/hygiene-guidelines" element={<HygieneGuidelinesPage />} />
+          <Route path="/anatomy-models-3d" element={<AnatomyModels3DPage />} />
+          <Route path="/anatomy-models-3d/:id" element={<AnatomyModel3DViewerPage />} />
           <Route path="/admin/*" element={<AdminPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
