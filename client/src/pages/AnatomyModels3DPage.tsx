@@ -71,7 +71,7 @@ const AnatomyModels3DPage = () => {
                 <CardMedia
                   component="img"
                   height="200"
-                  image={`${API_BASE_URL}${model.previewImage}`}
+                  image={model.previewImage.startsWith('http') ? model.previewImage : `${API_BASE_URL}${model.previewImage}`}
                   alt={model.name[lang]}
                   sx={{ objectFit: 'cover' }}
                 />
