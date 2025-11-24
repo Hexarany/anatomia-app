@@ -139,7 +139,7 @@ const TriggerPointDetailPage = () => {
         <Typography variant="h6" gutterBottom fontWeight={600} color="primary">
           {lang === 'ru' ? 'Техника массажа' : 'Tehnica de masaj'}
         </Typography>
-        <EnhancedMarkdown content={point.technique[lang]} />
+        <EnhancedMarkdown>{point.technique[lang]}</EnhancedMarkdown>
       </Paper>
 
       {/* Противопоказания */}
