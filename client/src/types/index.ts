@@ -223,6 +223,12 @@ export interface AnatomyModel3D {
     ru: string
     ro: string
   }>
+  attribution?: {
+    author: string
+    source: string
+    sourceUrl?: string
+    license: string
+  }
   slug: string
   order: number
   isPublished: boolean

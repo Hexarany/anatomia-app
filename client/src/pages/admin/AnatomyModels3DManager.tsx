@@ -28,6 +28,12 @@ const AnatomyModels3DManager = () => {
     modelUrl: '',
     previewImage: '',
     difficulty: 'beginner' as AnatomyModel3D['difficulty'],
+    attribution: {
+      author: '',
+      source: '',
+      sourceUrl: '',
+      license: 'CC BY 4.0',
+    },
     order: 0,
   })
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' })
@@ -53,6 +59,12 @@ const AnatomyModels3DManager = () => {
         modelUrl: model.modelUrl,
         previewImage: model.previewImage || '',
         difficulty: model.difficulty,
+        attribution: model.attribution || {
+          author: '',
+          source: '',
+          sourceUrl: '',
+          license: 'CC BY 4.0',
+        },
         order: model.order,
       })
     } else {
@@ -64,6 +76,12 @@ const AnatomyModels3DManager = () => {
         modelUrl: '',
         previewImage: '',
         difficulty: 'beginner',
+        attribution: {
+          author: '',
+          source: '',
+          sourceUrl: '',
+          license: 'CC BY 4.0',
+        },
         order: models.length,
       })
     }
@@ -163,8 +181,39 @@ const AnatomyModels3DManager = () => {
             <TextField select label="Категория" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value as any })} fullWidth>
               {categories.map((cat) => (<MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>))}
             </TextField>
-            <TextField label="URL модели (.glb)" value={formData.modelUrl} onChange={(e) => setFormData({ ...formData, modelUrl: e.target.value })} fullWidth helperText="/uploads/models/model.glb" />
+            <TextField label="URL модели (.glb)" value={formData.modelUrl} onChange={(e) => setFormData({ ...formData, modelUrl: e.target.value })} fullWidth helperText="Cloudinary URL для .glb файла" />
             <TextField label="URL превью" value={formData.previewImage} onChange={(e) => setFormData({ ...formData, previewImage: e.target.value })} fullWidth />
+
+            <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>Авторство (для CC BY лицензий)</Typography>
+            <TextField
+              label="Автор"
+              value={formData.attribution.author}
+              onChange={(e) => setFormData({ ...formData, attribution: { ...formData.attribution, author: e.target.value } })}
+              fullWidth
+              helperText="Имя создателя 3D модели"
+            />
+            <TextField
+              label="Источник"
+              value={formData.attribution.source}
+              onChange={(e) => setFormData({ ...formData, attribution: { ...formData.attribution, source: e.target.value } })}
+              fullWidth
+              helperText="Название сайта или платформы"
+            />
+            <TextField
+              label="URL источника"
+              value={formData.attribution.sourceUrl}
+              onChange={(e) => setFormData({ ...formData, attribution: { ...formData.attribution, sourceUrl: e.target.value } })}
+              fullWidth
+              helperText="Ссылка на оригинальную модель"
+            />
+            <TextField
+              label="Лицензия"
+              value={formData.attribution.license}
+              onChange={(e) => setFormData({ ...formData, attribution: { ...formData.attribution, license: e.target.value } })}
+              fullWidth
+              helperText="Например: CC BY 4.0"
+            />
+
             <TextField select label="Сложность" value={formData.difficulty} onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })} fullWidth>
               <MenuItem value="beginner">Начальный</MenuItem>
               <MenuItem value="intermediate">Средний</MenuItem>

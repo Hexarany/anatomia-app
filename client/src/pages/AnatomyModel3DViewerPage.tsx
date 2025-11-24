@@ -77,6 +77,40 @@ const AnatomyModel3DViewerPage = () => {
         caption={model.name[lang]}
         autoRotate={true}
       />
+
+      {model.attribution && (model.attribution.author || model.attribution.source) && (
+        <Paper elevation={0} sx={{ p: 2, mt: 2, bgcolor: 'background.default', borderLeft: 3, borderColor: 'primary.main' }}>
+          <Typography variant="caption" color="text.secondary" display="block">
+            <strong>{lang === 'ru' ? 'Авторство:' : 'Atribuire:'}</strong>
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            {model.attribution.author && (
+              <>
+                {lang === 'ru' ? 'Автор: ' : 'Autor: '}
+                <strong>{model.attribution.author}</strong>
+              </>
+            )}
+            {model.attribution.source && (
+              <>
+                {model.attribution.author && ' | '}
+                {lang === 'ru' ? 'Источник: ' : 'Sursa: '}
+                {model.attribution.sourceUrl ? (
+                  <a href={model.attribution.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+                    {model.attribution.source}
+                  </a>
+                ) : (
+                  <strong>{model.attribution.source}</strong>
+                )}
+              </>
+            )}
+          </Typography>
+          {model.attribution.license && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+              {lang === 'ru' ? 'Лицензия: ' : 'Licență: '}{model.attribution.license}
+            </Typography>
+          )}
+        </Paper>
+      )}
     </Container>
   )
 }

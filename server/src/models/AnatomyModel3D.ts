@@ -5,6 +5,13 @@ interface IMultiLangText {
   ro: string
 }
 
+interface IAttribution {
+  author: string
+  source: string
+  sourceUrl?: string
+  license: string
+}
+
 export interface IAnatomyModel3D extends Document {
   name: IMultiLangText
   description: IMultiLangText
@@ -13,6 +20,7 @@ export interface IAnatomyModel3D extends Document {
   previewImage?: string // URL к изображению превью
   difficulty: 'beginner' | 'intermediate' | 'advanced'
   tags: IMultiLangText[]
+  attribution?: IAttribution // Информация об авторстве для CC BY лицензий
   slug: string
   order: number
   isPublished: boolean
@@ -48,6 +56,12 @@ const AnatomyModel3DSchema: Schema = new Schema(
         ro: String,
       },
     ],
+    attribution: {
+      author: { type: String },
+      source: { type: String },
+      sourceUrl: { type: String },
+      license: { type: String, default: 'CC BY 4.0' },
+    },
     slug: { type: String, unique: true, sparse: true },
     order: { type: Number, default: 0 },
     isPublished: { type: Boolean, default: true },
