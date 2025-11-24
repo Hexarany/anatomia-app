@@ -30,7 +30,7 @@ const AnatomyModels3DManager = () => {
     difficulty: 'beginner' as AnatomyModel3D['difficulty'],
     attribution: {
       author: '',
-      source: '',
+      source: 'SketchFab',
       sourceUrl: '',
       license: 'CC BY 4.0',
     },
@@ -61,7 +61,7 @@ const AnatomyModels3DManager = () => {
         difficulty: model.difficulty,
         attribution: model.attribution || {
           author: '',
-          source: '',
+          source: 'SketchFab',
           sourceUrl: '',
           license: 'CC BY 4.0',
         },
@@ -78,7 +78,7 @@ const AnatomyModels3DManager = () => {
         difficulty: 'beginner',
         attribution: {
           author: '',
-          source: '',
+          source: 'SketchFab',
           sourceUrl: '',
           license: 'CC BY 4.0',
         },
