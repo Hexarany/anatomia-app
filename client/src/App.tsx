@@ -16,6 +16,8 @@ import MassageProtocolPage from './pages/MassageProtocolPage'
 import HygieneGuidelinesPage from './pages/HygieneGuidelinesPage'
 import AnatomyModels3DPage from './pages/AnatomyModels3DPage'
 import AnatomyModel3DViewerPage from './pages/AnatomyModel3DViewerPage'
+import TriggerPointsPage from './pages/TriggerPointsPage'
+import TriggerPointDetailPage from './pages/TriggerPointDetailPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -37,6 +39,8 @@ function App() {
           <Route path="/hygiene-guidelines" element={<HygieneGuidelinesPage />} />
           <Route path="/anatomy-models-3d" element={<AnatomyModels3DPage />} />
           <Route path="/anatomy-models-3d/:id" element={<AnatomyModel3DViewerPage />} />
+          <Route path="/trigger-points" element={<TriggerPointsPage />} />
+          <Route path="/trigger-points/:id" element={<TriggerPointDetailPage />} />
           <Route path="/admin/*" element={<AdminPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
