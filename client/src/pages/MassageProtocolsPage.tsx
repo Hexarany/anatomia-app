@@ -122,7 +122,7 @@ const MassageProtocolsPage = () => {
                 <CardMedia
                   component="img"
                   height="200"
-                  image={`${API_BASE_URL}${protocol.images[0].url}`}
+                  image={protocol.images[0].url.startsWith('http') ? protocol.images[0].url : `${API_BASE_URL}${protocol.images[0].url}`}
                   alt={protocol.name[lang]}
                   sx={{ objectFit: 'cover' }}
                 />

@@ -169,7 +169,7 @@ const HygieneGuidelinesPage = () => {
                             <CardMedia
                               component="img"
                               height="200"
-                              image={`${API_BASE_URL}${image.url}`}
+                              image={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
                               alt={image.caption?.[lang] || guideline.title[lang]}
                               sx={{ objectFit: 'cover' }}
                             />

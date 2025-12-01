@@ -297,7 +297,7 @@ const MassageProtocolPage = () => {
                   <CardMedia
                     component="img"
                     height="250"
-                    image={`${API_BASE_URL}${image.url}`}
+                    image={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
                     alt={image.caption?.[lang] || protocol.name[lang]}
                     sx={{ objectFit: 'cover' }}
                   />
@@ -331,7 +331,7 @@ const MassageProtocolPage = () => {
                         width: '100%',
                         height: '100%',
                       }}
-                      src={`${API_BASE_URL}${video.url}`}
+                      src={video.url.startsWith('http') ? video.url : `${API_BASE_URL}${video.url}`}
                     >
                       Your browser does not support the video tag.
                     </video>
@@ -401,7 +401,7 @@ const MassageProtocolPage = () => {
             <Box sx={{ maxWidth: '90%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Box
                 component="img"
-                src={`${API_BASE_URL}${protocol.images[selectedImageIndex].url}`}
+                src={protocol.images[selectedImageIndex].url.startsWith('http') ? protocol.images[selectedImageIndex].url : `${API_BASE_URL}${protocol.images[selectedImageIndex].url}`}
                 alt={protocol.images[selectedImageIndex].caption?.[lang] || protocol.name[lang]}
                 sx={{
                   maxWidth: '100%',

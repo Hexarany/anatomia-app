@@ -203,7 +203,7 @@ const TopicPage = () => {
 
       {has3DModel && (
         <TabPanel value={activeTab} index={modelTabIndex}>
-          <Model3DViewer modelUrl={`${API_BASE_URL}${topic.model3D}`} autoRotate={true} />
+          <Model3DViewer modelUrl={topic.model3D.startsWith('http') ? topic.model3D : `${API_BASE_URL}${topic.model3D}`} autoRotate={true} />
         </TabPanel>
       )}
 
@@ -230,7 +230,7 @@ const TopicPage = () => {
                   <CardMedia
                     component="img"
                     height="250"
-                    image={`${API_BASE_URL}${image.url}`}
+                    image={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
                     alt={image.caption?.[lang] || topic.name[lang]}
                     sx={{ objectFit: 'cover' }}
                   />
@@ -264,7 +264,7 @@ const TopicPage = () => {
                         width: '100%',
                         height: '100%',
                       }}
-                      src={`${API_BASE_URL}${video.url}`}
+                      src={video.url.startsWith('http') ? video.url : `${API_BASE_URL}${video.url}`}
                     >
                       Your browser does not support the video tag.
                     </video>
@@ -337,7 +337,7 @@ const TopicPage = () => {
             <Box sx={{ maxWidth: '90%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Box
                 component="img"
-                src={`${API_BASE_URL}${topic.images[selectedImageIndex].url}`}
+                src={topic.images[selectedImageIndex].url.startsWith('http') ? topic.images[selectedImageIndex].url : `${API_BASE_URL}${topic.images[selectedImageIndex].url}`}
                 alt={topic.images[selectedImageIndex].caption?.[lang] || topic.name[lang]}
                 sx={{
                   maxWidth: '100%',
