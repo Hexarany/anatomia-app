@@ -57,10 +57,12 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: [true, 'Имя обязательно'],
       trim: true,
+      minlength: [1, 'Имя должно содержать минимум 1 символ'],
     },
     lastName: {
       type: String,
-      required: [true, 'Фамилия обязательна'],
+      required: false,  // Optional - some users may have single names
+      default: '',
       trim: true,
     },
     // DEPRECATED: Keep for migration, now optional
