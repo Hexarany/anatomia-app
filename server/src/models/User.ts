@@ -159,8 +159,9 @@ userSchema.methods.hasAccessToContent = function (tierRequired: 'free' | 'basic'
   }
 
   // Define tier hierarchy
-  const tierHierarchy = { free: 0, basic: 1, premium: 2 }
-  const userTierLevel = tierHierarchy[this.accessLevel || 'free']
+  const tierHierarchy: { [key: string]: number } = { free: 0, basic: 1, premium: 2 }
+  const userAccessLevel = this.accessLevel || 'free'
+  const userTierLevel = tierHierarchy[userAccessLevel]
   const requiredTierLevel = tierHierarchy[tierRequired]
 
   return userTierLevel >= requiredTierLevel
