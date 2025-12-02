@@ -7,14 +7,14 @@ import {
   updateTriggerPoint,
   deleteTriggerPoint,
 } from '../controllers/triggerPointController'
-import { authenticateToken, authorizeRole } from '../middleware/auth'
+import { authenticateToken, authorizeRole, optionalAuth } from '../middleware/auth'
 
 const router = express.Router()
 
 // Публичные маршруты
-router.get('/', getTriggerPoints)
-router.get('/:id', getTriggerPointById)
-router.get('/slug/:slug', getTriggerPointBySlug)
+router.get('/', optionalAuth, getTriggerPoints)
+router.get('/:id', optionalAuth, getTriggerPointById)
+router.get('/slug/:slug', optionalAuth, getTriggerPointBySlug)
 
 // ADMIN маршруты
 router.post('/', authenticateToken, authorizeRole('admin'), createTriggerPoint)
