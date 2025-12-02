@@ -54,9 +54,12 @@ export const getAllUsers = async (req: Request, res: Response) => {
         totalPages: Math.ceil(total / limitNum),
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching users:', error)
-    res.status(500).json({ message: 'Ошибка при получении пользователей' })
+    res.status(500).json({
+      message: 'Ошибка при получении пользователей',
+      error: error.message
+    })
   }
 }
 
@@ -76,9 +79,12 @@ export const getUserById = async (req: Request, res: Response) => {
     }
 
     res.json(user)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching user:', error)
-    res.status(500).json({ message: 'Ошибка при получении пользователя' })
+    res.status(500).json({
+      message: 'Ошибка при получении пользователя',
+      error: error.message
+    })
   }
 }
 
@@ -105,7 +111,7 @@ export const updateUser = async (req: Request, res: Response) => {
     if (paymentAmount !== undefined) user.paymentAmount = paymentAmount
     if (paymentDate !== undefined) user.paymentDate = paymentDate
 
-    await user.save()
+    await user.save({ validateBeforeSave: true })
 
     // Return user without password
     const updatedUser = await User.findById(id).select('-password -__v')
@@ -114,9 +120,22 @@ export const updateUser = async (req: Request, res: Response) => {
       message: 'Пользователь успешно обновлен',
       user: updatedUser,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating user:', error)
-    res.status(500).json({ message: 'Ошибка при обновлении пользователя' })
+
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((err: any) => err.message)
+      return res.status(400).json({
+        message: 'Ошибка валидации',
+        errors: messages
+      })
+    }
+
+    res.status(500).json({
+      message: 'Ошибка при обновлении пользователя',
+      error: error.message
+    })
   }
 }
 
