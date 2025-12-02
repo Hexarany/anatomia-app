@@ -142,10 +142,16 @@ const PricingPage = () => {
 
       const { approvalUrl } = response.data
 
+      // Validate approval URL before redirect
+      if (!approvalUrl) {
+        throw new Error('Не получен URL для оплаты. Проверьте конфигурацию PayPal.')
+      }
+
       // Redirect to PayPal
       window.location.href = approvalUrl
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка при создании заказа')
+      console.error('Payment error:', err)
+      setError(err.response?.data?.message || err.message || 'Ошибка при создании заказа')
       setLoading(null)
     }
   }

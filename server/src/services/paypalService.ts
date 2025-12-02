@@ -4,6 +4,13 @@ import { paypalConfig } from '../config/paypal'
 // Get PayPal access token
 export const getPayPalAccessToken = async (): Promise<string> => {
   try {
+    // Validate PayPal credentials
+    if (!paypalConfig.clientId || !paypalConfig.clientSecret) {
+      throw new Error(
+        'PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET in environment variables.'
+      )
+    }
+
     const auth = Buffer.from(
       `${paypalConfig.clientId}:${paypalConfig.clientSecret}`
     ).toString('base64')

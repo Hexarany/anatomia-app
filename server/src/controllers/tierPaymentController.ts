@@ -53,9 +53,17 @@ export const createTierOrder = async (req: Request, res: Response) => {
     })
   } catch (error: any) {
     console.error('Error creating tier order:', error)
+
+    // Provide more detailed error message
+    let errorMessage = 'Ошибка при создании заказа'
+    if (error.message.includes('PayPal')) {
+      errorMessage = 'Ошибка PayPal. Проверьте конфигурацию API.'
+    }
+
     res.status(500).json({
-      message: 'Ошибка при создании заказа',
+      message: errorMessage,
       error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     })
   }
 }
