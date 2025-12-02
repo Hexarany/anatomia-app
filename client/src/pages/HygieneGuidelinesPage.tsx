@@ -22,8 +22,10 @@ import PersonIcon from '@mui/icons-material/Person'
 import CheckroomIcon from '@mui/icons-material/Checkroom'
 import InfoIcon from '@mui/icons-material/Info'
 import EnhancedMarkdown from '@/components/EnhancedMarkdown'
+import AccessGate from '@/components/AccessGate'
 import { getHygieneGuidelines } from '@/services/api'
 import type { HygieneGuideline } from '@/types'
+import { useAuth } from '@/contexts/AuthContext'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'
 
@@ -75,6 +77,7 @@ const categoryConfig = {
 const HygieneGuidelinesPage = () => {
   const { i18n } = useTranslation()
   const lang = i18n.language as 'ru' | 'ro'
+  const { hasAccess } = useAuth()
 
   const [guidelines, setGuidelines] = useState<HygieneGuideline[]>([])
   const [loading, setLoading] = useState(true)
@@ -156,44 +159,50 @@ const HygieneGuidelinesPage = () => {
               </Box>
             </AccordionSummary>
             <AccordionDetails>
-              {categoryGuidelines.map((guideline) => (
-                <Box key={guideline._id} sx={{ mb: 4 }}>
-                  <Typography variant="h6" gutterBottom fontWeight={600} color={config.color}>
-                    {guideline.title[lang]}
-                  </Typography>
+              <AccessGate
+                requiredTier="premium"
+                preview={lang === 'ru' ? 'Для просмотра рекомендаций по гигиене требуется Premium доступ.' : 'Vizualizarea recomandărilor de igienă necesită acces Premium.'}
+                contentType={lang === 'ru' ? 'рекомендации по гигиене' : 'recomandări de igienă'}
+              >
+                {categoryGuidelines.map((guideline) => (
+                  <Box key={guideline._id} sx={{ mb: 4 }}>
+                    <Typography variant="h6" gutterBottom fontWeight={600} color={config.color}>
+                      {guideline.title[lang]}
+                    </Typography>
 
-                  {/* Content */}
-                  <Paper elevation={0} sx={{ p: 3, bgcolor: 'background.default', mb: 2 }}>
-                    <EnhancedMarkdown>{guideline.content[lang]}</EnhancedMarkdown>
-                  </Paper>
+                    {/* Content */}
+                    <Paper elevation={0} sx={{ p: 3, bgcolor: 'background.default', mb: 2 }}>
+                      <EnhancedMarkdown>{guideline.content[lang]}</EnhancedMarkdown>
+                    </Paper>
 
-                  {/* Images */}
-                  {guideline.images && guideline.images.length > 0 && (
-                    <Grid container spacing={2}>
-                      {guideline.images.map((image, index) => (
-                        <Grid item xs={12} sm={6} md={4} key={image._id || index}>
-                          <Card elevation={1}>
-                            <CardMedia
-                              component="img"
-                              height="200"
-                              image={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
-                              alt={image.caption?.[lang] || guideline.title[lang]}
-                              sx={{ objectFit: 'cover' }}
-                            />
-                            {image.caption && image.caption[lang] && (
-                              <Box sx={{ p: 1 }}>
-                                <Typography variant="caption" color="text.secondary">
-                                  {image.caption[lang]}
-                                </Typography>
-                              </Box>
-                            )}
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  )}
-                </Box>
-              ))}
+                    {/* Images */}
+                    {guideline.images && guideline.images.length > 0 && (
+                      <Grid container spacing={2}>
+                        {guideline.images.map((image, index) => (
+                          <Grid item xs={12} sm={6} md={4} key={image._id || index}>
+                            <Card elevation={1}>
+                              <CardMedia
+                                component="img"
+                                height="200"
+                                image={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
+                                alt={image.caption?.[lang] || guideline.title[lang]}
+                                sx={{ objectFit: 'cover' }}
+                              />
+                              {image.caption && image.caption[lang] && (
+                                <Box sx={{ p: 1 }}>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {image.caption[lang]}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    )}
+                  </Box>
+                ))}
+              </AccessGate>
             </AccordionDetails>
           </Accordion>
         )

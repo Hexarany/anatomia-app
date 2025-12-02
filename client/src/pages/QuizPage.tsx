@@ -15,12 +15,15 @@ import {
   LinearProgress,
   Alert,
 } from '@mui/material'
+import AccessGate from '@/components/AccessGate'
+import { useAuth } from '@/contexts/AuthContext'
 
 const QuizPage = () => {
   const { quizId } = useParams<{ quizId: string }>()
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const lang = i18n.language as 'ru' | 'ro'
+  const { hasAccess } = useAuth()
 
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<string>('')
@@ -94,44 +97,50 @@ const QuizPage = () => {
 
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Card>
-          <CardContent sx={{ textAlign: 'center', p: 4 }}>
-            <Typography variant="h4" gutterBottom>
-              {t('quiz.results')}
-            </Typography>
-            <Typography variant="h2" color="primary" sx={{ my: 3 }}>
-              {score} / {quiz.questions.length}
-            </Typography>
-            <Typography variant="h6" gutterBottom>
-              {percentage.toFixed(0)}% {t('quiz.correct')}
-            </Typography>
-            {percentage >= 70 ? (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                Отличный результат! / Rezultat excelent!
-              </Alert>
-            ) : (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Попробуйте еще раз! / Încercați din nou!
-              </Alert>
-            )}
-            <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'center' }}>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  setCurrentQuestion(0)
-                  setAnswers([])
-                  setSelectedAnswer('')
-                  setShowResults(false)
-                }}
-              >
-                {t('quiz.tryAgain')}
-              </Button>
-              <Button variant="outlined" onClick={() => navigate('/')}>
-                {t('quiz.backToHome')}
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
+        <AccessGate
+          requiredTier="premium"
+          preview={lang === 'ru' ? 'Для прохождения тестов требуется Premium доступ.' : 'Pentru a realiza teste este necesar acces Premium.'}
+          contentType={lang === 'ru' ? 'тест' : 'test'}
+        >
+          <Card>
+            <CardContent sx={{ textAlign: 'center', p: 4 }}>
+              <Typography variant="h4" gutterBottom>
+                {t('quiz.results')}
+              </Typography>
+              <Typography variant="h2" color="primary" sx={{ my: 3 }}>
+                {score} / {quiz.questions.length}
+              </Typography>
+              <Typography variant="h6" gutterBottom>
+                {percentage.toFixed(0)}% {t('quiz.correct')}
+              </Typography>
+              {percentage >= 70 ? (
+                <Alert severity="success" sx={{ mt: 2 }}>
+                  Отличный результат! / Rezultat excelent!
+                </Alert>
+              ) : (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Попробуйте еще раз! / Încercați din nou!
+                </Alert>
+              )}
+              <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'center' }}>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setCurrentQuestion(0)
+                    setAnswers([])
+                    setSelectedAnswer('')
+                    setShowResults(false)
+                  }}
+                >
+                  {t('quiz.tryAgain')}
+                </Button>
+                <Button variant="outlined" onClick={() => navigate('/')}>
+                  {t('quiz.backToHome')}
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </AccessGate>
       </Container>
     )
   }
@@ -140,59 +149,65 @@ const QuizPage = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          {quiz.title[lang]}
-        </Typography>
-        <LinearProgress variant="determinate" value={progress} sx={{ mb: 1 }} />
-        <Typography variant="body2" color="text.secondary">
-          {t('quiz.question')} {currentQuestion + 1} {t('quiz.of')}{' '}
-          {quiz.questions.length}
-        </Typography>
-      </Box>
-
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
-            {question.question[lang]}
+      <AccessGate
+        requiredTier="premium"
+        preview={lang === 'ru' ? 'Для прохождения тестов требуется Premium доступ.' : 'Pentru a realiza teste este necesar acces Premium.'}
+        contentType={lang === 'ru' ? 'тест' : 'test'}
+      >
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h4" gutterBottom>
+            {quiz.title[lang]}
           </Typography>
+          <LinearProgress variant="determinate" value={progress} sx={{ mb: 1 }} />
+          <Typography variant="body2" color="text.secondary">
+            {t('quiz.question')} {currentQuestion + 1} {t('quiz.of')}{' '}
+            {quiz.questions.length}
+          </Typography>
+        </Box>
 
-          <FormControl component="fieldset" sx={{ width: '100%' }}>
-            <RadioGroup value={selectedAnswer} onChange={handleAnswerChange}>
-              {question.options.map((option, index) => (
-                <FormControlLabel
-                  key={index}
-                  value={index.toString()}
-                  control={<Radio />}
-                  label={option[lang]}
-                  sx={{
-                    mb: 1,
-                    p: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    '&:hover': {
-                      bgcolor: 'action.hover',
-                    },
-                  }}
-                />
-              ))}
-            </RadioGroup>
-          </FormControl>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
+              {question.question[lang]}
+            </Typography>
 
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="contained"
-              onClick={handleNext}
-              disabled={!selectedAnswer}
-            >
-              {currentQuestion < quiz.questions.length - 1
-                ? t('quiz.next')
-                : t('quiz.finish')}
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
+            <FormControl component="fieldset" sx={{ width: '100%' }}>
+              <RadioGroup value={selectedAnswer} onChange={handleAnswerChange}>
+                {question.options.map((option, index) => (
+                  <FormControlLabel
+                    key={index}
+                    value={index.toString()}
+                    control={<Radio />}
+                    label={option[lang]}
+                    sx={{
+                      mb: 1,
+                      p: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                      },
+                    }}
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                disabled={!selectedAnswer}
+              >
+                {currentQuestion < quiz.questions.length - 1
+                  ? t('quiz.next')
+                  : t('quiz.finish')}
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      </AccessGate>
     </Container>
   )
 }

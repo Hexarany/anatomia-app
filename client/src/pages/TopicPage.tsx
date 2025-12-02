@@ -31,7 +31,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import Model3DViewer from '@/components/Model3DViewer'
 import EnhancedMarkdown from '@/components/EnhancedMarkdown'
-import ContentLock from '@/components/ContentLock'
+import AccessGate from '@/components/AccessGate'
 import { getTopicById } from '@/services/api'
 import type { Topic } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
@@ -56,7 +56,7 @@ const TopicPage = () => {
   const { topicId } = useParams<{ topicId: string }>()
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
-  const { isAuthenticated, user } = useAuth()
+  const { hasAccess } = useAuth()
   const lang = i18n.language as 'ru' | 'ro'
 
   const [topic, setTopic] = useState<Topic | null>(null)
@@ -81,7 +81,7 @@ const TopicPage = () => {
     }
 
     fetchTopic()
-  }, [topicId, isAuthenticated, user])
+  }, [topicId])
 
   if (loading) {
     return (
@@ -192,94 +192,114 @@ const TopicPage = () => {
 
       {/* Tab Panels */}
       <TabPanel value={activeTab} index={0}>
-        <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-          {isAuthenticated ? (
+        <AccessGate
+          requiredTier="premium"
+          preview={lang === 'ru' ? 'Для просмотра полного содержания темы требуется Premium доступ.' : 'Vizualizarea conținutului complet necesită acces Premium.'}
+          contentType={lang === 'ru' ? 'содержание темы' : 'conținut temă'}
+        >
+          <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
             <EnhancedMarkdown>{topic.content[lang]}</EnhancedMarkdown>
-          ) : (
-            <ContentLock previewText={getPreviewText(topic.content[lang])} />
-          )}
-        </Paper>
+          </Paper>
+        </AccessGate>
       </TabPanel>
 
       {has3DModel && (
         <TabPanel value={activeTab} index={modelTabIndex}>
-          <Model3DViewer modelUrl={topic.model3D.startsWith('http') ? topic.model3D : `${API_BASE_URL}${topic.model3D}`} autoRotate={true} />
+          <AccessGate
+            requiredTier="premium"
+            preview={lang === 'ru' ? 'Для просмотра 3D модели требуется Premium доступ.' : 'Vizualizarea modelului 3D necesită acces Premium.'}
+            contentType={lang === 'ru' ? '3D модель' : 'model 3D'}
+          >
+            <Model3DViewer modelUrl={topic.model3D.startsWith('http') ? topic.model3D : `${API_BASE_URL}${topic.model3D}`} autoRotate={true} />
+          </AccessGate>
         </TabPanel>
       )}
 
       {hasImages && (
         <TabPanel value={activeTab} index={imagesTabIndex}>
-          <Grid container spacing={3}>
-            {topic.images.map((image, index) => (
-              <Grid item xs={12} sm={6} md={4} key={image._id || index}>
-                <Card
-                  elevation={2}
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'scale(1.02)',
-                      boxShadow: 6,
-                    }
-                  }}
-                  onClick={() => handleImageClick(index)}
-                >
-                  <CardMedia
-                    component="img"
-                    height="250"
-                    image={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
-                    alt={image.caption?.[lang] || topic.name[lang]}
-                    sx={{ objectFit: 'cover' }}
-                  />
-                  {image.caption && image.caption[lang] && (
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {image.caption[lang]}
-                      </Typography>
-                    </CardContent>
-                  )}
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+          <AccessGate
+            requiredTier="premium"
+            preview={lang === 'ru' ? 'Для просмотра иллюстраций требуется Premium доступ.' : 'Vizualizarea ilustrațiilor necesită acces Premium.'}
+            contentType={lang === 'ru' ? 'иллюстрации' : 'ilustrații'}
+          >
+            <Grid container spacing={3}>
+              {topic.images.map((image, index) => (
+                <Grid item xs={12} sm={6} md={4} key={image._id || index}>
+                  <Card
+                    elevation={2}
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'scale(1.02)',
+                        boxShadow: 6,
+                      }
+                    }}
+                    onClick={() => handleImageClick(index)}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="250"
+                      image={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
+                      alt={image.caption?.[lang] || topic.name[lang]}
+                      sx={{ objectFit: 'cover' }}
+                    />
+                    {image.caption && image.caption[lang] && (
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {image.caption[lang]}
+                        </Typography>
+                      </CardContent>
+                    )}
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </AccessGate>
         </TabPanel>
       )}
 
       {hasVideos && (
         <TabPanel value={activeTab} index={videosTabIndex}>
-          <Grid container spacing={3}>
-            {topic.videos.map((video, index) => (
-              <Grid item xs={12} md={6} key={video._id || index}>
-                <Card elevation={2}>
-                  <Box sx={{ position: 'relative', paddingTop: '56.25%', backgroundColor: 'black' }}>
-                    <video
-                      controls
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                      }}
-                      src={video.url.startsWith('http') ? video.url : `${API_BASE_URL}${video.url}`}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  </Box>
-                  {video.caption && video.caption[lang] && (
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        {video.caption[lang]}
-                      </Typography>
-                    </CardContent>
-                  )}
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+          <AccessGate
+            requiredTier="premium"
+            preview={lang === 'ru' ? 'Для просмотра видео требуется Premium доступ.' : 'Vizualizarea videoclipurilor necesită acces Premium.'}
+            contentType={lang === 'ru' ? 'видео' : 'video'}
+          >
+            <Grid container spacing={3}>
+              {topic.videos.map((video, index) => (
+                <Grid item xs={12} md={6} key={video._id || index}>
+                  <Card elevation={2}>
+                    <Box sx={{ position: 'relative', paddingTop: '56.25%', backgroundColor: 'black' }}>
+                      <video
+                        controls
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                        }}
+                        src={video.url.startsWith('http') ? video.url : `${API_BASE_URL}${video.url}`}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </Box>
+                    {video.caption && video.caption[lang] && (
+                      <CardContent>
+                        <Typography variant="body2" color="text.secondary">
+                          {video.caption[lang]}
+                        </Typography>
+                      </CardContent>
+                    )}
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </AccessGate>
         </TabPanel>
       )}
 

@@ -17,12 +17,15 @@ import WarningIcon from '@mui/icons-material/Warning'
 import { getTriggerPointById } from '@/services/api'
 import type { TriggerPoint } from '@/types'
 import EnhancedMarkdown from '@/components/EnhancedMarkdown'
+import AccessGate from '@/components/AccessGate'
+import { useAuth } from '@/contexts/AuthContext'
 
 const TriggerPointDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const { i18n } = useTranslation()
   const lang = i18n.language as 'ru' | 'ro'
   const navigate = useNavigate()
+  const { hasAccess } = useAuth()
   const [point, setPoint] = useState<TriggerPoint | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -108,110 +111,116 @@ const TriggerPointDetailPage = () => {
         </Alert>
       )}
 
-      {/* Локализация */}
-      <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
-        <Typography variant="h6" gutterBottom fontWeight={600}>
-          {lang === 'ru' ? 'Локализация' : 'Localizare'}
-        </Typography>
-        <Typography variant="body1">{point.location[lang]}</Typography>
-      </Paper>
-
-      {/* Симптомы */}
-      <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
-        <Typography variant="h6" gutterBottom fontWeight={600}>
-          {lang === 'ru' ? 'Симптомы' : 'Simptome'}
-        </Typography>
-        <Typography variant="body1">{point.symptoms[lang]}</Typography>
-      </Paper>
-
-      {/* Паттерн иррадиации */}
-      <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
-        <Typography variant="h6" gutterBottom fontWeight={600}>
-          {lang === 'ru' ? 'Паттерн иррадиации боли' : 'Modelul de iradiere a durerii'}
-        </Typography>
-        <Typography variant="body1">{point.referralPattern[lang]}</Typography>
-      </Paper>
-
-      <Divider sx={{ my: 4 }} />
-
-      {/* Техника массажа */}
-      <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'primary.50', borderLeft: 4, borderColor: 'primary.main' }}>
-        <Typography variant="h6" gutterBottom fontWeight={600} color="primary">
-          {lang === 'ru' ? 'Техника массажа' : 'Tehnica de masaj'}
-        </Typography>
-        <EnhancedMarkdown>{point.technique[lang]}</EnhancedMarkdown>
-      </Paper>
-
-      {/* Противопоказания */}
-      {point.contraindications && (point.contraindications.ru || point.contraindications.ro) && (
-        <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'error.50', borderLeft: 4, borderColor: 'error.main' }}>
-          <Typography variant="h6" gutterBottom fontWeight={600} color="error">
-            <WarningIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            {lang === 'ru' ? 'Противопоказания' : 'Contraindicații'}
+      <AccessGate
+        requiredTier="premium"
+        preview={lang === 'ru' ? 'Для просмотра подробной информации о триггерной точке требуется Premium доступ.' : 'Vizualizarea informațiilor detaliate despre punctul trigger necesită acces Premium.'}
+        contentType={lang === 'ru' ? 'триггерная точка' : 'punct trigger'}
+      >
+        {/* Локализация */}
+        <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
+          <Typography variant="h6" gutterBottom fontWeight={600}>
+            {lang === 'ru' ? 'Локализация' : 'Localizare'}
           </Typography>
-          <Typography variant="body1">{point.contraindications[lang]}</Typography>
+          <Typography variant="body1">{point.location[lang]}</Typography>
         </Paper>
-      )}
 
-      {/* Изображения */}
-      {point.images && point.images.length > 0 && (
-        <Box sx={{ mt: 4 }}>
+        {/* Симптомы */}
+        <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
           <Typography variant="h6" gutterBottom fontWeight={600}>
-            {lang === 'ru' ? 'Иллюстрации' : 'Ilustrații'}
+            {lang === 'ru' ? 'Симптомы' : 'Simptome'}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            {point.images.map((img, index) => (
-              <Box key={index} sx={{ maxWidth: '100%' }}>
-                <img
-                  src={img.url}
-                  alt={img.caption?.[lang] || point.name[lang]}
-                  style={{ maxWidth: '100%', height: 'auto', borderRadius: 8 }}
-                />
-                {img.caption && (
-                  <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                    {img.caption[lang]}
-                  </Typography>
-                )}
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      )}
+          <Typography variant="body1">{point.symptoms[lang]}</Typography>
+        </Paper>
 
-      {/* Видео */}
-      {point.videos && point.videos.length > 0 && (
-        <Box sx={{ mt: 4 }}>
+        {/* Паттерн иррадиации */}
+        <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
           <Typography variant="h6" gutterBottom fontWeight={600}>
-            {lang === 'ru' ? 'Видео' : 'Video'}
+            {lang === 'ru' ? 'Паттерн иррадиации боли' : 'Modelul de iradiere a durerii'}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
-            {point.videos.map((video, index) => (
-              <Box key={index}>
-                <video
-                  controls
-                  style={{ maxWidth: '100%', borderRadius: 8 }}
-                  src={video.url}
-                >
-                  {lang === 'ru' ? 'Ваш браузер не поддерживает видео' : 'Browser-ul dvs. nu acceptă video'}
-                </video>
-                {video.caption && (
-                  <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                    {video.caption[lang]}
-                  </Typography>
-                )}
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      )}
+          <Typography variant="body1">{point.referralPattern[lang]}</Typography>
+        </Paper>
 
-      <Box sx={{ mt: 4, p: 2, bgcolor: 'warning.50', borderRadius: 1 }}>
-        <Typography variant="caption" color="text.secondary">
-          {lang === 'ru'
-            ? 'Информация предоставлена в образовательных целях. Перед применением любых техник проконсультируйтесь со специалистом.'
-            : 'Informațiile sunt furnizate în scopuri educaționale. Înainte de a aplica orice tehnici, consultați un specialist.'}
-        </Typography>
-      </Box>
+        <Divider sx={{ my: 4 }} />
+
+        {/* Техника массажа */}
+        <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'primary.50', borderLeft: 4, borderColor: 'primary.main' }}>
+          <Typography variant="h6" gutterBottom fontWeight={600} color="primary">
+            {lang === 'ru' ? 'Техника массажа' : 'Tehnica de masaj'}
+          </Typography>
+          <EnhancedMarkdown>{point.technique[lang]}</EnhancedMarkdown>
+        </Paper>
+
+        {/* Противопоказания */}
+        {point.contraindications && (point.contraindications.ru || point.contraindications.ro) && (
+          <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'error.50', borderLeft: 4, borderColor: 'error.main' }}>
+            <Typography variant="h6" gutterBottom fontWeight={600} color="error">
+              <WarningIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+              {lang === 'ru' ? 'Противопоказания' : 'Contraindicații'}
+            </Typography>
+            <Typography variant="body1">{point.contraindications[lang]}</Typography>
+          </Paper>
+        )}
+
+        {/* Изображения */}
+        {point.images && point.images.length > 0 && (
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h6" gutterBottom fontWeight={600}>
+              {lang === 'ru' ? 'Иллюстрации' : 'Ilustrații'}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              {point.images.map((img, index) => (
+                <Box key={index} sx={{ maxWidth: '100%' }}>
+                  <img
+                    src={img.url}
+                    alt={img.caption?.[lang] || point.name[lang]}
+                    style={{ maxWidth: '100%', height: 'auto', borderRadius: 8 }}
+                  />
+                  {img.caption && (
+                    <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                      {img.caption[lang]}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
+
+        {/* Видео */}
+        {point.videos && point.videos.length > 0 && (
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h6" gutterBottom fontWeight={600}>
+              {lang === 'ru' ? 'Видео' : 'Video'}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
+              {point.videos.map((video, index) => (
+                <Box key={index}>
+                  <video
+                    controls
+                    style={{ maxWidth: '100%', borderRadius: 8 }}
+                    src={video.url}
+                  >
+                    {lang === 'ru' ? 'Ваш браузер не поддерживает видео' : 'Browser-ul dvs. nu acceptă video'}
+                  </video>
+                  {video.caption && (
+                    <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                      {video.caption[lang]}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
+
+        <Box sx={{ mt: 4, p: 2, bgcolor: 'warning.50', borderRadius: 1 }}>
+          <Typography variant="caption" color="text.secondary">
+            {lang === 'ru'
+              ? 'Информация предоставлена в образовательных целях. Перед применением любых техник проконсультируйтесь со специалистом.'
+              : 'Informațiile sunt furnizate în scopuri educaționale. Înainte de a aplica orice tehnici, consultați un specialist.'}
+          </Typography>
+        </Box>
+      </AccessGate>
     </Container>
   )
 }

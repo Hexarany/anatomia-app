@@ -36,7 +36,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import EnhancedMarkdown from '@/components/EnhancedMarkdown'
-import ContentLock from '@/components/ContentLock'
+import AccessGate from '@/components/AccessGate'
 import { getMassageProtocolById } from '@/services/api'
 import type { MassageProtocol } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
@@ -61,8 +61,8 @@ const MassageProtocolPage = () => {
   const { protocolId } = useParams<{ protocolId: string }>()
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
   const lang = i18n.language as 'ru' | 'ro'
+  const { hasAccess } = useAuth()
 
   const [protocol, setProtocol] = useState<MassageProtocol | null>(null)
   const [loading, setLoading] = useState(true)
@@ -86,7 +86,7 @@ const MassageProtocolPage = () => {
     }
 
     fetchProtocol()
-  }, [protocolId, isAuthenticated])
+  }, [protocolId])
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index)
@@ -235,118 +235,138 @@ const MassageProtocolPage = () => {
 
       {/* Tab Panels */}
       <TabPanel value={activeTab} index={0}>
-        <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-          {isAuthenticated ? (
+        <AccessGate
+          requiredTier="premium"
+          preview={lang === 'ru' ? 'Для просмотра полного описания протокола требуется Premium доступ.' : 'Vizualizarea descrierii complete necesită acces Premium.'}
+          contentType={lang === 'ru' ? 'протокол массажа' : 'protocol de masaj'}
+        >
+          <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
             <EnhancedMarkdown>{protocol.content[lang]}</EnhancedMarkdown>
-          ) : (
-            <ContentLock previewText={getPreviewText(protocol.content[lang])} />
-          )}
-        </Paper>
+          </Paper>
+        </AccessGate>
       </TabPanel>
 
       <TabPanel value={activeTab} index={benefitsTabIndex}>
-        <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-          {isAuthenticated ? (
+        <AccessGate
+          requiredTier="premium"
+          preview={lang === 'ru' ? 'Для просмотра информации о пользе требуется Premium доступ.' : 'Vizualizarea beneficiilor necesită acces Premium.'}
+          contentType={lang === 'ru' ? 'информация о пользе' : 'beneficii'}
+        >
+          <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
             <EnhancedMarkdown>{protocol.benefits[lang] || (lang === 'ru' ? 'Информация скоро появится' : 'Informațiile vor apărea în curând')}</EnhancedMarkdown>
-          ) : (
-            <ContentLock previewText={getPreviewText(protocol.benefits[lang] || '')} />
-          )}
-        </Paper>
+          </Paper>
+        </AccessGate>
       </TabPanel>
 
       <TabPanel value={activeTab} index={contraindicationsTabIndex}>
-        <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-          {isAuthenticated ? (
+        <AccessGate
+          requiredTier="premium"
+          preview={lang === 'ru' ? 'Для просмотра противопоказаний требуется Premium доступ.' : 'Vizualizarea contraindicațiilor necesită acces Premium.'}
+          contentType={lang === 'ru' ? 'противопоказания' : 'contraindicații'}
+        >
+          <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
             <EnhancedMarkdown>{protocol.contraindications[lang] || (lang === 'ru' ? 'Информация скоро появится' : 'Informațiile vor apărea în curând')}</EnhancedMarkdown>
-          ) : (
-            <ContentLock previewText={getPreviewText(protocol.contraindications[lang] || '')} />
-          )}
-        </Paper>
+          </Paper>
+        </AccessGate>
       </TabPanel>
 
       <TabPanel value={activeTab} index={techniqueTabIndex}>
-        <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-          {isAuthenticated ? (
+        <AccessGate
+          requiredTier="premium"
+          preview={lang === 'ru' ? 'Для просмотра техники выполнения требуется Premium доступ.' : 'Vizualizarea tehnicii necesită acces Premium.'}
+          contentType={lang === 'ru' ? 'техника выполнения' : 'tehnică'}
+        >
+          <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
             <EnhancedMarkdown>{protocol.technique[lang] || (lang === 'ru' ? 'Информация скоро появится' : 'Informațiile vor apărea în curând')}</EnhancedMarkdown>
-          ) : (
-            <ContentLock previewText={getPreviewText(protocol.technique[lang] || '')} />
-          )}
-        </Paper>
+          </Paper>
+        </AccessGate>
       </TabPanel>
 
       {hasImages && (
         <TabPanel value={activeTab} index={imagesTabIndex}>
-          <Grid container spacing={3}>
-            {protocol.images.map((image, index) => (
-              <Grid item xs={12} sm={6} md={4} key={image._id || index}>
-                <Card
-                  elevation={2}
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'scale(1.02)',
-                      boxShadow: 6,
-                    }
-                  }}
-                  onClick={() => handleImageClick(index)}
-                >
-                  <CardMedia
-                    component="img"
-                    height="250"
-                    image={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
-                    alt={image.caption?.[lang] || protocol.name[lang]}
-                    sx={{ objectFit: 'cover' }}
-                  />
-                  {image.caption && image.caption[lang] && (
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {image.caption[lang]}
-                      </Typography>
-                    </CardContent>
-                  )}
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+          <AccessGate
+            requiredTier="premium"
+            preview={lang === 'ru' ? 'Для просмотра иллюстраций требуется Premium доступ.' : 'Vizualizarea ilustrațiilor necesită acces Premium.'}
+            contentType={lang === 'ru' ? 'иллюстрации' : 'ilustrații'}
+          >
+            <Grid container spacing={3}>
+              {protocol.images.map((image, index) => (
+                <Grid item xs={12} sm={6} md={4} key={image._id || index}>
+                  <Card
+                    elevation={2}
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'scale(1.02)',
+                        boxShadow: 6,
+                      }
+                    }}
+                    onClick={() => handleImageClick(index)}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="250"
+                      image={image.url.startsWith('http') ? image.url : `${API_BASE_URL}${image.url}`}
+                      alt={image.caption?.[lang] || protocol.name[lang]}
+                      sx={{ objectFit: 'cover' }}
+                    />
+                    {image.caption && image.caption[lang] && (
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {image.caption[lang]}
+                        </Typography>
+                      </CardContent>
+                    )}
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </AccessGate>
         </TabPanel>
       )}
 
       {hasVideos && (
         <TabPanel value={activeTab} index={videosTabIndex}>
-          <Grid container spacing={3}>
-            {protocol.videos.map((video, index) => (
-              <Grid item xs={12} md={6} key={video._id || index}>
-                <Card elevation={2}>
-                  <Box sx={{ position: 'relative', paddingTop: '56.25%', backgroundColor: 'black' }}>
-                    <video
-                      controls
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                      }}
-                      src={video.url.startsWith('http') ? video.url : `${API_BASE_URL}${video.url}`}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  </Box>
-                  {video.caption && video.caption[lang] && (
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        {video.caption[lang]}
-                      </Typography>
-                    </CardContent>
-                  )}
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+          <AccessGate
+            requiredTier="premium"
+            preview={lang === 'ru' ? 'Для просмотра видео требуется Premium доступ.' : 'Vizualizarea videoclipurilor necesită acces Premium.'}
+            contentType={lang === 'ru' ? 'видео' : 'video'}
+          >
+            <Grid container spacing={3}>
+              {protocol.videos.map((video, index) => (
+                <Grid item xs={12} md={6} key={video._id || index}>
+                  <Card elevation={2}>
+                    <Box sx={{ position: 'relative', paddingTop: '56.25%', backgroundColor: 'black' }}>
+                      <video
+                        controls
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                        }}
+                        src={video.url.startsWith('http') ? video.url : `${API_BASE_URL}${video.url}`}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </Box>
+                    {video.caption && video.caption[lang] && (
+                      <CardContent>
+                        <Typography variant="body2" color="text.secondary">
+                          {video.caption[lang]}
+                        </Typography>
+                      </CardContent>
+                    )}
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </AccessGate>
         </TabPanel>
       )}
 
