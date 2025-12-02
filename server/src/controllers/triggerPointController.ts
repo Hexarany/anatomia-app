@@ -34,21 +34,48 @@ const hasAccessToTriggerPoint = async (
 
 // Helper: Apply content lock
 const createSafeTriggerPoint = (triggerPoint: any, hasAccess: boolean, userAccessLevel: string) => {
-  const previewContentRu = triggerPoint.content.ru
-    ? triggerPoint.content.ru.substring(0, 400) + '...'
-    : ''
-  const previewContentRo = triggerPoint.content.ro
-    ? triggerPoint.content.ro.substring(0, 400) + '...'
-    : ''
+  // Create preview versions of all text fields
+  const createPreview = (text: string | undefined) => {
+    return text ? text.substring(0, 400) + '...' : ''
+  }
 
+  if (hasAccess) {
+    // Full access - return everything
+    return {
+      ...triggerPoint.toObject(),
+      hasFullContentAccess: true,
+      accessInfo: {
+        hasFullAccess: true,
+        userAccessLevel,
+        requiredTier: 'premium',
+      },
+    }
+  }
+
+  // Limited access - return preview versions
   return {
     ...triggerPoint.toObject(),
-    content: hasAccess ? triggerPoint.content : { ru: previewContentRu, ro: previewContentRo },
-    hasFullContentAccess: hasAccess,
+    location: {
+      ru: createPreview(triggerPoint.location?.ru),
+      ro: createPreview(triggerPoint.location?.ro),
+    },
+    symptoms: {
+      ru: createPreview(triggerPoint.symptoms?.ru),
+      ro: createPreview(triggerPoint.symptoms?.ro),
+    },
+    referralPattern: {
+      ru: createPreview(triggerPoint.referralPattern?.ru),
+      ro: createPreview(triggerPoint.referralPattern?.ro),
+    },
+    technique: {
+      ru: createPreview(triggerPoint.technique?.ru),
+      ro: createPreview(triggerPoint.technique?.ro),
+    },
+    hasFullContentAccess: false,
     accessInfo: {
-      hasFullAccess: hasAccess,
+      hasFullAccess: false,
       userAccessLevel,
-      requiredTier: 'premium', // Trigger points require premium tier
+      requiredTier: 'premium',
     },
   }
 }
