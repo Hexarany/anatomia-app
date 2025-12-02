@@ -213,7 +213,9 @@ const Navbar = () => {
                   onClose={handleCloseUserMenu}
                 >
                   <MenuItem disabled>
-                    <Typography textAlign="center">{user?.name}</Typography>
+                    <Typography textAlign="center">
+                      {user?.firstName} {user?.lastName}
+                    </Typography>
                   </MenuItem>
                   <MenuItem
                     onClick={() => {
@@ -228,11 +230,11 @@ const Navbar = () => {
                   <MenuItem
                     onClick={() => {
                       handleCloseUserMenu()
-                      navigate('/subscription')
+                      navigate('/pricing')
                     }}
                   >
                     <Typography textAlign="center">
-                      {i18n.language === 'ru' ? 'Подписка' : 'Abonament'}
+                      {i18n.language === 'ru' ? 'Тарифы' : 'Planuri tarifare'}
                     </Typography>
                   </MenuItem>
                   {(user?.role === 'admin' || user?.role === 'teacher') && (
