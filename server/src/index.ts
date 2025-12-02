@@ -17,6 +17,8 @@ import massageProtocolRoutes from './routes/massageProtocolRoutes'
 import hygieneGuidelineRoutes from './routes/hygieneGuidelineRoutes'
 import anatomyModel3DRoutes from './routes/anatomyModel3DRoutes'
 import triggerPointRoutes from './routes/triggerPointRoutes'
+import tierPaymentRoutes from './routes/tierPaymentRoutes'
+import usersManagementRoutes from './routes/usersManagementRoutes'
 
 // Load environment variables
 dotenv.config()
@@ -78,6 +80,8 @@ app.use('/api/massage-protocols', massageProtocolRoutes)
 app.use('/api/hygiene-guidelines', hygieneGuidelineRoutes)
 app.use('/api/anatomy-models-3d', anatomyModel3DRoutes)
 app.use('/api/trigger-points', triggerPointRoutes)
+app.use('/api/tier-payment', tierPaymentRoutes)
+app.use('/api/users-management', usersManagementRoutes)
 
 // Health check endpoints
 app.get('/health', (req, res) => {

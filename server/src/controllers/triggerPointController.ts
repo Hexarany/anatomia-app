@@ -1,5 +1,57 @@
 import { Request, Response } from 'express'
 import TriggerPoint from '../models/TriggerPoint'
+import User from '../models/User'
+
+interface CustomRequest extends Request {
+  userId?: string
+  userEmail?: string
+  userRole?: string
+  hasActiveSubscription?: boolean
+}
+
+// Helper: Check if user has access to trigger points (Premium tier only)
+const hasAccessToTriggerPoint = async (
+  userId: string | undefined,
+  userRole: string | undefined
+): Promise<{ hasAccess: boolean; userAccessLevel: string }> => {
+  // Admins and teachers have full access
+  if (userRole === 'admin' || userRole === 'teacher') {
+    return { hasAccess: true, userAccessLevel: 'premium' }
+  }
+
+  // Get user access level
+  let userAccessLevel: 'free' | 'basic' | 'premium' = 'free'
+  if (userId) {
+    const user = await User.findById(userId)
+    userAccessLevel = user?.accessLevel || 'free'
+  }
+
+  // Only Premium users have full access to trigger points
+  const hasAccess = userAccessLevel === 'premium'
+
+  return { hasAccess, userAccessLevel }
+}
+
+// Helper: Apply content lock
+const createSafeTriggerPoint = (triggerPoint: any, hasAccess: boolean, userAccessLevel: string) => {
+  const previewContentRu = triggerPoint.content.ru
+    ? triggerPoint.content.ru.substring(0, 400) + '...'
+    : ''
+  const previewContentRo = triggerPoint.content.ro
+    ? triggerPoint.content.ro.substring(0, 400) + '...'
+    : ''
+
+  return {
+    ...triggerPoint.toObject(),
+    content: hasAccess ? triggerPoint.content : { ru: previewContentRu, ro: previewContentRo },
+    hasFullContentAccess: hasAccess,
+    accessInfo: {
+      hasFullAccess: hasAccess,
+      userAccessLevel,
+      requiredTier: 'premium', // Trigger points require premium tier
+    },
+  }
+}
 
 // Получить все триггерные точки
 export const getTriggerPoints = async (req: Request, res: Response) => {
@@ -32,7 +84,17 @@ export const getTriggerPointById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: { message: 'Триггерная точка не найдена' } })
     }
 
-    res.json(triggerPoint)
+    // Apply tier-based access control
+    const customReq = req as CustomRequest
+    const accessInfo = await hasAccessToTriggerPoint(customReq.userId, customReq.userRole)
+
+    const safeTriggerPoint = createSafeTriggerPoint(
+      triggerPoint,
+      accessInfo.hasAccess,
+      accessInfo.userAccessLevel
+    )
+
+    res.json(safeTriggerPoint)
   } catch (error) {
     console.error('Error fetching trigger point:', error)
     res.status(500).json({ error: { message: 'Ошибка при получении триггерной точки' } })
@@ -49,7 +111,17 @@ export const getTriggerPointBySlug = async (req: Request, res: Response) => {
       return res.status(404).json({ error: { message: 'Триггерная точка не найдена' } })
     }
 
-    res.json(triggerPoint)
+    // Apply tier-based access control
+    const customReq = req as CustomRequest
+    const accessInfo = await hasAccessToTriggerPoint(customReq.userId, customReq.userRole)
+
+    const safeTriggerPoint = createSafeTriggerPoint(
+      triggerPoint,
+      accessInfo.hasAccess,
+      accessInfo.userAccessLevel
+    )
+
+    res.json(safeTriggerPoint)
   } catch (error) {
     console.error('Error fetching trigger point by slug:', error)
     res.status(500).json({ error: { message: 'Ошибка при получении триггерной точки' } })

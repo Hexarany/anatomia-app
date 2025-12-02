@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import Topic from '../models/Topic'
+import User from '../models/User'
 import mongoose from 'mongoose'
 
 // Расширяем Request для доступа к данным пользователя после аутентификации
@@ -7,31 +8,51 @@ interface CustomRequest extends Request {
   userId?: string
   userEmail?: string
   userRole?: string
-  hasActiveSubscription?: boolean 
+  hasActiveSubscription?: boolean
 }
 
-// Helper: Проверяет, авторизован ли пользователь для получения полного контента
-const isAuthorizedForFullContent = (req: CustomRequest): boolean => {
-  // Если пользователь авторизован (есть userRole), даем полный доступ
-  return !!req.userRole;
-};
+// Helper: Check if user has access to topics (Basic tier and above)
+const hasAccessToTopic = async (
+  userId: string | undefined,
+  userRole: string | undefined
+): Promise<{ hasAccess: boolean; userAccessLevel: string }> => {
+  // Admins and teachers have full access
+  if (userRole === 'admin' || userRole === 'teacher') {
+    return { hasAccess: true, userAccessLevel: 'premium' }
+  }
+
+  // Get user access level
+  let userAccessLevel: 'free' | 'basic' | 'premium' = 'free'
+  if (userId) {
+    const user = await User.findById(userId)
+    userAccessLevel = user?.accessLevel || 'free'
+  }
+
+  // Basic and Premium users have full access to topics
+  const hasAccess = userAccessLevel === 'basic' || userAccessLevel === 'premium'
+
+  return { hasAccess, userAccessLevel }
+}
 
 // Helper: Применяет блокировку контента
-const createSafeTopic = (topic: any, isAuthorized: boolean) => {
-    // Получаем превью контента (первые 400 символов)
-    const previewContentRu = topic.content.ru ? topic.content.ru.substring(0, 400) + '...' : '';
-    const previewContentRo = topic.content.ro ? topic.content.ro.substring(0, 400) + '...' : '';
+const createSafeTopic = (topic: any, hasAccess: boolean, userAccessLevel: string) => {
+  // Получаем превью контента (первые 400 символов)
+  const previewContentRu = topic.content.ru ? topic.content.ru.substring(0, 400) + '...' : ''
+  const previewContentRo = topic.content.ro ? topic.content.ro.substring(0, 400) + '...' : ''
 
-    return {
-        ...topic.toObject(),
-        categoryId: topic.categoryId, 
-        
-        content: isAuthorized 
-          ? topic.content 
-          : { ru: previewContentRu, ro: previewContentRo },
-        hasFullContentAccess: isAuthorized,
-    };
-};
+  return {
+    ...topic.toObject(),
+    categoryId: topic.categoryId,
+
+    content: hasAccess ? topic.content : { ru: previewContentRu, ro: previewContentRo },
+    hasFullContentAccess: hasAccess,
+    accessInfo: {
+      hasFullAccess: hasAccess,
+      userAccessLevel,
+      requiredTier: 'basic', // Topics require basic tier
+    },
+  }
+}
 
 
 export const getAllTopics = async (req: Request, res: Response) => {
@@ -46,25 +67,25 @@ export const getAllTopics = async (req: Request, res: Response) => {
   }
 }
 
-// ОБНОВЛЕНО: Поддержка ID или SLUG + Content Lock
+// ОБНОВЛЕНО: Поддержка ID или SLUG + Tier-based Content Lock
 export const getTopicById = async (req: Request, res: Response) => {
   try {
-    const slugOrId = req.params.id;
+    const slugOrId = req.params.id
 
     // Определяем, ищем по ID или по Slug
-    const query = mongoose.Types.ObjectId.isValid(slugOrId)
-      ? { _id: slugOrId }
-      : { slug: slugOrId };
+    const query = mongoose.Types.ObjectId.isValid(slugOrId) ? { _id: slugOrId } : { slug: slugOrId }
 
-    const topic = await Topic.findOne(query).populate('categoryId', 'name slug');
+    const topic = await Topic.findOne(query).populate('categoryId', 'name slug')
 
     if (!topic) {
       return res.status(404).json({ error: { message: 'Topic not found' } })
     }
 
-    // Применяем логику Content Lock
-    const isAuthorized = isAuthorizedForFullContent(req as CustomRequest);
-    const safeTopic = createSafeTopic(topic, isAuthorized);
+    // Применяем логику Tier-based Content Lock
+    const customReq = req as CustomRequest
+    const accessInfo = await hasAccessToTopic(customReq.userId, customReq.userRole)
+
+    const safeTopic = createSafeTopic(topic, accessInfo.hasAccess, accessInfo.userAccessLevel)
 
     res.json(safeTopic)
   } catch (error) {

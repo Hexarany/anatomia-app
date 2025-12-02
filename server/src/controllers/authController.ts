@@ -16,7 +16,7 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ errors: errors.array() })
     }
 
-    const { email, password, name, role } = req.body
+    const { email, password, firstName, lastName, role } = req.body
 
     // Проверка, существует ли уже пользователь с таким email
     const existingUser = await User.findOne({ email })
@@ -32,8 +32,10 @@ export const register = async (req: Request, res: Response) => {
     const user = new User({
       email,
       password: hashedPassword,
-      name,
+      firstName,
+      lastName,
       role: role || 'student', // По умолчанию роль студента
+      accessLevel: 'free', // По умолчанию бесплатный доступ
     })
 
     await user.save()
@@ -52,8 +54,10 @@ export const register = async (req: Request, res: Response) => {
       user: {
         id: user._id,
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
+        accessLevel: user.accessLevel,
       },
     })
   } catch (error) {
@@ -99,8 +103,11 @@ export const login = async (req: Request, res: Response) => {
       user: {
         id: user._id,
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
+        accessLevel: user.accessLevel,
+        paymentAmount: user.paymentAmount,
       },
     })
   } catch (error) {
@@ -125,8 +132,12 @@ export const getProfile = async (req: Request, res: Response) => {
       user: {
         id: user._id,
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
+        accessLevel: user.accessLevel,
+        paymentAmount: user.paymentAmount,
+        paymentDate: user.paymentDate,
         createdAt: user.createdAt,
       },
     })
@@ -140,13 +151,16 @@ export const getProfile = async (req: Request, res: Response) => {
 export const updateProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId
-    const { name } = req.body
+    const { firstName, lastName } = req.body
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { name },
-      { new: true, runValidators: true }
-    ).select('-password')
+    const updateData: any = {}
+    if (firstName !== undefined) updateData.firstName = firstName
+    if (lastName !== undefined) updateData.lastName = lastName
+
+    const user = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    }).select('-password')
 
     if (!user) {
       return res.status(404).json({ message: 'Пользователь не найден' })
@@ -157,8 +171,11 @@ export const updateProfile = async (req: Request, res: Response) => {
       user: {
         id: user._id,
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
+        accessLevel: user.accessLevel,
+        paymentAmount: user.paymentAmount,
       },
     })
   } catch (error) {

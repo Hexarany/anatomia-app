@@ -16,10 +16,14 @@ router.post(
     body('password')
       .isLength({ min: 6 })
       .withMessage('Пароль должен быть минимум 6 символов'),
-    body('name')
+    body('firstName')
       .trim()
       .isLength({ min: 2 })
       .withMessage('Имя должно быть минимум 2 символа'),
+    body('lastName')
+      .trim()
+      .isLength({ min: 2 })
+      .withMessage('Фамилия должна быть минимум 2 символа'),
     body('role')
       .optional()
       .isIn(['student', 'teacher', 'admin'])
@@ -51,11 +55,16 @@ router.put(
   '/profile',
   [
     authenticateToken,
-    body('name')
+    body('firstName')
       .optional()
       .trim()
       .isLength({ min: 2 })
       .withMessage('Имя должно быть минимум 2 символа'),
+    body('lastName')
+      .optional()
+      .trim()
+      .isLength({ min: 2 })
+      .withMessage('Фамилия должна быть минимум 2 символа'),
   ],
   updateProfile
 )

@@ -1,5 +1,60 @@
 import { Request, Response } from 'express'
 import AnatomyModel3D from '../models/AnatomyModel3D'
+import User from '../models/User'
+
+interface CustomRequest extends Request {
+  userId?: string
+  userEmail?: string
+  userRole?: string
+  hasActiveSubscription?: boolean
+}
+
+// Helper: Check if user has access to 3D models (Premium tier only)
+const hasAccessToModel = async (
+  userId: string | undefined,
+  userRole: string | undefined
+): Promise<{ hasAccess: boolean; userAccessLevel: string }> => {
+  // Admins and teachers have full access
+  if (userRole === 'admin' || userRole === 'teacher') {
+    return { hasAccess: true, userAccessLevel: 'premium' }
+  }
+
+  // Get user access level
+  let userAccessLevel: 'free' | 'basic' | 'premium' = 'free'
+  if (userId) {
+    const user = await User.findById(userId)
+    userAccessLevel = user?.accessLevel || 'free'
+  }
+
+  // Only Premium users have full access to 3D models
+  const hasAccess = userAccessLevel === 'premium'
+
+  return { hasAccess, userAccessLevel }
+}
+
+// Helper: Apply content lock
+const createSafeModel = (model: any, hasAccess: boolean, userAccessLevel: string) => {
+  const previewDescriptionRu = model.description.ru
+    ? model.description.ru.substring(0, 400) + '...'
+    : ''
+  const previewDescriptionRo = model.description.ro
+    ? model.description.ro.substring(0, 400) + '...'
+    : ''
+
+  return {
+    ...model.toObject(),
+    modelUrl: hasAccess ? model.modelUrl : null, // Hide 3D model file for non-premium users
+    description: hasAccess
+      ? model.description
+      : { ru: previewDescriptionRu, ro: previewDescriptionRo },
+    hasFullContentAccess: hasAccess,
+    accessInfo: {
+      hasFullAccess: hasAccess,
+      userAccessLevel,
+      requiredTier: 'premium', // 3D models require premium tier
+    },
+  }
+}
 
 export const getAllModels = async (req: Request, res: Response) => {
   try {
@@ -17,7 +72,14 @@ export const getModelById = async (req: Request, res: Response) => {
   try {
     const model = await AnatomyModel3D.findById(req.params.id)
     if (!model) return res.status(404).json({ message: 'Модель не найдена' })
-    res.status(200).json(model)
+
+    // Apply tier-based access control
+    const customReq = req as CustomRequest
+    const accessInfo = await hasAccessToModel(customReq.userId, customReq.userRole)
+
+    const safeModel = createSafeModel(model, accessInfo.hasAccess, accessInfo.userAccessLevel)
+
+    res.status(200).json(safeModel)
   } catch (error) {
     res.status(500).json({ message: 'Ошибка при получении модели' })
   }
@@ -27,7 +89,14 @@ export const getModelBySlug = async (req: Request, res: Response) => {
   try {
     const model = await AnatomyModel3D.findOne({ slug: req.params.slug })
     if (!model) return res.status(404).json({ message: 'Модель не найдена' })
-    res.status(200).json(model)
+
+    // Apply tier-based access control
+    const customReq = req as CustomRequest
+    const accessInfo = await hasAccessToModel(customReq.userId, customReq.userRole)
+
+    const safeModel = createSafeModel(model, accessInfo.hasAccess, accessInfo.userAccessLevel)
+
+    res.status(200).json(safeModel)
   } catch (error) {
     res.status(500).json({ message: 'Ошибка при получении модели' })
   }

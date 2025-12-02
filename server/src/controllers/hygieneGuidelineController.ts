@@ -1,5 +1,55 @@
 import { Request, Response } from 'express'
 import HygieneGuideline from '../models/HygieneGuideline'
+import User from '../models/User'
+
+interface CustomRequest extends Request {
+  userId?: string
+  userRole?: string
+}
+
+// Helper: Check if user has access to hygiene guidelines (Basic tier and above)
+const hasAccessToGuideline = async (
+  userId: string | undefined,
+  userRole: string | undefined
+): Promise<{ hasAccess: boolean; userAccessLevel: string }> => {
+  // Admins and teachers have full access
+  if (userRole === 'admin' || userRole === 'teacher') {
+    return { hasAccess: true, userAccessLevel: 'premium' }
+  }
+
+  // Get user access level
+  let userAccessLevel: 'free' | 'basic' | 'premium' = 'free'
+  if (userId) {
+    const user = await User.findById(userId)
+    userAccessLevel = user?.accessLevel || 'free'
+  }
+
+  // Basic and Premium users have full access to hygiene guidelines
+  const hasAccess = userAccessLevel === 'basic' || userAccessLevel === 'premium'
+
+  return { hasAccess, userAccessLevel }
+}
+
+// Helper: Apply content lock
+const createSafeGuideline = (guideline: any, hasAccess: boolean, userAccessLevel: string) => {
+  const previewContentRu = guideline.content.ru
+    ? guideline.content.ru.substring(0, 400) + '...'
+    : ''
+  const previewContentRo = guideline.content.ro
+    ? guideline.content.ro.substring(0, 400) + '...'
+    : ''
+
+  return {
+    ...guideline.toObject(),
+    content: hasAccess ? guideline.content : { ru: previewContentRu, ro: previewContentRo },
+    hasFullContentAccess: hasAccess,
+    accessInfo: {
+      hasFullAccess: hasAccess,
+      userAccessLevel,
+      requiredTier: 'basic', // Hygiene guidelines require basic tier
+    },
+  }
+}
 
 // Получить все рекомендации
 export const getAllGuidelines = async (req: Request, res: Response) => {
@@ -29,7 +79,17 @@ export const getGuidelineById = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Рекомендация не найдена' })
     }
 
-    res.status(200).json(guideline)
+    // Apply tier-based access control
+    const customReq = req as CustomRequest
+    const accessInfo = await hasAccessToGuideline(customReq.userId, customReq.userRole)
+
+    const safeGuideline = createSafeGuideline(
+      guideline,
+      accessInfo.hasAccess,
+      accessInfo.userAccessLevel
+    )
+
+    res.status(200).json(safeGuideline)
   } catch (error) {
     console.error('Error fetching hygiene guideline:', error)
     res.status(500).json({ message: 'Ошибка при получении рекомендации' })
