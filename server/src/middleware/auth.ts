@@ -9,6 +9,18 @@ interface JwtPayload {
   role: string
 }
 
+// Расширенный Request с данными пользователя
+export interface CustomRequest extends Request {
+  userId?: string
+  userEmail?: string
+  userRole?: string
+  user?: {
+    userId: string
+    email: string
+    role: string
+  }
+}
+
 // Middleware для проверки JWT токена
 export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   try {

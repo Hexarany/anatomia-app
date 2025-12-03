@@ -224,7 +224,7 @@ export const generateCertificate = async (req: CustomRequest, res: Response) => 
             ro: 'Descarcă',
           },
           metadata: {
-            certificateId: certificate._id.toString(),
+            certificateId: String(certificate._id),
             certificateType: certificate.certificateType,
           },
           priority: 'high',

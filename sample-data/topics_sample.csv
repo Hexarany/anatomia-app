@@ -1,0 +1,439 @@
+categoryId,slug,title_ru,title_ro,description_ru,description_ro,content_ru,content_ro
+CATEGORY_ID_HERE,skeletal-system-intro,Введение в скелетную систему,Introducere în sistemul scheletic,Основы анатомии скелета человека. Функции и строение костной системы.,Bazele anatomiei scheletului uman. Funcțiile și structura sistemului osos.,"# Скелетная система человека
+
+Скелетная система - это совокупность костей и их соединений, образующих опорный каркас тела человека.
+
+## Основные функции:
+- Опорная функция - поддержка тела и органов
+- Защитная функция - защита внутренних органов
+- Двигательная функция - рычаги для мышц
+- Кроветворная функция - образование клеток крови
+- Обменная функция - депо минеральных веществ
+
+## Строение:
+Скелет взрослого человека состоит из 206 костей:
+- Осевой скелет (80 костей): череп, позвоночник, грудная клетка
+- Добавочный скелет (126 костей): конечности и их пояса
+
+## Типы костей:
+1. Длинные (трубчатые) - бедренная, плечевая
+2. Короткие - кости запястья, предплюсны
+3. Плоские - лопатка, тазовые кости
+4. Смешанные - позвонки","# Sistemul scheletic uman
+
+Sistemul scheletic este ansamblul oaselor și articulațiilor lor, formând cadrul de susținere al corpului uman.
+
+## Funcții principale:
+- Funcție de susținere - susținerea corpului și organelor
+- Funcție de protecție - protejarea organelor interne
+- Funcție motorie - pârghii pentru mușchi
+- Funcție hematopoietică - formarea celulelor sanguine
+- Funcție metabolică - depozit de substanțe minerale
+
+## Structura:
+Scheletul adultului este format din 206 oase:
+- Schelet axial (80 oase): craniu, coloană vertebrală, cutie toracică
+- Schelet apendicolar (126 oase): membre și centurile lor
+
+## Tipuri de oase:
+1. Lungi (tubulare) - femur, humerus
+2. Scurte - oasele carpului, tarsului
+3. Plate - omoplat, oase pelvine
+4. Mixte - vertebre"
+CATEGORY_ID_HERE,spine-anatomy,Анатомия позвоночника,Anatomia coloanei vertebrale,Строение позвоночного столба и его функции.,Structura coloanei vertebrale și funcțiile sale.,"# Анатомия позвоночника
+
+Позвоночник (columna vertebralis) - основная часть осевого скелета, состоящая из 33-34 позвонков.
+
+## Отделы позвоночника:
+1. **Шейный отдел (C1-C7)** - 7 позвонков
+   - C1 (атлант) - кольцевидный позвонок
+   - C2 (аксис) - имеет зубовидный отросток
+   - Самый подвижный отдел
+
+2. **Грудной отдел (T1-T12)** - 12 позвонков
+   - Соединяются с ребрами
+   - Малоподвижный отдел
+
+3. **Поясничный отдел (L1-L5)** - 5 позвонков
+   - Самые массивные позвонки
+   - Большая нагрузка
+
+4. **Крестцовый отдел (S1-S5)** - 5 сросшихся позвонков
+
+5. **Копчиковый отдел** - 4-5 позвонков
+
+## Физиологические изгибы:
+- Шейный лордоз (изгиб вперед)
+- Грудной кифоз (изгиб назад)
+- Поясничный лордоз (изгиб вперед)
+- Крестцовый кифоз (изгиб назад)
+
+## Функции:
+- Защита спинного мозга
+- Опора для тела
+- Амортизация при движении","# Anatomia coloanei vertebrale
+
+Coloana vertebrală (columna vertebralis) - partea principală a scheletului axial, constând din 33-34 vertebre.
+
+## Regiuni ale coloanei vertebrale:
+1. **Regiunea cervicală (C1-C7)** - 7 vertebre
+   - C1 (atlasul) - vertebră inelară
+   - C2 (axisul) - are procesul odontoid
+   - Cea mai mobilă regiune
+
+2. **Regiunea toracică (T1-T12)** - 12 vertebre
+   - Se articulează cu coastele
+   - Regiune cu mobilitate redusă
+
+3. **Regiunea lombară (L1-L5)** - 5 vertebre
+   - Cele mai masive vertebre
+   - Suportă cea mai mare încărcare
+
+4. **Regiunea sacrată (S1-S5)** - 5 vertebre fuzionate
+
+5. **Regiunea coccidiană** - 4-5 vertebre
+
+## Curburi fiziologice:
+- Lordoza cervicală (curbură înainte)
+- Cifoza toracică (curbură înapoi)
+- Lordoza lombară (curbură înainte)
+- Cifoza sacrată (curbură înapoi)
+
+## Funcții:
+- Protecția măduvei spinării
+- Suport pentru corp
+- Amortizare la mișcare"
+CATEGORY_ID_HERE,shoulder-anatomy,Анатомия плечевого пояса,Anatomia centurii scapulare,Строение плечевого сустава и окружающих мышц.,Structura articulației umărului și mușchilor înconjurători.,"# Плечевой пояс и плечевой сустав
+
+## Кости плечевого пояса:
+- Ключица (clavicula)
+- Лопатка (scapula)
+- Плечевая кость (humerus)
+
+## Плечевой сустав:
+Самый подвижный сустав в теле человека. Шаровидный сустав образованный головкой плечевой кости и суставной впадиной лопатки.
+
+### Движения в суставе:
+- Сгибание и разгибание
+- Отведение и приведение
+- Ротация внутрь и наружу
+- Круговые движения
+
+## Мышцы плечевого пояса:
+
+### Ротаторная манжета (4 мышцы):
+1. **Надостная** (supraspinatus) - отведение плеча
+2. **Подостная** (infraspinatus) - наружная ротация
+3. **Малая круглая** (teres minor) - наружная ротация
+4. **Подлопаточная** (subscapularis) - внутренняя ротация
+
+### Другие важные мышцы:
+- Дельтовидная - отведение плеча
+- Большая грудная - приведение и ротация
+- Широчайшая спины - приведение и разгибание
+- Трапециевидная - движение лопатки
+
+## Клиническое значение:
+Плечевой сустав часто подвержен травмам и дисфункциям из-за своей подвижности и нестабильности.","# Centura scapulară și articulația umărului
+
+## Oasele centurii scapulare:
+- Claviculă (clavicula)
+- Omoplat (scapula)
+- Humerus (humerus)
+
+## Articulația umărului:
+Cea mai mobilă articulație din corpul uman. Articulație sferică formată de capul humerusului și cavitatea glenoidă a omoplatului.
+
+### Mișcări în articulație:
+- Flexie și extensie
+- Abducție și adducție
+- Rotație internă și externă
+- Mișcări circulare
+
+## Mușchii centurii scapulare:
+
+### Manșeta rotatorilor (4 mușchi):
+1. **Supraspinatus** - abducția umărului
+2. **Infraspinatus** - rotația externă
+3. **Teres minor** - rotația externă
+4. **Subscapularis** - rotația internă
+
+### Alți mușchi importanți:
+- Deltoid - abducția umărului
+- Pectoral mare - adducția și rotația
+- Latissimus dorsi - adducția și extensia
+- Trapez - mișcarea omoplatului
+
+## Semnificație clinică:
+Articulația umărului este des supusă traumelor și disfuncțiilor datorită mobilității și instabilității sale."
+CATEGORY_ID_HERE,back-muscles,Мышцы спины,Mușchii spatelui,Поверхностные и глубокие мышцы спины. Их функции и значение.,Mușchii superficiali și profunzi ai spatelui. Funcțiile și importanța lor.,"# Мышцы спины
+
+Мышцы спины делятся на поверхностные и глубокие слои.
+
+## Поверхностные мышцы:
+
+### Трапециевидная мышца (trapezius)
+- **Верхняя часть**: поднимает лопатку
+- **Средняя часть**: приводит лопатку к позвоночнику
+- **Нижняя часть**: опускает лопатку
+
+### Широчайшая мышца спины (latissimus dorsi)
+- Самая широкая мышца тела
+- Функции: приведение, разгибание, внутренняя ротация плеча
+- Важна для подтягиваний и гребли
+
+### Ромбовидные мышцы (rhomboideus)
+- Большая и малая ромбовидные
+- Приведение лопатки к позвоночнику
+- Фиксация лопатки
+
+### Мышца поднимающая лопатку (levator scapulae)
+- Поднимает лопатку
+- Часто напряжена у офисных работников
+
+## Глубокие мышцы:
+
+### Мышцы-разгибатели позвоночника:
+1. **Подвздошно-реберная** (iliocostalis)
+2. **Длиннейшая** (longissimus)
+3. **Остистая** (spinalis)
+
+### Поперечно-остистые мышцы:
+- Многораздельные мышцы
+- Вращатели позвоночника
+- Стабилизация позвонков
+
+## Функции мышц спины:
+- Поддержание осанки
+- Движения позвоночника
+- Движения лопатки и плеча
+- Дыхательная функция
+
+## Клиническое значение:
+Боли в спине часто связаны с дисбалансом этих мышц.","# Mușchii spatelui
+
+Mușchii spatelui se împart în straturi superficiale și profunde.
+
+## Mușchi superficiali:
+
+### Mușchiul trapez (trapezius)
+- **Partea superioară**: ridică omoplatul
+- **Partea mijlocie**: aduce omoplatul la coloană
+- **Partea inferioară**: coboară omoplatul
+
+### Mușchiul latissimus dorsi
+- Cel mai lat mușchi al corpului
+- Funcții: adducția, extensia, rotația internă a umărului
+- Important pentru tractări și vâslit
+
+### Mușchii romboidieni (rhomboideus)
+- Romboid mare și mic
+- Adducția omoplatului la coloană
+- Fixarea omoplatului
+
+### Mușchiul levator scapulae
+- Ridică omoplatul
+- Adesea tensionat la lucrătorii de birou
+
+## Mușchi profunzi:
+
+### Mușchii extensori ai coloanei:
+1. **Iliocostalis**
+2. **Longissimus**
+3. **Spinalis**
+
+### Mușchii transversospinali:
+- Mușchii multifizi
+- Rotatores
+- Stabilizarea vertebrelor
+
+## Funcțiile mușchilor spatelui:
+- Menținerea posturii
+- Mișcările coloanei vertebrale
+- Mișcările omoplatului și umărului
+- Funcție respiratorie
+
+## Semnificație clinică:
+Durerile de spate sunt adesea legate de dezechilibrul acestor mușchi."
+CATEGORY_ID_HERE,hip-pelvis,Тазобедренный сустав и таз,Articulația șoldului și bazinul,Анатомия таза и тазобедренного сустава.,Anatomia bazinului și articulației șoldului.,"# Таз и тазобедренный сустав
+
+## Кости таза:
+- Подвздошная кость (os ilium)
+- Седалищная кость (os ischii)
+- Лобковая кость (os pubis)
+- Крестец (os sacrum)
+
+## Тазобедренный сустав:
+Шаровидный сустав образованный головкой бедренной кости и вертлужной впадиной.
+
+### Связки:
+- Подвздошно-бедренная (самая прочная в теле)
+- Седалищно-бедренная
+- Лобково-бедренная
+- Связка головки бедренной кости
+
+## Мышцы таза и бедра:
+
+### Ягодичные мышцы:
+1. **Большая ягодичная** - разгибание бедра
+2. **Средняя ягодичная** - отведение бедра
+3. **Малая ягодичная** - отведение бедра
+
+### Глубокие ротаторы:
+- Грушевидная (piriformis)
+- Внутренняя запирательная
+- Наружная запирательная
+- Близнецовые мышцы
+- Квадратная мышца бедра
+
+### Сгибатели бедра:
+- Подвздошно-поясничная
+- Прямая мышца бедра
+- Портняжная
+
+## Движения в суставе:
+- Сгибание/разгибание
+- Отведение/приведение
+- Ротация внутрь/наружу
+
+## Клиническое значение:
+Сустав выдерживает большие нагрузки, часто страдает при артрозе.","# Bazinul și articulația șoldului
+
+## Oasele bazinului:
+- Os iliac (os ilium)
+- Os ischion (os ischii)
+- Os pubis (os pubis)
+- Sacru (os sacrum)
+
+## Articulația șoldului:
+Articulație sferică formată de capul femurului și acetabul.
+
+### Ligamente:
+- Ligamentul iliofemural (cel mai puternic din corp)
+- Ligamentul ischiofemural
+- Ligamentul pubofemural
+- Ligamentul capului femurului
+
+## Mușchii bazinului și coapsei:
+
+### Mușchii gluteali:
+1. **Gluteus maximus** - extensia coapsei
+2. **Gluteus medius** - abducția coapsei
+3. **Gluteus minimus** - abducția coapsei
+
+### Rotatori profunzi:
+- Piriformis
+- Obturator intern
+- Obturator extern
+- Mușchii gemeni
+- Quadratus femoris
+
+### Flexori ai coapsei:
+- Iliopsoas
+- Rectus femoris
+- Sartorius
+
+## Mișcări în articulație:
+- Flexie/extensie
+- Abducție/adducție
+- Rotație internă/externă
+
+## Semnificație clinică:
+Articulația suportă sarcini mari, adesea afectată de artroză."
+CATEGORY_ID_HERE,leg-muscles,Мышцы ноги,Mușchii piciorului,Анатомия мышц бедра голени и стопы.,Anatomia mușchilor coapsei gambei și piciorului.,"# Мышцы нижней конечности
+
+## Мышцы бедра:
+
+### Передняя группа:
+1. **Четырехглавая мышца бедра** (квадрицепс)
+   - Прямая мышца бедра
+   - Латеральная широкая
+   - Медиальная широкая
+   - Промежуточная широкая
+   - Функция: разгибание голени
+
+2. **Портняжная мышца** - самая длинная в теле
+
+### Задняя группа (хамстринги):
+1. **Двуглавая мышца бедра** (бицепс бедра)
+2. **Полусухожильная мышца**
+3. **Полуперепончатая мышца**
+- Функция: сгибание голени
+
+### Медиальная группа (приводящие):
+- Тонкая мышца
+- Длинная приводящая
+- Короткая приводящая
+- Большая приводящая
+- Гребенчатая мышца
+
+## Мышцы голени:
+
+### Передняя группа:
+- Передняя большеберцовая - дорсальное сгибание стопы
+- Разгибатели пальцев
+
+### Задняя группа:
+1. **Трехглавая мышца голени**:
+   - Икроножная мышца (2 головки)
+   - Камбаловидная мышца
+   - Ахиллово сухожилие
+
+2. **Глубокие сгибатели**
+
+### Латеральная группа:
+- Длинная и короткая малоберцовые мышцы
+
+## Функции:
+- Движения в коленном суставе
+- Движения стопы
+- Поддержание равновесия
+- Ходьба и бег","# Mușchii membrului inferior
+
+## Mușchii coapsei:
+
+### Grupul anterior:
+1. **Mușchiul cvadriceps**
+   - Rectus femoris
+   - Vastus lateralis
+   - Vastus medialis
+   - Vastus intermedius
+   - Funcție: extensia gambei
+
+2. **Sartorius** - cel mai lung mușchi din corp
+
+### Grupul posterior (hamstrings):
+1. **Biceps femoris**
+2. **Semitendinosus**
+3. **Semimembranosus**
+- Funcție: flexia gambei
+
+### Grupul medial (aductori):
+- Gracilis
+- Adductor longus
+- Adductor brevis
+- Adductor magnus
+- Pectineus
+
+## Mușchii gambei:
+
+### Grupul anterior:
+- Tibialis anterior - dorsiflexia piciorului
+- Extensori ai degetelor
+
+### Grupul posterior:
+1. **Triceps sural**:
+   - Gastrocnemius (2 capete)
+   - Soleus
+   - Tendonul lui Achile
+
+2. **Flexori profunzi**
+
+### Grupul lateral:
+- Fibularis longus și brevis
+
+## Funcții:
+- Mișcări în articulația genunchiului
+- Mișcări ale piciorului
+- Menținerea echilibrului
+- Mers și alergare"
