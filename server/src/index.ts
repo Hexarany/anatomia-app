@@ -27,6 +27,7 @@ import searchRoutes from './routes/searchRoutes'
 import bookmarkRoutes from './routes/bookmarkRoutes'
 import noteRoutes from './routes/noteRoutes'
 import resourceRoutes from './routes/resourceRoutes'
+import progressRoutes from './routes/progressRoutes'
 
 // Load environment variables
 dotenv.config()
@@ -119,6 +120,7 @@ app.use('/api', searchRoutes)
 app.use('/api', bookmarkRoutes)
 app.use('/api', noteRoutes)
 app.use('/api', resourceRoutes)
+app.use('/api', progressRoutes)
 
 // Health check endpoints
 app.get('/health', (req, res) => {
