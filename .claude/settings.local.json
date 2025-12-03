@@ -20,7 +20,9 @@
       "Bash(git restore:*)",
       "Bash(categories.json)",
       "Bash(\"C:\\Users\\User\\Desktop\\Anatomia\\client\\src\\pages\\admin\\HygieneGuidelinesManager.tsx\")",
-      "Bash(\"C:\\Users\\User\\Desktop\\Anatomia\\server\\src\\models\\AnatomyModel3D.ts\")"
+      "Bash(\"C:\\Users\\User\\Desktop\\Anatomia\\server\\src\\models\\AnatomyModel3D.ts\")",
+      "Bash(cat:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

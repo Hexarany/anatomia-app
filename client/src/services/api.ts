@@ -854,4 +854,138 @@ export const saveQuizResult = async (data: {
   return response.data
 }
 
+// Certificates
+export interface Certificate {
+  _id: string
+  userId: string
+  certificateNumber: string
+  certificateType: 'course_completion' | 'topic_mastery' | 'exam_excellence' | 'full_course'
+  title: {
+    ru: string
+    ro: string
+  }
+  description: {
+    ru: string
+    ro: string
+  }
+  issuedAt: string
+  validUntil?: string
+  requirements: {
+    minTopicsCompleted: number
+    minQuizzesPassed: number
+    minAverageScore: number
+    specificTopics?: string[]
+    specificQuizzes?: string[]
+  }
+  requirementsMet: {
+    topicsCompleted: number
+    quizzesPassed: number
+    averageScore: number
+    completedAt: string
+  }
+  metadata: {
+    courseName?: string
+    instructorName?: string
+    institution: string
+    credentialId: string
+  }
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AvailableCertificate {
+  type: string
+  title: {
+    ru: string
+    ro: string
+  }
+  description: {
+    ru: string
+    ro: string
+  }
+  requirements: {
+    minTopicsCompleted: number
+    minQuizzesPassed: number
+    minAverageScore: number
+  }
+  eligible: boolean
+  progress: {
+    topicsCompleted: number
+    quizzesPassed: number
+    averageScore: number
+  }
+}
+
+// Get all available certificate types with eligibility status
+export const getAvailableCertificates = async (): Promise<{ certificates: AvailableCertificate[] }> => {
+  const response = await api.get('/certificates/available')
+  return response.data
+}
+
+// Get user's earned certificates
+export const getUserCertificates = async (): Promise<{ certificates: Certificate[] }> => {
+  const response = await api.get('/certificates/my-certificates')
+  return response.data
+}
+
+// Check eligibility for specific certificate type
+export const checkCertificateEligibility = async (certificateType: string): Promise<{
+  eligible: boolean
+  requirements: {
+    minTopicsCompleted: number
+    minQuizzesPassed: number
+    minAverageScore: number
+  }
+  currentProgress: {
+    topicsCompleted: number
+    quizzesPassed: number
+    averageScore: number
+  }
+  certificateType: {
+    ru: string
+    ro: string
+  }
+}> => {
+  const response = await api.get(`/certificates/eligibility/${certificateType}`)
+  return response.data
+}
+
+// Generate new certificate
+export const generateCertificate = async (certificateType: string): Promise<{
+  message: string
+  certificate: Certificate
+}> => {
+  const response = await api.post(`/certificates/generate/${certificateType}`)
+  return response.data
+}
+
+// Download certificate as PDF
+export const downloadCertificatePDF = async (certificateId: string): Promise<Blob> => {
+  const response = await api.get(`/certificates/download/${certificateId}`, {
+    responseType: 'blob',
+  })
+  return response.data
+}
+
+// Verify certificate (public endpoint)
+export const verifyCertificate = async (certificateNumber: string): Promise<{
+  valid: boolean
+  message?: string
+  certificate?: {
+    certificateNumber: string
+    certificateType: string
+    title: {
+      ru: string
+      ro: string
+    }
+    issuedAt: string
+    recipientName: string
+    credentialId: string
+    institution: string
+  }
+}> => {
+  const response = await api.get(`/certificates/verify/${certificateNumber}`)
+  return response.data
+}
+
 export default api

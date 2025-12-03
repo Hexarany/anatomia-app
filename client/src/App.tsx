@@ -26,6 +26,7 @@ import ChatPage from './pages/ChatPage'
 import SearchPage from './pages/SearchPage'
 import ResourcesLibraryPage from './pages/ResourcesLibraryPage'
 import DashboardPage from './pages/DashboardPage'
+import CertificatesPage from './pages/CertificatesPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/certificates" element={<CertificatesPage />} />
           <Route path="/subscription" element={<SubscriptionPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/payment-callback" element={<PaymentCallbackPage />} />

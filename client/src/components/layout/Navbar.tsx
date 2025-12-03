@@ -276,6 +276,16 @@ const Navbar = () => {
                   <MenuItem
                     onClick={() => {
                       handleCloseUserMenu()
+                      navigate('/certificates')
+                    }}
+                  >
+                    <Typography textAlign="center">
+                      {i18n.language === 'ru' ? 'Сертификаты' : 'Certificate'}
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleCloseUserMenu()
                       navigate('/pricing')
                     }}
                   >
