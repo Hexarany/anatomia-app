@@ -757,4 +757,101 @@ export const getResourceTags = async (): Promise<Array<{ tag: string; count: num
   return response.data
 }
 
+// Progress Tracking
+export interface Progress {
+  _id: string
+  userId: string
+  completedTopics: Array<{
+    topicId: string
+    completedAt: string
+    timeSpent: number
+  }>
+  viewedProtocols: Array<{
+    protocolId: string
+    viewedAt: string
+    timeSpent: number
+  }>
+  viewedGuidelines: Array<{
+    guidelineId: string
+    viewedAt: string
+  }>
+  viewed3DModels: Array<{
+    modelId: string
+    viewedAt: string
+  }>
+  viewedTriggerPoints: Array<{
+    triggerPointId: string
+    viewedAt: string
+  }>
+  completedQuizzes: Array<{
+    quizId: string
+    score: number
+    totalQuestions: number
+    correctAnswers: number
+    completedAt: string
+    timeSpent: number
+    mode: 'practice' | 'exam'
+  }>
+  achievements: Array<{
+    achievementId: string
+    unlockedAt: string
+    title: { ru: string; ro: string }
+    description: { ru: string; ro: string }
+    icon: string
+  }>
+  stats: {
+    totalStudyTime: number
+    streak: number
+    lastActivityDate: string
+    longestStreak: number
+    totalTopicsCompleted: number
+    totalQuizzesPassed: number
+    averageQuizScore: number
+  }
+  createdAt: string
+  updatedAt: string
+}
+
+export const getProgress = async (): Promise<Progress> => {
+  const response = await api.get('/progress')
+  return response.data
+}
+
+export const markTopicComplete = async (topicId: string, timeSpent: number = 0): Promise<{ message: string; progress: Progress }> => {
+  const response = await api.post('/progress/topic/complete', { topicId, timeSpent })
+  return response.data
+}
+
+export const markProtocolViewed = async (protocolId: string, timeSpent: number = 0): Promise<{ message: string; progress: Progress }> => {
+  const response = await api.post('/progress/protocol/viewed', { protocolId, timeSpent })
+  return response.data
+}
+
+export const markGuidelineViewed = async (guidelineId: string): Promise<{ message: string; progress: Progress }> => {
+  const response = await api.post('/progress/guideline/viewed', { guidelineId })
+  return response.data
+}
+
+export const mark3DModelViewed = async (modelId: string): Promise<{ message: string; progress: Progress }> => {
+  const response = await api.post('/progress/3d-model/viewed', { modelId })
+  return response.data
+}
+
+export const markTriggerPointViewed = async (triggerPointId: string): Promise<{ message: string; progress: Progress }> => {
+  const response = await api.post('/progress/trigger-point/viewed', { triggerPointId })
+  return response.data
+}
+
+export const saveQuizResult = async (data: {
+  quizId: string
+  score: number
+  totalQuestions: number
+  correctAnswers: number
+  timeSpent: number
+  mode: 'practice' | 'exam'
+}): Promise<{ message: string; progress: Progress }> => {
+  const response = await api.post('/progress/quiz/result', data)
+  return response.data
+}
+
 export default api
