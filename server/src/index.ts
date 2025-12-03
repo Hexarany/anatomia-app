@@ -31,6 +31,7 @@ import resourceRoutes from './routes/resourceRoutes'
 import progressRoutes from './routes/progressRoutes'
 import certificateRoutes from './routes/certificateRoutes'
 import notificationRoutes from './routes/notificationRoutes'
+import importRoutes from './routes/importRoutes'
 
 // Load environment variables
 dotenv.config()
@@ -129,6 +130,7 @@ app.use('/api', resourceRoutes)
 app.use('/api', progressRoutes)
 app.use('/api/certificates', certificateRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/import', importRoutes)
 
 // Health check endpoints
 app.get('/health', (req, res) => {
