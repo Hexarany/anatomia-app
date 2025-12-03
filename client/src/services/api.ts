@@ -544,4 +544,82 @@ export const saveSearchQuery = async (query: string): Promise<void> => {
   await api.post('/search/history', { query })
 }
 
+// Bookmarks and Folders
+export interface Bookmark {
+  _id: string
+  userId: string
+  contentType: 'topic' | 'protocol' | 'trigger_point' | 'hygiene' | 'model_3d' | 'quiz'
+  contentId: string
+  folderId?: string
+  notes?: string
+  content: any
+  createdAt: string
+  updatedAt: string
+}
+
+export interface BookmarkFolder {
+  _id: string
+  userId: string
+  name: {
+    ru: string
+    ro: string
+  }
+  color: string
+  icon: string
+  order: number
+  bookmarksCount?: number
+  createdAt: string
+  updatedAt: string
+}
+
+export const getUserBookmarks = async (folderId?: string | null, contentType?: string): Promise<Bookmark[]> => {
+  const response = await api.get('/bookmarks', {
+    params: { folderId, contentType },
+  })
+  return response.data
+}
+
+export const addBookmark = async (contentType: string, contentId: string, folderId?: string, notes?: string): Promise<Bookmark> => {
+  const response = await api.post('/bookmarks', { contentType, contentId, folderId, notes })
+  return response.data
+}
+
+export const updateBookmark = async (bookmarkId: string, data: { folderId?: string | null; notes?: string }): Promise<Bookmark> => {
+  const response = await api.put(`/bookmarks/${bookmarkId}`, data)
+  return response.data
+}
+
+export const deleteBookmark = async (bookmarkId: string): Promise<void> => {
+  await api.delete(`/bookmarks/${bookmarkId}`)
+}
+
+export const checkBookmark = async (contentType: string, contentId: string): Promise<{ isBookmarked: boolean; bookmark?: Bookmark }> => {
+  const response = await api.get('/bookmarks/check', {
+    params: { contentType, contentId },
+  })
+  return response.data
+}
+
+export const getUserFolders = async (): Promise<BookmarkFolder[]> => {
+  const response = await api.get('/folders')
+  return response.data
+}
+
+export const createFolder = async (name: { ru: string; ro: string }, color?: string, icon?: string): Promise<BookmarkFolder> => {
+  const response = await api.post('/folders', { name, color, icon })
+  return response.data
+}
+
+export const updateFolder = async (
+  folderId: string,
+  data: { name?: { ru: string; ro: string }; color?: string; icon?: string; order?: number }
+): Promise<BookmarkFolder> => {
+  const response = await api.put(`/folders/${folderId}`, data)
+  return response.data
+}
+
+export const deleteFolder = async (folderId: string): Promise<void> => {
+  await api.delete(`/folders/${folderId}`)
+}
+
 export default api

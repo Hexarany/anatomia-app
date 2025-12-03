@@ -32,6 +32,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import Model3DViewer from '@/components/Model3DViewer'
 import EnhancedMarkdown from '@/components/EnhancedMarkdown'
 import AccessGate from '@/components/AccessGate'
+import BookmarkButton from '@/components/BookmarkButton'
 import { getTopicById } from '@/services/api'
 import type { Topic } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
@@ -170,10 +171,13 @@ const TopicPage = () => {
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
           <FitnessCenterIcon sx={{ fontSize: 48, color: 'primary.main', mr: 2 }} />
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-              {topic.name[lang]}
-            </Typography>
-            <Typography variant="body1" color="text.secondary" paragraph>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="h3" component="h1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                {topic.name[lang]}
+              </Typography>
+              <BookmarkButton contentType="topic" contentId={topicId || ''} />
+            </Box>
+            <Typography variant="body1" color="text.secondary" paragraph sx={{ mt: 1 }}>
               {topic.description[lang]}
             </Typography>
           </Box>
