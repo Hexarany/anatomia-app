@@ -622,4 +622,64 @@ export const deleteFolder = async (folderId: string): Promise<void> => {
   await api.delete(`/folders/${folderId}`)
 }
 
+// Notes
+export interface Note {
+  _id: string
+  userId: string
+  contentType: 'topic' | 'protocol' | 'trigger_point' | 'hygiene' | 'model_3d' | 'quiz' | 'general'
+  contentId?: string
+  title: string
+  content: string
+  isImportant: boolean
+  tags: string[]
+  color: string
+  createdAt: string
+  updatedAt: string
+}
+
+export const getUserNotes = async (filters?: {
+  contentType?: string
+  contentId?: string
+  isImportant?: boolean
+  tag?: string
+}): Promise<Note[]> => {
+  const response = await api.get('/notes', { params: filters })
+  return response.data
+}
+
+export const getNoteById = async (noteId: string): Promise<Note> => {
+  const response = await api.get(`/notes/${noteId}`)
+  return response.data
+}
+
+export const createNote = async (data: {
+  title: string
+  content: string
+  contentType?: string
+  contentId?: string
+  isImportant?: boolean
+  tags?: string[]
+  color?: string
+}): Promise<Note> => {
+  const response = await api.post('/notes', data)
+  return response.data
+}
+
+export const updateNote = async (
+  noteId: string,
+  data: { title?: string; content?: string; isImportant?: boolean; tags?: string[]; color?: string }
+): Promise<Note> => {
+  const response = await api.put(`/notes/${noteId}`, data)
+  return response.data
+}
+
+export const deleteNote = async (noteId: string): Promise<void> => {
+  await api.delete(`/notes/${noteId}`)
+}
+
+export const getUserTags = async (): Promise<Array<{ tag: string; count: number }>> => {
+  const response = await api.get('/notes/tags')
+  return response.data
+}
+
 export default api

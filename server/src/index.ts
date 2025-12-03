@@ -25,6 +25,7 @@ import usersManagementRoutes from './routes/usersManagementRoutes'
 import chatRoutes from './routes/chatRoutes'
 import searchRoutes from './routes/searchRoutes'
 import bookmarkRoutes from './routes/bookmarkRoutes'
+import noteRoutes from './routes/noteRoutes'
 
 // Load environment variables
 dotenv.config()
@@ -115,6 +116,7 @@ app.use('/api/users-management', usersManagementRoutes)
 app.use('/api/chat', chatRoutes)
 app.use('/api', searchRoutes)
 app.use('/api', bookmarkRoutes)
+app.use('/api', noteRoutes)
 
 // Health check endpoints
 app.get('/health', (req, res) => {
