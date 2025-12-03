@@ -19,11 +19,14 @@ import {
   Chip,
   Alert,
   CircularProgress,
+  LinearProgress,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
+import UploadFileIcon from '@mui/icons-material/UploadFile'
 import { getResources, createResource, updateResource, deleteResource, type Resource } from '@/services/api'
+import axios from 'axios'
 
 const ResourcesManager = () => {
   const [resources, setResources] = useState<Resource[]>([])
@@ -32,6 +35,8 @@ const ResourcesManager = () => {
   const [editingResource, setEditingResource] = useState<Resource | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const [formData, setFormData] = useState({
     titleRu: '',
@@ -161,6 +166,49 @@ const ResourcesManager = () => {
       loadResources()
     } catch (err) {
       setError('Ошибка удаления ресурса')
+    }
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Проверка размера файла (макс 500MB)
+    if (file.size > 500 * 1024 * 1024) {
+      setError('Файл слишком большой. Максимальный размер: 500MB')
+      return
+    }
+
+    try {
+      setUploading(true)
+      setUploadProgress(0)
+      setError('')
+
+      const formDataUpload = new FormData()
+      formDataUpload.append('file', file)
+
+      const token = localStorage.getItem('token')
+      const response = await axios.post('/api/media/upload', formDataUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = progressEvent.total
+            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            : 0
+          setUploadProgress(progress)
+        },
+      })
+
+      // Устанавливаем URL загруженного файла
+      setFormData({ ...formData, fileUrl: response.data.url })
+      setSuccess('Файл успешно загружен!')
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Ошибка загрузки файла')
+    } finally {
+      setUploading(false)
+      setUploadProgress(0)
     }
   }
 
@@ -314,13 +362,35 @@ const ResourcesManager = () => {
               helperText="Например: Анатомия, Массаж, Физиология"
             />
 
-            <TextField
-              label="URL файла (Cloudinary или прямая ссылка)"
-              value={formData.fileUrl}
-              onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
-              fullWidth
-              helperText="Для PDF/DOC/Книг - ссылка на файл"
-            />
+            <Box>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <TextField
+                  label="URL файла (Cloudinary или прямая ссылка)"
+                  value={formData.fileUrl}
+                  onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
+                  fullWidth
+                  helperText="Для PDF/DOC/Книг - ссылка на файл"
+                />
+                <Button
+                  variant="contained"
+                  component="label"
+                  startIcon={<UploadFileIcon />}
+                  disabled={uploading}
+                  sx={{ minWidth: '150px', height: '56px' }}
+                >
+                  {uploading ? 'Загрузка...' : 'Загрузить'}
+                  <input type="file" hidden onChange={handleFileUpload} accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar" />
+                </Button>
+              </Box>
+              {uploading && (
+                <Box sx={{ mt: 1 }}>
+                  <LinearProgress variant="determinate" value={uploadProgress} />
+                  <Box sx={{ textAlign: 'center', mt: 0.5 }}>
+                    <small>{uploadProgress}%</small>
+                  </Box>
+                </Box>
+              )}
+            </Box>
 
             <TextField
               label="Внешняя ссылка"

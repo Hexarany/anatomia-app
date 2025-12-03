@@ -24,7 +24,18 @@ export const upload = multer({
       'video/x-msvideo',
       'video/webm',
       'model/gltf-binary',
-      'application/octet-stream'
+      'application/octet-stream',
+      // Document types
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain',
+      'application/zip',
+      'application/x-rar-compressed'
     ]
     if (allowedMimes.includes(file.mimetype) || file.originalname.endsWith('.glb')) {
       cb(null, true)
@@ -41,7 +52,28 @@ const uploadToCloudinary = (buffer: Buffer, filename: string, mimetype: string):
     let resourceType: 'image' | 'video' | 'raw' = 'image'
     if (mimetype.startsWith('video/')) {
       resourceType = 'video'
-    } else if (mimetype === 'model/gltf-binary' || filename.endsWith('.glb')) {
+    } else if (
+      mimetype === 'model/gltf-binary' ||
+      mimetype === 'application/pdf' ||
+      mimetype === 'application/msword' ||
+      mimetype.includes('document') ||
+      mimetype.includes('spreadsheet') ||
+      mimetype.includes('presentation') ||
+      mimetype === 'text/plain' ||
+      mimetype.includes('zip') ||
+      mimetype.includes('rar') ||
+      filename.endsWith('.glb') ||
+      filename.endsWith('.pdf') ||
+      filename.endsWith('.doc') ||
+      filename.endsWith('.docx') ||
+      filename.endsWith('.xls') ||
+      filename.endsWith('.xlsx') ||
+      filename.endsWith('.ppt') ||
+      filename.endsWith('.pptx') ||
+      filename.endsWith('.txt') ||
+      filename.endsWith('.zip') ||
+      filename.endsWith('.rar')
+    ) {
       resourceType = 'raw'
     }
 
@@ -137,7 +169,27 @@ export const deleteMedia = async (req: Request, res: Response) => {
     let resourceType: 'image' | 'video' | 'raw' = 'image'
     if (media.mimetype.startsWith('video/')) {
       resourceType = 'video'
-    } else if (media.mimetype === 'model/gltf-binary' || media.originalName.endsWith('.glb')) {
+    } else if (
+      media.mimetype === 'model/gltf-binary' ||
+      media.mimetype === 'application/pdf' ||
+      media.mimetype.includes('document') ||
+      media.mimetype.includes('spreadsheet') ||
+      media.mimetype.includes('presentation') ||
+      media.mimetype === 'text/plain' ||
+      media.mimetype.includes('zip') ||
+      media.mimetype.includes('rar') ||
+      media.originalName.endsWith('.glb') ||
+      media.originalName.endsWith('.pdf') ||
+      media.originalName.endsWith('.doc') ||
+      media.originalName.endsWith('.docx') ||
+      media.originalName.endsWith('.xls') ||
+      media.originalName.endsWith('.xlsx') ||
+      media.originalName.endsWith('.ppt') ||
+      media.originalName.endsWith('.pptx') ||
+      media.originalName.endsWith('.txt') ||
+      media.originalName.endsWith('.zip') ||
+      media.originalName.endsWith('.rar')
+    ) {
       resourceType = 'raw'
     }
 
