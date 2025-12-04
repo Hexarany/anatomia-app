@@ -175,9 +175,9 @@ app.use((req, res) => {
 const startServer = async () => {
   try {
     await connectDB()
-    httpServer.listen(PORT, () => {
-      console.log(`🚀 Server is running on http://localhost:${PORT}`)
-      console.log(`📚 API available at http://localhost:${PORT}/api`)
+    httpServer.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server is running on http://0.0.0.0:${PORT}`)
+      console.log(`📚 API available at http://0.0.0.0:${PORT}/api`)
       console.log(`💬 Socket.io server is ready`)
     })
   } catch (error) {
