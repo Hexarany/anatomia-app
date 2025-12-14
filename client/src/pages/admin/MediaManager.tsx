@@ -67,6 +67,20 @@ const MediaManager = () => {
     const file = event.target.files?.[0]
     if (!file || !token) return
 
+    // Проверка размера файла (10 МБ лимит)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+    if (file.size > MAX_FILE_SIZE) {
+      showSnackbar(
+        `Файл слишком большой! Размер: ${(file.size / (1024 * 1024)).toFixed(2)} МБ. Максимум: 10 МБ.`,
+        'error'
+      )
+      // Сброс поля ввода файла
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      return
+    }
+
     setIsUploading(true)
     try {
       // Использование API-сервиса для загрузки
@@ -75,9 +89,10 @@ const MediaManager = () => {
       const mediaList = await getMediaList(token)
       setFiles(mediaList)
       showSnackbar(`Файл ${file.name} успешно загружен!`, 'success')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error)
-      showSnackbar('Ошибка загрузки файла. Проверьте права и настройки сервера.', 'error')
+      const errorMessage = error?.response?.data?.error?.message || 'Ошибка загрузки файла. Проверьте права и настройки сервера.'
+      showSnackbar(errorMessage, 'error')
     } finally {
       setIsUploading(false)
       // Сброс поля ввода файла
