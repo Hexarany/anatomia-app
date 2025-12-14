@@ -10,7 +10,7 @@ const storage = multer.memoryStorage()
 
 export const upload = multer({
   storage,
-  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB лимит
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB лимит (соответствует бесплатному плану Cloudinary)
   fileFilter: (req, file, cb) => {
     const allowedMimes = [
       'image/jpeg',
@@ -149,8 +149,19 @@ export const uploadMedia = async (req: Request, res: Response) => {
     }
 
     res.status(200).json(fileInfo)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error uploading file to Cloudinary:', error)
+
+    // Проверяем, является ли ошибка ограничением размера файла Cloudinary
+    if (error.message && error.message.includes('File size too large')) {
+      const maxSizeMB = 10
+      return res.status(400).json({
+        error: {
+          message: `Размер файла превышает лимит ${maxSizeMB} МБ. Пожалуйста, выберите файл меньшего размера.`
+        }
+      })
+    }
+
     res.status(500).json({ error: { message: 'Ошибка при загрузке файла' } })
   }
 }
