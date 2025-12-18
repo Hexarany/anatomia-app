@@ -18,22 +18,16 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import View3DIcon from '@mui/icons-material/ViewInAr'
 import ImageIcon from '@mui/icons-material/Image'
-import QuizIcon from '@mui/icons-material/Quiz'
 import VideoLibraryIcon from '@mui/icons-material/VideoLibrary'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { getCategories } from '@/services/api'
-import type { Category, Quiz } from '@/types'
-import axios from 'axios'
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api')
+import type { Category } from '@/types'
 
 const HomePage = () => {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
   const [categories, setCategories] = useState<Category[]>([])
-  const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [loading, setLoading] = useState(true)
-  const [loadingQuizzes, setLoadingQuizzes] = useState(true)
 
   const lang = i18n.language as 'ru' | 'ro'
 
@@ -49,19 +43,7 @@ const HomePage = () => {
       }
     }
 
-    const fetchQuizzes = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/quizzes`)
-        setQuizzes(response.data.slice(0, 6)) // Show first 6 quizzes
-      } catch (error) {
-        console.error('Failed to fetch quizzes:', error)
-      } finally {
-        setLoadingQuizzes(false)
-      }
-    }
-
     fetchCategories()
-    fetchQuizzes()
   }, [])
 
   const features = [
@@ -361,120 +343,6 @@ const HomePage = () => {
                   </Grid>
                 )
               })}
-            </Grid>
-          )}
-        </Container>
-      </Box>
-
-      {/* Quizzes Section */}
-      <Box
-        id="quizzes"
-        sx={{
-          py: { xs: 6, sm: 8, md: 10 },
-        }}
-      >
-        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
-          <Typography
-            variant="h3"
-            component="h2"
-            align="center"
-            gutterBottom
-            sx={{
-              mb: { xs: 4, md: 6 },
-              fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' },
-              fontWeight: 700,
-            }}
-          >
-            {lang === 'ru' ? 'Тесты' : 'Teste'}
-          </Typography>
-          {loadingQuizzes ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={60} />
-            </Box>
-          ) : quizzes.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="h6" color="text.secondary">
-                {lang === 'ru' ? 'Пока нет доступных тестов' : 'Nu există teste disponibile'}
-              </Typography>
-            </Box>
-          ) : (
-            <Grid container spacing={3}>
-              {quizzes.map((quiz, index) => (
-                <Grid item xs={12} sm={6} md={4} key={quiz._id}>
-                  <Grow in timeout={300 + index * 100}>
-                    <Card
-                      sx={{
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        borderRadius: 3,
-                        border: `2px solid transparent`,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-6px)',
-                          boxShadow: theme.palette.mode === 'dark'
-                            ? '0 8px 24px rgba(186, 104, 200, 0.3)'
-                            : '0 8px 24px rgba(123, 31, 162, 0.15)',
-                          borderColor: theme.palette.mode === 'dark' ? '#ba68c8' : '#7b1fa2',
-                        },
-                      }}
-                    >
-                      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                          <QuizIcon sx={{ color: theme.palette.mode === 'dark' ? '#ba68c8' : '#7b1fa2', mr: 1 }} />
-                          <Typography
-                            variant="h6"
-                            component="h3"
-                            sx={{
-                              fontWeight: 600,
-                            }}
-                          >
-                            {quiz.title[lang]}
-                          </Typography>
-                        </Box>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            lineHeight: 1.6,
-                            mb: 2,
-                          }}
-                        >
-                          {quiz.description[lang]}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {quiz.questions?.length || 0} {lang === 'ru' ? 'вопросов' : 'întrebări'}
-                        </Typography>
-                      </CardContent>
-                      <CardActions sx={{ p: 2, pt: 0 }}>
-                        <Button
-                          size="medium"
-                          component={RouterLink}
-                          to={quiz.topicId
-                            ? `/topic/${typeof quiz.topicId === 'string' ? quiz.topicId : quiz.topicId._id}`
-                            : `/quiz/${quiz._id}`
-                          }
-                          endIcon={<ArrowForwardIcon />}
-                          sx={{
-                            color: theme.palette.mode === 'dark' ? '#ba68c8' : '#7b1fa2',
-                            fontWeight: 600,
-                            '&:hover': {
-                              bgcolor: theme.palette.mode === 'dark'
-                                ? alpha('#ba68c8', 0.08)
-                                : alpha('#7b1fa2', 0.08),
-                            },
-                          }}
-                        >
-                          {quiz.topicId
-                            ? (lang === 'ru' ? 'К теме' : 'La subiect')
-                            : (lang === 'ru' ? 'Пройти тест' : 'Începe testul')
-                          }
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grow>
-                </Grid>
-              ))}
             </Grid>
           )}
         </Container>

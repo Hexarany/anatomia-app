@@ -16,6 +16,7 @@ import ProfilePage from './pages/ProfilePage'
 import MassageProtocolsPage from './pages/MassageProtocolsPage'
 import MassageProtocolPage from './pages/MassageProtocolPage'
 import HygieneGuidelinesPage from './pages/HygieneGuidelinesPage'
+import QuizzesPage from './pages/QuizzesPage'
 import AnatomyModels3DPage from './pages/AnatomyModels3DPage'
 import AnatomyModel3DViewerPage from './pages/AnatomyModel3DViewerPage'
 import TriggerPointsPage from './pages/TriggerPointsPage'
@@ -51,6 +52,7 @@ function App() {
           <Route path="/category/:categoryId" element={<CategoryPage />} />
           <Route path="/topic/:topicId" element={<TopicPage />} />
           <Route path="/quiz/:quizId" element={<EnhancedQuizPage />} />
+          <Route path="/quizzes" element={<QuizzesPage />} />
           <Route path="/massage-protocols" element={<MassageProtocolsPage />} />
           <Route path="/massage-protocols/:protocolId" element={<MassageProtocolPage />} />
           <Route path="/hygiene-guidelines" element={<HygieneGuidelinesPage />} />
