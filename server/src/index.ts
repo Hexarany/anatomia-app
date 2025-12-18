@@ -34,6 +34,8 @@ import certificateRoutes from './routes/certificateRoutes'
 import notificationRoutes from './routes/notificationRoutes'
 import importRoutes from './routes/importRoutes'
 import groupRoutes from './routes/groupRoutes'
+import telegramRoutes from './routes/telegramRoutes'
+import { initTelegramBot } from './services/telegram'
 
 // Load environment variables
 dotenv.config()
@@ -145,6 +147,7 @@ app.use('/api/notifications', notificationRoutes)
 app.use('/api/import', importRoutes)
 app.use('/api/promo-codes', promoCodeRoutes)
 app.use('/api/groups', groupRoutes)
+app.use('/api/telegram', telegramRoutes)
 
 // Health check endpoints
 app.get('/health', (req, res) => {
@@ -189,6 +192,16 @@ app.use((req, res) => {
 const startServer = async () => {
   try {
     await connectDB()
+
+    // Start Telegram bot (non-blocking)
+    if (process.env.TELEGRAM_BOT_TOKEN) {
+      initTelegramBot().catch(err => {
+        console.error('❌ Telegram bot initialization failed:', err.message)
+      })
+    } else {
+      console.warn('⚠️  TELEGRAM_BOT_TOKEN not set, bot will not start')
+    }
+
     httpServer.listen(PORT, () => {
       console.log(`🚀 Server is running on http://localhost:${PORT}`)
       console.log(`📚 API available at http://localhost:${PORT}/api`)
@@ -201,4 +214,5 @@ const startServer = async () => {
 }
 
 startServer()
+
 

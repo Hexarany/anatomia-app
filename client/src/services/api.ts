@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Category, Topic, Quiz, SubscriptionPlan, CurrentSubscription, Subscription, MassageProtocol, HygieneGuideline, AnatomyModel3D, TriggerPoint, Group, CreateGroupDto, UserBasic } from '@/types'
+import type { Category, Topic, Quiz, SubscriptionPlan, CurrentSubscription, Subscription, MassageProtocol, HygieneGuideline, AnatomyModel3D, TriggerPoint, Group, CreateGroupDto, UserBasic, TelegramLinkCode, TelegramLinkStatus } from '@/types'
 
 // Use relative URL in production, localhost in development
 const API_BASE_URL = import.meta.env.VITE_API_URL ||
@@ -1128,6 +1128,56 @@ export const removeStudentFromGroup = async (groupId: string, studentId: string,
 // Get users by role (for selecting teachers and students)
 export const getUsersByRole = async (role: 'teacher' | 'student', token: string): Promise<UserBasic[]> => {
   const response = await api.get(`/users-management/by-role/${role}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// ========================
+// Telegram Integration
+// ========================
+
+// Generate Telegram link code
+export const generateTelegramLinkCode = async (token: string): Promise<TelegramLinkCode> => {
+  const response = await api.post('/telegram/generate-link-code', {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Unlink Telegram account
+export const unlinkTelegram = async (token: string): Promise<{ message: string }> => {
+  const response = await api.post('/telegram/unlink', {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Get Telegram link status
+export const getTelegramLinkStatus = async (token: string): Promise<TelegramLinkStatus> => {
+  const response = await api.get('/telegram/link-status', {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Update Telegram notification settings
+export const updateTelegramNotifications = async (
+  settings: any,
+  token: string
+): Promise<{ message: string }> => {
+  const response = await api.put('/telegram/notification-settings', settings, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Create Telegram group chat
+export const createTelegramGroupChat = async (
+  groupId: string,
+  token: string
+): Promise<{ message: string }> => {
+  const response = await api.post('/telegram/group-chat', { groupId }, {
     headers: { Authorization: `Bearer ${token}` }
   })
   return response.data

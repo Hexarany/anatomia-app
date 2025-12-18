@@ -29,6 +29,19 @@ export interface IUser extends Document {
   subscriptionStatus?: 'none' | 'active' | 'trial' | 'expired' | 'cancelled'
   subscriptionEndDate?: Date
   stripeCustomerId?: string
+  // Telegram integration
+  telegramId?: string
+  telegramUsername?: string
+  telegramLinkCode?: string
+  telegramLinkCodeExpires?: Date
+  telegramNotifications?: {
+    enabled: boolean
+    newContent: boolean
+    homework: boolean
+    grades: boolean
+    dailyChallenge: boolean
+  }
+  telegramLinkedAt?: Date
   createdAt: Date
   updatedAt: Date
   // DEPRECATED: Use hasAccessToContent instead
@@ -120,6 +133,32 @@ const userSchema = new Schema<IUser>(
     },
     stripeCustomerId: {
       type: String,
+    },
+    // Telegram integration
+    telegramId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows null values to be non-unique
+      index: true,
+    },
+    telegramUsername: {
+      type: String,
+    },
+    telegramLinkCode: {
+      type: String,
+    },
+    telegramLinkCodeExpires: {
+      type: Date,
+    },
+    telegramNotifications: {
+      enabled: { type: Boolean, default: true },
+      newContent: { type: Boolean, default: true },
+      homework: { type: Boolean, default: true },
+      grades: { type: Boolean, default: true },
+      dailyChallenge: { type: Boolean, default: true },
+    },
+    telegramLinkedAt: {
+      type: Date,
     },
   },
   {

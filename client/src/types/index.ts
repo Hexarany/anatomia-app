@@ -319,3 +319,23 @@ export interface CreateGroupDto {
   endDate?: string
   isActive?: boolean
 }
+
+// Telegram Integration
+export interface TelegramLinkStatus {
+  isLinked: boolean
+  telegramUsername?: string
+  linkedAt?: string
+  notifications?: {
+    enabled: boolean
+    newContent: boolean
+    homework: boolean
+    grades: boolean
+    dailyChallenge: boolean
+  }
+}
+
+export interface TelegramLinkCode {
+  code: string
+  expiresIn: number
+  botUsername: string
+}
