@@ -119,9 +119,18 @@ export const importQuizzes = async (req: CustomRequest, res: Response) => {
       const row = data[i]
       try {
         // Expected CSV columns:
-        // quiz_slug,quiz_title_ru,quiz_title_ro,question_ru,question_ro,option1_ru,option1_ro,option2_ru,option2_ro,option3_ru,option3_ro,option4_ru,option4_ro,correct_answer
+        // quiz_slug,quiz_title_ru,quiz_title_ro,quiz_description_ru,quiz_description_ro,topic_slug,question_ru,question_ro,option1_ru,option1_ro,option2_ru,option2_ro,option3_ru,option3_ro,option4_ru,option4_ro,correct_answer
 
         if (!quizzes.has(row.quiz_slug)) {
+          // Find topic by slug if provided
+          let topicId = null
+          if (row.topic_slug) {
+            const topic = await Topic.findOne({ slug: row.topic_slug })
+            if (topic) {
+              topicId = topic._id
+            }
+          }
+
           quizzes.set(row.quiz_slug, {
             slug: row.quiz_slug,
             title: {
@@ -132,6 +141,7 @@ export const importQuizzes = async (req: CustomRequest, res: Response) => {
               ru: row.quiz_description_ru || '',
               ro: row.quiz_description_ro || '',
             },
+            topicId: topicId,
             questions: [],
           })
         }
