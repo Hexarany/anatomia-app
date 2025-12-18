@@ -18,6 +18,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import View3DIcon from '@mui/icons-material/ViewInAr'
 import ImageIcon from '@mui/icons-material/Image'
+import QuizIcon from '@mui/icons-material/Quiz'
 import VideoLibraryIcon from '@mui/icons-material/VideoLibrary'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { getCategories } from '@/services/api'
