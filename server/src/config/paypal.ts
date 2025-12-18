@@ -5,9 +5,9 @@ dotenv.config()
 export const paypalConfig = {
   clientId: process.env.PAYPAL_CLIENT_ID || '',
   clientSecret: process.env.PAYPAL_CLIENT_SECRET || '',
-  mode: process.env.PAYPAL_MODE || 'sandbox', // 'sandbox' or 'live'
+  mode: process.env.PAYPAL_MODE || 'sandbox', // 'sandbox', 'live', or 'production'
   baseUrl:
-    process.env.PAYPAL_MODE === 'live'
+    process.env.PAYPAL_MODE === 'live' || process.env.PAYPAL_MODE === 'production'
       ? 'https://api-m.paypal.com'
       : 'https://api-m.sandbox.paypal.com',
 }
