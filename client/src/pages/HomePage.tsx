@@ -450,7 +450,10 @@ const HomePage = () => {
                         <Button
                           size="medium"
                           component={RouterLink}
-                          to={quiz.topicId ? `/topic/${quiz.topicId}` : `/quiz/${quiz._id}`}
+                          to={quiz.topicId
+                            ? `/topic/${typeof quiz.topicId === 'string' ? quiz.topicId : quiz.topicId._id}`
+                            : `/quiz/${quiz._id}`
+                          }
                           endIcon={<ArrowForwardIcon />}
                           sx={{
                             color: theme.palette.mode === 'dark' ? '#ba68c8' : '#7b1fa2',
