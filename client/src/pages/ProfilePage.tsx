@@ -23,6 +23,7 @@ import EmailIcon from '@mui/icons-material/Email'
 import BadgeIcon from '@mui/icons-material/Badge'
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium'
 import PaymentIcon from '@mui/icons-material/Payment'
+import TelegramSettings from '@/components/TelegramSettings'
 
 const ProfilePage = () => {
   const { t, i18n } = useTranslation()
@@ -297,6 +298,11 @@ const ProfilePage = () => {
             </Card>
           </Grid>
         )}
+
+        {/* Telegram Integration */}
+        <Grid item xs={12}>
+          <TelegramSettings />
+        </Grid>
       </Grid>
     </Container>
   )
