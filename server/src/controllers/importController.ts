@@ -8,6 +8,7 @@ import TriggerPoint from '../models/TriggerPoint'
 import HygieneGuideline from '../models/HygieneGuideline'
 import csvParser from 'csv-parser'
 import { Readable } from 'stream'
+import { TelegramNotificationService } from '../services/telegram/notificationService'
 
 interface ImportResult {
   success: boolean
@@ -164,6 +165,16 @@ export const importQuizzes = async (req: CustomRequest, res: Response) => {
         const quiz = new Quiz(quizData)
         await quiz.save()
         result.imported++
+
+        // Send Telegram notification about new quiz (non-blocking)
+        if (process.env.TELEGRAM_BOT_TOKEN) {
+          TelegramNotificationService.notifyNewQuiz(
+            quiz.title,
+            quiz.questions?.length || 0
+          ).catch(err => {
+            console.error('Failed to send quiz notification:', err)
+          })
+        }
       } catch (error: any) {
         result.failed++
         result.errors.push({
