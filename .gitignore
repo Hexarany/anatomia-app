@@ -10,6 +10,10 @@ coverage/
 build/
 dist/
 
+# Vite compiled configs (use .ts instead)
+*.config.mjs
+*.config.cjs
+
 # Environment variables
 .env
 .env.local
