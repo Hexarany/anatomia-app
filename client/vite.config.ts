@@ -7,7 +7,8 @@ import path from 'path'
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({
+    // Temporarily disabled PWA to fix caching issues during development
+    /* VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
@@ -100,7 +101,7 @@ export default defineConfig({
           },
         ],
       },
-    }),
+    }), */
   ],
   resolve: {
     alias: {
