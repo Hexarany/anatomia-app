@@ -18,6 +18,8 @@ import {
 } from '@mui/material'
 import AccessGate from '@/components/AccessGate'
 import { useAuth } from '@/contexts/AuthContext'
+import { useMainButton } from '@/contexts/MainButtonContext'
+import { useTelegram } from '@/contexts/TelegramContext'
 import axios from 'axios'
 import type { Quiz } from '@/types'
 
@@ -29,6 +31,8 @@ const QuizPage = () => {
   const navigate = useNavigate()
   const lang = i18n.language as 'ru' | 'ro'
   const { hasAccess, token } = useAuth()
+  const { setMainButton, hideMainButton } = useMainButton()
+  const { isInTelegram } = useTelegram()
 
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
@@ -112,6 +116,43 @@ const QuizPage = () => {
     }, 0)
   }
 
+  const handleRetry = () => {
+    setCurrentQuestion(0)
+    setAnswers([])
+    setSelectedAnswer('')
+    setShowResults(false)
+  }
+
+  // Telegram MainButton integration - During quiz
+  useEffect(() => {
+    if (!isInTelegram || !quiz || showResults || loading) return
+
+    const isLastQuestion = currentQuestion >= quiz.questions.length - 1
+    const buttonText = isLastQuestion
+      ? t('quiz.finish')
+      : t('quiz.next')
+
+    setMainButton({
+      text: buttonText,
+      onClick: handleNext,
+      disabled: !selectedAnswer
+    })
+
+    return () => hideMainButton()
+  }, [isInTelegram, quiz, showResults, loading, currentQuestion, selectedAnswer, t, setMainButton, hideMainButton])
+
+  // Telegram MainButton integration - Results screen
+  useEffect(() => {
+    if (!isInTelegram || !quiz || !showResults) return
+
+    setMainButton({
+      text: t('quiz.tryAgain'),
+      onClick: handleRetry
+    })
+
+    return () => hideMainButton()
+  }, [isInTelegram, quiz, showResults, t, setMainButton, hideMainButton])
+
   if (showResults) {
     const score = calculateScore()
     const percentage = (score / quiz.questions.length) * 100
@@ -146,12 +187,7 @@ const QuizPage = () => {
               <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'center' }}>
                 <Button
                   variant="contained"
-                  onClick={() => {
-                    setCurrentQuestion(0)
-                    setAnswers([])
-                    setSelectedAnswer('')
-                    setShowResults(false)
-                  }}
+                  onClick={handleRetry}
                 >
                   {t('quiz.tryAgain')}
                 </Button>

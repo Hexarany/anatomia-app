@@ -12,13 +12,23 @@ interface TelegramContextType {
   } | null
   isInTelegram: boolean
   ready: boolean
+  themeParams: {
+    bg_color?: string
+    text_color?: string
+    hint_color?: string
+    link_color?: string
+    button_color?: string
+    button_text_color?: string
+    secondary_bg_color?: string
+  } | null
 }
 
 const TelegramContext = createContext<TelegramContextType>({
   webApp: null,
   user: null,
   isInTelegram: false,
-  ready: false
+  ready: false,
+  themeParams: null
 })
 
 export const useTelegram = () => useContext(TelegramContext)
@@ -32,6 +42,7 @@ export const TelegramProvider = ({ children }: TelegramProviderProps) => {
   const [webApp, setWebApp] = useState<typeof WebApp | null>(null)
   const [user, setUser] = useState<TelegramContextType['user']>(null)
   const [isInTelegram, setIsInTelegram] = useState(false)
+  const [themeParams, setThemeParams] = useState<TelegramContextType['themeParams']>(null)
 
   useEffect(() => {
     // Check if running inside Telegram
@@ -59,6 +70,19 @@ export const TelegramProvider = ({ children }: TelegramProviderProps) => {
         })
       }
 
+      // Get theme params
+      if (tg.themeParams) {
+        setThemeParams({
+          bg_color: tg.themeParams.bg_color,
+          text_color: tg.themeParams.text_color,
+          hint_color: tg.themeParams.hint_color,
+          link_color: tg.themeParams.link_color,
+          button_color: tg.themeParams.button_color,
+          button_text_color: tg.themeParams.button_text_color,
+          secondary_bg_color: tg.themeParams.secondary_bg_color
+        })
+      }
+
       setWebApp(tg)
       setIsInTelegram(true)
 
@@ -75,7 +99,7 @@ export const TelegramProvider = ({ children }: TelegramProviderProps) => {
   }, [])
 
   return (
-    <TelegramContext.Provider value={{ webApp, user, isInTelegram, ready }}>
+    <TelegramContext.Provider value={{ webApp, user, isInTelegram, ready, themeParams }}>
       {children}
     </TelegramContext.Provider>
   )

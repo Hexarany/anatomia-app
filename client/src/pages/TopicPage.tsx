@@ -38,6 +38,8 @@ import type { Topic } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProgress } from '@/contexts/ProgressContext'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import { useMainButton } from '@/contexts/MainButtonContext'
+import { useTelegram } from '@/contexts/TelegramContext'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'
 
@@ -61,6 +63,8 @@ const TopicPage = () => {
   const navigate = useNavigate()
   const { hasAccess, isAuthenticated } = useAuth()
   const { markTopicComplete, isTopicCompleted } = useProgress()
+  const { setMainButton, hideMainButton } = useMainButton()
+  const { isInTelegram } = useTelegram()
   const lang = i18n.language as 'ru' | 'ro'
 
   const [topic, setTopic] = useState<Topic | null>(null)
@@ -87,6 +91,26 @@ const TopicPage = () => {
 
     fetchTopic()
   }, [topicId])
+
+  // Telegram MainButton integration
+  const isCompleted = topicId ? isTopicCompleted(topicId) : false
+
+  useEffect(() => {
+    if (!isInTelegram) return
+
+    if (isAuthenticated && !isCompleted && !loading) {
+      setMainButton({
+        text: lang === 'ru' ? 'Завершить тему' : 'Finalizează tema',
+        onClick: handleCompleteClick,
+        disabled: completing,
+        progress: completing
+      })
+    } else {
+      hideMainButton()
+    }
+
+    return () => hideMainButton()
+  }, [isInTelegram, isAuthenticated, isCompleted, completing, loading, lang, setMainButton, hideMainButton])
 
   if (loading) {
     return (
@@ -151,8 +175,6 @@ const TopicPage = () => {
       setCompleting(false)
     }
   }
-
-  const isCompleted = topicId ? isTopicCompleted(topicId) : false
 
   // Get category ID - handle both string and populated object
   const categoryId = typeof topic.categoryId === 'string'

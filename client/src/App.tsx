@@ -2,6 +2,9 @@ import { Routes, Route } from 'react-router-dom'
 import { Box } from '@mui/material'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
+import { useTelegram } from './contexts/TelegramContext'
+import { useTelegramBackButton } from './hooks/useTelegramBackButton'
+import { MainButtonProvider } from './contexts/MainButtonContext'
 // Temporarily disabled PWA components
 // import PWAUpdatePrompt from './components/PWAUpdatePrompt'
 // import InstallPWA from './components/InstallPWA'
@@ -33,43 +36,48 @@ import NotificationsPage from './pages/NotificationsPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
+  const { isInTelegram } = useTelegram()
+  useTelegramBackButton()
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* <PWAUpdatePrompt /> */}
-      {/* <InstallPWA /> */}
-      <Navbar />
-      <Box component="main" sx={{ flexGrow: 1 }}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/certificates" element={<CertificatesPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/subscription" element={<SubscriptionPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/payment-callback" element={<PaymentCallbackPage />} />
-          <Route path="/category/:categoryId" element={<CategoryPage />} />
-          <Route path="/topic/:topicId" element={<TopicPage />} />
-          <Route path="/quiz/:quizId" element={<QuizPage />} />
-          <Route path="/quizzes" element={<QuizzesPage />} />
-          <Route path="/massage-protocols" element={<MassageProtocolsPage />} />
-          <Route path="/massage-protocols/:protocolId" element={<MassageProtocolPage />} />
-          <Route path="/hygiene-guidelines" element={<HygieneGuidelinesPage />} />
-          <Route path="/anatomy-models-3d" element={<AnatomyModels3DPage />} />
-          <Route path="/anatomy-models-3d/:id" element={<AnatomyModel3DViewerPage />} />
-          <Route path="/trigger-points" element={<TriggerPointsPage />} />
-          <Route path="/trigger-points/:id" element={<TriggerPointDetailPage />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/resources" element={<ResourcesLibraryPage />} />
-          <Route path="/admin/*" element={<AdminPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+    <MainButtonProvider>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        {/* <PWAUpdatePrompt /> */}
+        {/* <InstallPWA /> */}
+        {!isInTelegram && <Navbar />}
+        <Box component="main" sx={{ flexGrow: 1 }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/certificates" element={<CertificatesPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/subscription" element={<SubscriptionPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/payment-callback" element={<PaymentCallbackPage />} />
+            <Route path="/category/:categoryId" element={<CategoryPage />} />
+            <Route path="/topic/:topicId" element={<TopicPage />} />
+            <Route path="/quiz/:quizId" element={<QuizPage />} />
+            <Route path="/quizzes" element={<QuizzesPage />} />
+            <Route path="/massage-protocols" element={<MassageProtocolsPage />} />
+            <Route path="/massage-protocols/:protocolId" element={<MassageProtocolPage />} />
+            <Route path="/hygiene-guidelines" element={<HygieneGuidelinesPage />} />
+            <Route path="/anatomy-models-3d" element={<AnatomyModels3DPage />} />
+            <Route path="/anatomy-models-3d/:id" element={<AnatomyModel3DViewerPage />} />
+            <Route path="/trigger-points" element={<TriggerPointsPage />} />
+            <Route path="/trigger-points/:id" element={<TriggerPointDetailPage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/resources" element={<ResourcesLibraryPage />} />
+            <Route path="/admin/*" element={<AdminPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Box>
+        {!isInTelegram && <Footer />}
       </Box>
-      <Footer />
-    </Box>
+    </MainButtonProvider>
   )
 }
 

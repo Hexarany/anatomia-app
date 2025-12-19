@@ -22,6 +22,8 @@ import {
 } from '@mui/material'
 import { Check as CheckIcon, Star as StarIcon, LocalOffer as OfferIcon } from '@mui/icons-material'
 import { useAuth } from '@/contexts/AuthContext'
+import { useMainButton } from '@/contexts/MainButtonContext'
+import { useTelegram } from '@/contexts/TelegramContext'
 import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api')
@@ -44,12 +46,15 @@ interface TierPlan {
 const PricingPage = () => {
   const navigate = useNavigate()
   const { user, isAuthenticated, token } = useAuth()
+  const { setMainButton, hideMainButton } = useMainButton()
+  const { isInTelegram } = useTelegram()
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [promoCode, setPromoCode] = useState('')
   const [appliedPromo, setAppliedPromo] = useState<any>(null)
   const [promoError, setPromoError] = useState('')
   const [validatingPromo, setValidatingPromo] = useState(false)
+  const [selectedTier, setSelectedTier] = useState<string | null>(null)
 
   // Определяем доступные планы
   const plans: TierPlan[] = [
@@ -242,6 +247,32 @@ const PricingPage = () => {
     return 'Купить'
   }
 
+  // Telegram MainButton integration
+  const selectedPlan = plans.find(p => p.id === selectedTier)
+  const selectedPlanIndex = plans.findIndex(p => p.id === selectedTier)
+
+  // Auto-select upgrade option for Telegram users
+  useEffect(() => {
+    if (!isInTelegram || !isAuthenticated) return
+
+    if (selectedTier && selectedPlan && canUpgrade(selectedPlanIndex)) {
+      const buttonText = selectedTier === 'premium' && user?.accessLevel === 'basic'
+        ? 'Апгрейд за $30'
+        : `Купить ${selectedPlan.name.ru}`
+
+      setMainButton({
+        text: buttonText,
+        onClick: () => handlePurchase(selectedTier),
+        disabled: loading === selectedTier,
+        progress: loading === selectedTier
+      })
+    } else {
+      hideMainButton()
+    }
+
+    return () => hideMainButton()
+  }, [isInTelegram, isAuthenticated, selectedTier, loading, selectedPlan, selectedPlanIndex, user?.accessLevel, setMainButton, hideMainButton])
+
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
       <Box sx={{ textAlign: 'center', mb: 6 }}>
@@ -342,14 +373,21 @@ const PricingPage = () => {
             <Grid item xs={12} md={4} key={plan.id}>
               <Card
                 elevation={isPremium ? 8 : 2}
+                onClick={() => isInTelegram && canUpgrade(index) && !isCurrentTier(index) && setSelectedTier(plan.id)}
                 sx={{
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'relative',
-                  border: isPremium ? '2px solid' : 'none',
-                  borderColor: 'primary.main',
+                  border: selectedTier === plan.id
+                    ? '3px solid'
+                    : isPremium ? '2px solid' : 'none',
+                  borderColor: selectedTier === plan.id ? 'success.main' : 'primary.main',
                   transform: isPremium ? 'scale(1.05)' : 'none',
+                  cursor: isInTelegram && canUpgrade(index) && !isCurrentTier(index) ? 'pointer' : 'default',
+                  '&:hover': isInTelegram && canUpgrade(index) && !isCurrentTier(index) ? {
+                    boxShadow: 4
+                  } : {}
                 }}
               >
                 {isPopular && (
