@@ -24,6 +24,7 @@ import UsersManager from './UsersManager'
 import PromoCodesManager from './PromoCodesManager'
 import GroupsManager from './GroupsManager'
 import GroupFilesManager from './GroupFilesManager'
+import ScheduleManager from './ScheduleManager'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -102,6 +103,7 @@ const AdminDashboard = () => {
             <Tab label="Медиа / Media" />
             <Tab label="Группы / Grupuri" />
             <Tab label="Файлы групп / Fișiere grup" />
+            <Tab label="Расписание / Orar" />
             {user?.role === 'admin' && <Tab label="Промокоды / Coduri promoționale" />}
             {user?.role === 'admin' && <Tab label="Пользователи / Utilizatori" />}
           </Tabs>
@@ -143,13 +145,16 @@ const AdminDashboard = () => {
         <TabPanel value={activeTab} index={11}>
           <GroupFilesManager />
         </TabPanel>
+        <TabPanel value={activeTab} index={12}>
+          <ScheduleManager />
+        </TabPanel>
         {user?.role === 'admin' && (
-          <TabPanel value={activeTab} index={12}>
+          <TabPanel value={activeTab} index={13}>
             <PromoCodesManager />
           </TabPanel>
         )}
         {user?.role === 'admin' && (
-          <TabPanel value={activeTab} index={13}>
+          <TabPanel value={activeTab} index={14}>
             <UsersManager />
           </TabPanel>
         )}
