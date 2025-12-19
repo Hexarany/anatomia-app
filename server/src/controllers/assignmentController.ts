@@ -1,4 +1,5 @@
-import { Request, Response } from 'express'
+import { Response } from 'express'
+import { CustomRequest } from '../middleware/auth'
 import Assignment from '../models/Assignment'
 import Submission from '../models/Submission'
 import Schedule from '../models/Schedule'
@@ -12,7 +13,7 @@ import mongoose from 'mongoose'
 /**
  * Создать домашнее задание
  */
-export const createAssignment = async (req: Request, res: Response) => {
+export const createAssignment = async (req: CustomRequest, res: Response) => {
   try {
     const {
       schedule,
@@ -41,8 +42,8 @@ export const createAssignment = async (req: Request, res: Response) => {
 
     // Проверка прав (преподаватель должен быть владельцем группы)
     if (
-      req.user.role === 'teacher' &&
-      groupExists.teacher.toString() !== req.user.id
+      req.userRole === 'teacher' &&
+      groupExists.teacher.toString() !== req.userId
     ) {
       return res
         .status(403)
@@ -61,7 +62,7 @@ export const createAssignment = async (req: Request, res: Response) => {
       attachments: attachments || [],
       instructions,
       requiresFile,
-      createdBy: req.user.id,
+      createdBy: req.userId,
     })
 
     await assignment.save()
@@ -79,7 +80,7 @@ export const createAssignment = async (req: Request, res: Response) => {
 /**
  * Получить конкретное задание
  */
-export const getAssignmentById = async (req: Request, res: Response) => {
+export const getAssignmentById = async (req: CustomRequest, res: Response) => {
   try {
     const { id } = req.params
 
@@ -93,10 +94,10 @@ export const getAssignmentById = async (req: Request, res: Response) => {
     }
 
     // Проверка доступа: студент должен быть в группе
-    if (req.user.role === 'student') {
+    if (req.userRole === 'student') {
       const group = await Group.findById(assignment.group)
       const isInGroup = group?.students.some(
-        (studentId) => studentId.toString() === req.user.id
+        (studentId) => studentId.toString() === req.userId
       )
 
       if (!isInGroup) {
@@ -114,7 +115,7 @@ export const getAssignmentById = async (req: Request, res: Response) => {
 /**
  * Обновить задание
  */
-export const updateAssignment = async (req: Request, res: Response) => {
+export const updateAssignment = async (req: CustomRequest, res: Response) => {
   try {
     const { id } = req.params
 
@@ -126,8 +127,8 @@ export const updateAssignment = async (req: Request, res: Response) => {
     // Проверка прав
     const group = assignment.group as any
     if (
-      req.user.role === 'teacher' &&
-      group.teacher.toString() !== req.user.id
+      req.userRole === 'teacher' &&
+      group.teacher.toString() !== req.userId
     ) {
       return res
         .status(403)
@@ -153,7 +154,7 @@ export const updateAssignment = async (req: Request, res: Response) => {
 /**
  * Удалить задание
  */
-export const deleteAssignment = async (req: Request, res: Response) => {
+export const deleteAssignment = async (req: CustomRequest, res: Response) => {
   try {
     const { id } = req.params
 
@@ -165,8 +166,8 @@ export const deleteAssignment = async (req: Request, res: Response) => {
     // Проверка прав
     const group = assignment.group as any
     if (
-      req.user.role === 'teacher' &&
-      group.teacher.toString() !== req.user.id
+      req.userRole === 'teacher' &&
+      group.teacher.toString() !== req.userId
     ) {
       return res
         .status(403)
@@ -188,7 +189,7 @@ export const deleteAssignment = async (req: Request, res: Response) => {
 /**
  * Получить все задания группы
  */
-export const getGroupAssignments = async (req: Request, res: Response) => {
+export const getGroupAssignments = async (req: CustomRequest, res: Response) => {
   try {
     const { groupId } = req.params
 
@@ -198,15 +199,15 @@ export const getGroupAssignments = async (req: Request, res: Response) => {
     }
 
     // Проверка доступа
-    if (req.user.role === 'student') {
+    if (req.userRole === 'student') {
       const isInGroup = group.students.some(
-        (studentId) => studentId.toString() === req.user.id
+        (studentId) => studentId.toString() === req.userId
       )
       if (!isInGroup) {
         return res.status(403).json({ message: 'Access denied' })
       }
-    } else if (req.user.role === 'teacher') {
-      if (group.teacher.toString() !== req.user.id) {
+    } else if (req.userRole === 'teacher') {
+      if (group.teacher.toString() !== req.userId) {
         return res.status(403).json({ message: 'Access denied' })
       }
     }
@@ -217,12 +218,12 @@ export const getGroupAssignments = async (req: Request, res: Response) => {
       .sort({ deadline: 1 })
 
     // Для студента: добавляем информацию о его сдачах
-    if (req.user.role === 'student') {
+    if (req.userRole === 'student') {
       const assignmentsWithSubmissions = await Promise.all(
         assignments.map(async (assignment) => {
           const submission = await Submission.findOne({
             assignment: assignment._id,
-            student: req.user.id,
+            student: req.userId,
           })
 
           return {
@@ -245,7 +246,7 @@ export const getGroupAssignments = async (req: Request, res: Response) => {
 /**
  * Получить задание для конкретного занятия
  */
-export const getScheduleAssignment = async (req: Request, res: Response) => {
+export const getScheduleAssignment = async (req: CustomRequest, res: Response) => {
   try {
     const { scheduleId } = req.params
 
@@ -259,9 +260,9 @@ export const getScheduleAssignment = async (req: Request, res: Response) => {
 
     // Проверка доступа
     const group = assignment.group as any
-    if (req.user.role === 'student') {
+    if (req.userRole === 'student') {
       const isInGroup = group.students.some(
-        (studentId: mongoose.Types.ObjectId) => studentId.toString() === req.user.id
+        (studentId: mongoose.Types.ObjectId) => studentId.toString() === req.userId
       )
       if (!isInGroup) {
         return res.status(403).json({ message: 'Access denied' })
@@ -270,7 +271,7 @@ export const getScheduleAssignment = async (req: Request, res: Response) => {
       // Добавляем информацию о сдаче студента
       const submission = await Submission.findOne({
         assignment: assignment._id,
-        student: req.user.id,
+        student: req.userId,
       })
 
       return res.json({
@@ -289,7 +290,7 @@ export const getScheduleAssignment = async (req: Request, res: Response) => {
 /**
  * Получить все сдачи задания (для преподавателя)
  */
-export const getAssignmentSubmissions = async (req: Request, res: Response) => {
+export const getAssignmentSubmissions = async (req: CustomRequest, res: Response) => {
   try {
     const { id } = req.params
 
@@ -301,8 +302,8 @@ export const getAssignmentSubmissions = async (req: Request, res: Response) => {
     // Проверка прав
     const group = assignment.group as any
     if (
-      req.user.role === 'teacher' &&
-      group.teacher.toString() !== req.user.id
+      req.userRole === 'teacher' &&
+      group.teacher.toString() !== req.userId
     ) {
       return res.status(403).json({ message: 'Access denied' })
     }
@@ -326,7 +327,7 @@ export const getAssignmentSubmissions = async (req: Request, res: Response) => {
 /**
  * Сдать домашнее задание
  */
-export const submitAssignment = async (req: Request, res: Response) => {
+export const submitAssignment = async (req: CustomRequest, res: Response) => {
   try {
     const { id } = req.params // assignment ID
     const { textAnswer, files } = req.body
@@ -339,7 +340,7 @@ export const submitAssignment = async (req: Request, res: Response) => {
     // Проверка: студент в группе?
     const group = await Group.findById(assignment.group)
     const isInGroup = group?.students.some(
-      (studentId) => studentId.toString() === req.user.id
+      (studentId) => studentId.toString() === req.userId
     )
     if (!isInGroup) {
       return res.status(403).json({ message: 'You are not in this group' })
@@ -348,7 +349,7 @@ export const submitAssignment = async (req: Request, res: Response) => {
     // Проверка: уже сдавал?
     const existingSubmission = await Submission.findOne({
       assignment: id,
-      student: req.user.id,
+      student: req.userId,
     })
 
     if (existingSubmission) {
@@ -377,7 +378,7 @@ export const submitAssignment = async (req: Request, res: Response) => {
 
     const submission = new Submission({
       assignment: id,
-      student: req.user.id,
+      student: req.userId,
       textAnswer,
       files: files || [],
       status: isLate ? 'late' : 'submitted',
@@ -401,9 +402,9 @@ export const submitAssignment = async (req: Request, res: Response) => {
 /**
  * Получить все мои сданные работы (для студента)
  */
-export const getMySubmissions = async (req: Request, res: Response) => {
+export const getMySubmissions = async (req: CustomRequest, res: Response) => {
   try {
-    const submissions = await Submission.find({ student: req.user.id })
+    const submissions = await Submission.find({ student: req.userId })
       .populate({
         path: 'assignment',
         populate: [
@@ -425,7 +426,7 @@ export const getMySubmissions = async (req: Request, res: Response) => {
 /**
  * Обновить/пересдать работу
  */
-export const updateSubmission = async (req: Request, res: Response) => {
+export const updateSubmission = async (req: CustomRequest, res: Response) => {
   try {
     const { submissionId } = req.params
     const { textAnswer, files, comment } = req.body
@@ -436,7 +437,7 @@ export const updateSubmission = async (req: Request, res: Response) => {
     }
 
     // Проверка: это моя работа?
-    if (submission.student.toString() !== req.user.id) {
+    if (submission.student.toString() !== req.userId) {
       return res.status(403).json({ message: 'Access denied' })
     }
 
@@ -471,7 +472,7 @@ export const updateSubmission = async (req: Request, res: Response) => {
 /**
  * Выставить оценку
  */
-export const gradeSubmission = async (req: Request, res: Response) => {
+export const gradeSubmission = async (req: CustomRequest, res: Response) => {
   try {
     const { submissionId } = req.params
     const { grade, feedback } = req.body
@@ -490,8 +491,8 @@ export const gradeSubmission = async (req: Request, res: Response) => {
 
     // Проверка прав
     if (
-      req.user.role === 'teacher' &&
-      group.teacher.toString() !== req.user.id
+      req.userRole === 'teacher' &&
+      group.teacher.toString() !== req.userId
     ) {
       return res.status(403).json({ message: 'Access denied' })
     }
@@ -504,7 +505,7 @@ export const gradeSubmission = async (req: Request, res: Response) => {
     }
 
     // Используем метод модели для выставления оценки
-    await submission.setGrade(grade, feedback, req.user.id)
+    await submission.setGrade(grade, feedback, new mongoose.Types.ObjectId(req.userId))
 
     res.json({
       message: 'Submission graded successfully',
@@ -519,7 +520,7 @@ export const gradeSubmission = async (req: Request, res: Response) => {
 /**
  * Удалить сдачу
  */
-export const deleteSubmission = async (req: Request, res: Response) => {
+export const deleteSubmission = async (req: CustomRequest, res: Response) => {
   try {
     const { submissionId } = req.params
 
@@ -533,11 +534,11 @@ export const deleteSubmission = async (req: Request, res: Response) => {
     }
 
     // Проверка прав: либо сам студент, либо преподаватель группы, либо админ
-    const isOwnSubmission = submission.student.toString() === req.user.id
+    const isOwnSubmission = submission.student.toString() === req.userId
     const assignment = submission.assignment as any
     const group = assignment.group as any
-    const isTeacher = req.user.role === 'teacher' && group.teacher.toString() === req.user.id
-    const isAdmin = req.user.role === 'admin'
+    const isTeacher = req.userRole === 'teacher' && group.teacher.toString() === req.userId
+    const isAdmin = req.userRole === 'admin'
 
     if (!isOwnSubmission && !isTeacher && !isAdmin) {
       return res.status(403).json({ message: 'Access denied' })

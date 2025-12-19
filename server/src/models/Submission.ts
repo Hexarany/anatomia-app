@@ -25,6 +25,11 @@ export interface ISubmission extends Document {
 
   createdAt: Date
   updatedAt: Date
+
+  // Методы
+  sendForRevision(feedback: string): Promise<ISubmission>
+  setGrade(grade: number, feedback: string, gradedBy: mongoose.Types.ObjectId): Promise<ISubmission>
+  resubmit(textAnswer?: string, files?: string[], comment?: string): Promise<ISubmission>
 }
 
 const submissionSchema = new Schema<ISubmission>(
