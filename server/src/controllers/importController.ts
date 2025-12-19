@@ -119,12 +119,26 @@ export const importQuizzes = async (req: CustomRequest, res: Response) => {
       const row = data[i]
       try {
         // Expected CSV columns:
-        // quiz_slug,quiz_title_ru,quiz_title_ro,quiz_description_ru,quiz_description_ro,topic_slug,question_ru,question_ro,option1_ru,option1_ro,option2_ru,option2_ro,option3_ru,option3_ro,option4_ru,option4_ro,correct_answer
+        // quiz_slug,quiz_title_ru,quiz_title_ro,quiz_description_ru,quiz_description_ro,topic_id,topic_slug,question_ru,question_ro,option1_ru,option1_ro,option2_ru,option2_ro,option3_ru,option3_ro,option4_ru,option4_ro,correct_answer
+        // Note: topic_id takes priority over topic_slug if both are provided
 
         if (!quizzes.has(row.quiz_slug)) {
-          // Find topic by slug if provided
+          // Find topic by slug or ID if provided
           let topicId = null
-          if (row.topic_slug) {
+
+          // Try finding by topic_id first (if provided)
+          if (row.topic_id) {
+            console.log(`🔍 Looking for topic with ID: "${row.topic_id}"`)
+            const topic = await Topic.findById(row.topic_id)
+            if (topic) {
+              topicId = topic._id
+              console.log(`✅ Found topic: ${topic.name.ru} (ID: ${topicId})`)
+            } else {
+              console.log(`❌ Topic not found for ID: "${row.topic_id}"`)
+            }
+          }
+          // Fall back to slug if topic_id not found
+          else if (row.topic_slug) {
             console.log(`🔍 Looking for topic with slug: "${row.topic_slug}"`)
             const topic = await Topic.findOne({ slug: row.topic_slug })
             if (topic) {
