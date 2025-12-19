@@ -66,5 +66,17 @@ export function initDailyScheduler() {
     }
   })
 
-  console.log('✅ Daily scheduler initialized')
+  // Check for homework deadlines every 6 hours
+  cron.schedule('0 */6 * * *', async () => {
+    console.log('[Scheduler] Checking homework deadlines...')
+
+    try {
+      const sentCount = await TelegramNotificationService.sendDeadlineReminders()
+      console.log(`[Scheduler] Sent ${sentCount} deadline reminders`)
+    } catch (error) {
+      console.error('[Scheduler] Error checking homework deadlines:', error)
+    }
+  })
+
+  console.log('✅ Daily scheduler initialized (daily content + homework deadlines)')
 }

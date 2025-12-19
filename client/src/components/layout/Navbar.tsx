@@ -78,6 +78,14 @@ const Navbar = () => {
     })
   }
 
+  // Добавляем домашние задания для всех аутентифицированных пользователей
+  if (isAuthenticated) {
+    pages.push({
+      name: i18n.language === 'ru' ? '📝 Задания' : '📝 Teme',
+      path: '/assignments',
+    })
+  }
+
   return (
     <AppBar position="sticky">
       <Container maxWidth="xl">

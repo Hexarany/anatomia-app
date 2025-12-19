@@ -653,8 +653,7 @@ console.log(data.submission)
 
 ---
 
-## 📁 Созданные файлы
-
+## 📁 Созданные фай
 1. `server/src/models/Assignment.ts` - Модель задания
 2. `server/src/models/Submission.ts` - Модель сдачи
 3. `server/src/routes/assignmentRoutes.ts` - Маршруты

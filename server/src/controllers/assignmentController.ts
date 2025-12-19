@@ -5,6 +5,7 @@ import Submission from '../models/Submission'
 import Schedule from '../models/Schedule'
 import Group from '../models/Group'
 import mongoose from 'mongoose'
+import { TelegramNotificationService } from '../services/telegram/notificationService'
 
 // ============================================
 // ASSIGNMENTS (Домашние задания)
@@ -66,6 +67,10 @@ export const createAssignment = async (req: CustomRequest, res: Response) => {
     })
 
     await assignment.save()
+
+    // Send notification to all students in the group (non-blocking)
+    TelegramNotificationService.notifyNewAssignment(assignment._id.toString())
+      .catch(err => console.error('Failed to send assignment notification:', err))
 
     res.status(201).json({
       message: 'Assignment created successfully',
@@ -506,6 +511,10 @@ export const gradeSubmission = async (req: CustomRequest, res: Response) => {
 
     // Используем метод модели для выставления оценки
     await submission.setGrade(grade, feedback, new mongoose.Types.ObjectId(req.userId))
+
+    // Send notification to student (non-blocking)
+    TelegramNotificationService.notifySubmissionGraded(submission._id.toString())
+      .catch(err => console.error('Failed to send grade notification:', err))
 
     res.json({
       message: 'Submission graded successfully',
