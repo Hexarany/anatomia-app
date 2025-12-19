@@ -164,18 +164,10 @@ app.use('/api/telegram', telegramRoutes)
 if (process.env.NODE_ENV === 'production') {
   const clientDistPath = path.join(__dirname, '..', '..', 'client', 'dist')
 
-  // Disable caching for static files to ensure fresh content
+  // Serve static files with caching for performance
   app.use(express.static(clientDistPath, {
-    etag: false,
-    lastModified: false,
-    setHeaders: (res, filepath) => {
-      // Force no-cache for all static files
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
-      res.setHeader('Pragma', 'no-cache')
-      res.setHeader('Expires', '0')
-      res.setHeader('Surrogate-Control', 'no-store')
-      console.log(`📦 Serving static file: ${filepath}`)
-    }
+    maxAge: '1y', // Cache static assets for 1 year (they have content hashes)
+    immutable: true
   }))
 
   // Handle React routing - return index.html for all non-API routes
@@ -184,9 +176,8 @@ if (process.env.NODE_ENV === 'production') {
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/health')) {
       return next()
     }
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
-    res.setHeader('Pragma', 'no-cache')
-    res.setHeader('Expires', '0')
+    // Don't cache index.html (it references the hashed assets)
+    res.setHeader('Cache-Control', 'no-cache')
     res.sendFile(path.join(clientDistPath, 'index.html'))
   })
 }

@@ -30,9 +30,6 @@ const QuizPage = () => {
   const lang = i18n.language as 'ru' | 'ro'
   const { hasAccess, token } = useAuth()
 
-  console.log('🚀 QuizPage component loaded - NEW VERSION with API loading')
-  console.log('🔑 Quiz ID from URL:', quizId)
-
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -56,9 +53,6 @@ const QuizPage = () => {
         const response = await axios.get(`${API_BASE_URL}/quizzes/${quizId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         })
-        console.log('📝 Loaded quiz:', response.data.title)
-        console.log('📝 Questions count:', response.data.questions?.length)
-        console.log('📝 First question:', response.data.questions?.[0]?.question)
         setQuiz(response.data)
         setError(null)
       } catch (err: any) {
