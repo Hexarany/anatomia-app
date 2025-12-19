@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { validationResult } from 'express-validator'
+import crypto from 'crypto'
 import User from '../models/User'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
@@ -181,5 +182,137 @@ export const updateProfile = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Update profile error:', error)
     res.status(500).json({ message: 'Ошибка сервера при обновлении профиля' })
+  }
+}
+
+// Верификация Telegram WebApp initData
+function verifyTelegramWebAppData(initData: string, botToken: string): any {
+  try {
+    // Parse initData
+    const params = new URLSearchParams(initData)
+    const hash = params.get('hash')
+    params.delete('hash')
+
+    // Create data-check-string
+    const dataCheckString = Array.from(params.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n')
+
+    // Calculate secret key
+    const secretKey = crypto
+      .createHmac('sha256', 'WebAppData')
+      .update(botToken)
+      .digest()
+
+    // Calculate hash
+    const calculatedHash = crypto
+      .createHmac('sha256', secretKey)
+      .update(dataCheckString)
+      .digest('hex')
+
+    // Verify hash
+    if (calculatedHash !== hash) {
+      return null
+    }
+
+    // Check auth_date (not older than 24 hours)
+    const authDate = parseInt(params.get('auth_date') || '0')
+    const currentTime = Math.floor(Date.now() / 1000)
+    if (currentTime - authDate > 86400) {
+      return null
+    }
+
+    // Parse user data
+    const userJson = params.get('user')
+    if (!userJson) {
+      return null
+    }
+
+    return JSON.parse(userJson)
+  } catch (error) {
+    console.error('Telegram verification error:', error)
+    return null
+  }
+}
+
+// Авторизация через Telegram
+export const telegramAuth = async (req: Request, res: Response) => {
+  try {
+    const { initData } = req.body
+
+    if (!initData) {
+      return res.status(400).json({ message: 'initData is required' })
+    }
+
+    // Verify initData
+    const botToken = process.env.TELEGRAM_BOT_TOKEN
+    if (!botToken) {
+      return res.status(500).json({ message: 'Bot token not configured' })
+    }
+
+    const telegramUser = verifyTelegramWebAppData(initData, botToken)
+    if (!telegramUser) {
+      return res.status(401).json({ message: 'Invalid Telegram data' })
+    }
+
+    // Find or create user
+    let user = await User.findOne({ telegramId: telegramUser.id.toString() })
+
+    if (!user) {
+      // Create new user
+      user = new User({
+        telegramId: telegramUser.id.toString(),
+        telegramUsername: telegramUser.username,
+        firstName: telegramUser.first_name,
+        lastName: telegramUser.last_name,
+        email: `telegram_${telegramUser.id}@anatomia.md`, // Temporary email
+        password: crypto.randomBytes(32).toString('hex'), // Random password
+        role: 'student',
+        accessLevel: 'free',
+        telegramLinkedAt: new Date(),
+        telegramNotifications: {
+          enabled: true,
+          newContent: true,
+          homework: true,
+          grades: true,
+          dailyChallenge: true
+        }
+      })
+      await user.save()
+      console.log('✅ New user created from Telegram:', telegramUser.id)
+    } else {
+      // Update existing user info
+      user.telegramUsername = telegramUser.username
+      user.firstName = telegramUser.first_name
+      user.lastName = telegramUser.last_name || user.lastName
+      await user.save()
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    )
+
+    // Send response
+    res.status(200).json({
+      message: 'Telegram authentication successful',
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        accessLevel: user.accessLevel,
+        telegramId: user.telegramId,
+        telegramUsername: user.telegramUsername
+      },
+    })
+  } catch (error) {
+    console.error('Telegram auth error:', error)
+    res.status(500).json({ message: 'Server error during Telegram authentication' })
   }
 }

@@ -14,6 +14,8 @@ interface User {
   accessLevel: 'free' | 'basic' | 'premium'
   paymentAmount?: number
   paymentDate?: string
+  telegramId?: string
+  telegramUsername?: string
 }
 
 interface AuthContextType {
@@ -21,6 +23,7 @@ interface AuthContextType {
   token: string | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  telegramLogin: (initData: string) => Promise<void>
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>
   logout: () => void
   updateUser: (updatedUser: User) => void
@@ -46,6 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [telegramAuthAttempted, setTelegramAuthAttempted] = useState(false)
 
   // Загрузка токена из localStorage при инициализации
   useEffect(() => {
@@ -54,9 +58,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(storedToken)
       loadUserProfile(storedToken)
     } else {
-      setLoading(false)
+      // Try Telegram auth if in Telegram and not already attempted
+      if (window.Telegram?.WebApp && !telegramAuthAttempted) {
+        const initData = window.Telegram.WebApp.initData
+        if (initData) {
+          setTelegramAuthAttempted(true)
+          telegramLogin(initData).catch(() => {
+            console.log('Telegram auth failed, continuing as guest')
+            setLoading(false)
+          })
+        } else {
+          setLoading(false)
+        }
+      } else {
+        setLoading(false)
+      }
     }
-  }, [])
+  }, [telegramAuthAttempted])
 
   // Загрузка профиля пользователя
   const loadUserProfile = async (authToken: string) => {
@@ -94,6 +112,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       console.error('Login error:', error)
       throw new Error(error.response?.data?.message || 'Ошибка входа')
+    }
+  }
+
+  // Вход через Telegram
+  const telegramLogin = async (initData: string) => {
+    try {
+      console.log('🔐 Attempting Telegram authentication...')
+      const response = await axios.post(`${API_URL}/auth/telegram`, {
+        initData,
+      })
+
+      const { token: newToken, user: newUser } = response.data
+
+      setToken(newToken)
+      setUser(newUser)
+      localStorage.setItem('token', newToken)
+      console.log('✅ Telegram authentication successful')
+    } catch (error: any) {
+      console.error('Telegram login error:', error)
+      throw new Error(error.response?.data?.message || 'Ошибка авторизации через Telegram')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -158,6 +198,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     token,
     loading,
     login,
+    telegramLogin,
     register,
     logout,
     updateUser,

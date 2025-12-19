@@ -1,6 +1,6 @@
 import express from 'express'
 import { body } from 'express-validator'
-import { register, login, getProfile, updateProfile } from '../controllers/authController'
+import { register, login, getProfile, updateProfile, telegramAuth } from '../controllers/authController'
 import { authenticateToken } from '../middleware/auth'
 
 const router = express.Router()
@@ -67,6 +67,17 @@ router.put(
       .withMessage('Фамилия должна быть минимум 2 символа'),
   ],
   updateProfile
+)
+
+// POST /api/auth/telegram - Авторизация через Telegram WebApp
+router.post(
+  '/telegram',
+  [
+    body('initData')
+      .notEmpty()
+      .withMessage('initData is required'),
+  ],
+  telegramAuth
 )
 
 export default router
