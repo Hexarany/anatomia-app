@@ -45,6 +45,21 @@ export async function initTelegramBot() {
     await Promise.race([launchPromise, timeoutPromise])
     console.log('✅ Telegram bot started')
 
+    // Set up Web App button
+    const webAppUrl = process.env.CLIENT_URL || 'https://anatomia-app-docker.onrender.com'
+    try {
+      await bot.telegram.setChatMenuButton({
+        menu_button: {
+          type: 'web_app',
+          text: '📚 Открыть Anatomia',
+          web_app: { url: webAppUrl }
+        }
+      })
+      console.log('✅ Web App menu button configured:', webAppUrl)
+    } catch (err: any) {
+      console.error('❌ Failed to set Web App button:', err.message)
+    }
+
     // Initialize daily scheduler
     initDailyScheduler()
 
