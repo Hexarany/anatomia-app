@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useLanguage } from '@/contexts/LanguageContext'
+import { useTranslation } from 'react-i18next'
 import {
   getAllGroups,
   getGroupSchedule,
@@ -73,7 +73,8 @@ function TabPanel(props: TabPanelProps) {
 
 const AssignmentsManager = () => {
   const { token } = useAuth()
-  const { language } = useLanguage()
+  const { i18n } = useTranslation()
+  const language = i18n.language as 'ru' | 'ro'
   const [tabValue, setTabValue] = useState(0)
   const [groups, setGroups] = useState<Group[]>([])
   const [selectedGroup, setSelectedGroup] = useState('')

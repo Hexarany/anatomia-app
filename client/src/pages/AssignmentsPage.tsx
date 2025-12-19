@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useLanguage } from '@/contexts/LanguageContext'
+import { useTranslation } from 'react-i18next'
 import {
   getMySubmissions,
   submitAssignment,
@@ -42,7 +42,8 @@ import AttachFileIcon from '@mui/icons-material/AttachFile'
 
 const AssignmentsPage = () => {
   const { token } = useAuth()
-  const { language } = useLanguage()
+  const { i18n } = useTranslation()
+  const language = i18n.language as 'ru' | 'ro'
   const [submissions, setSubmissions] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
