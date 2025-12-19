@@ -65,6 +65,13 @@ const TopicsManager = () => {
     order: 0,
     difficulty: 'beginner' as 'beginner' | 'intermediate' | 'advanced',
     estimatedTime: 10,
+    youtubeVideos: [] as Array<{
+      url: string
+      title: { ru: string; ro: string }
+      description?: { ru: string; ro: string }
+      author?: string
+      duration?: number
+    }>,
   })
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' })
 
@@ -105,6 +112,7 @@ const TopicsManager = () => {
         order: topic.order,
         difficulty: topic.difficulty,
         estimatedTime: topic.estimatedTime,
+        youtubeVideos: (topic as any).youtubeVideos || [],
       })
     } else {
       setEditingTopic(null)
@@ -118,6 +126,7 @@ const TopicsManager = () => {
         order: topics.length,
         difficulty: 'beginner',
         estimatedTime: 10,
+        youtubeVideos: [],
       })
     }
     setOpenDialog(true)
@@ -246,6 +255,7 @@ const TopicsManager = () => {
               <Tab label="Контент RU" />
               <Tab label="Контент RO" />
               <Tab label="Медиа" />
+              <Tab label="YouTube видео" />
             </Tabs>
           </Box>
 
@@ -409,6 +419,163 @@ const TopicsManager = () => {
               {!editingTopic && (
                 <Alert severity="info" sx={{ mt: 2 }}>
                   Иллюстрации можно добавить после создания топика
+                </Alert>
+              )}
+            </Box>
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={4}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                YouTube видео для темы
+              </Typography>
+
+              {formData.youtubeVideos.map((video, index) => (
+                <Paper key={index} sx={{ p: 2, bgcolor: 'grey.50' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      Видео #{index + 1}
+                    </Typography>
+                    <IconButton
+                      color="error"
+                      size="small"
+                      onClick={() => {
+                        const newVideos = formData.youtubeVideos.filter((_, i) => i !== index)
+                        setFormData({ ...formData, youtubeVideos: newVideos })
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                      label="URL видео YouTube"
+                      value={video.url}
+                      onChange={(e) => {
+                        const newVideos = [...formData.youtubeVideos]
+                        newVideos[index].url = e.target.value
+                        setFormData({ ...formData, youtubeVideos: newVideos })
+                      }}
+                      fullWidth
+                      required
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      helperText="Вставьте полную ссылку на YouTube видео"
+                    />
+
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        label="Название (RU)"
+                        value={video.title.ru}
+                        onChange={(e) => {
+                          const newVideos = [...formData.youtubeVideos]
+                          newVideos[index].title.ru = e.target.value
+                          setFormData({ ...formData, youtubeVideos: newVideos })
+                        }}
+                        fullWidth
+                        required
+                      />
+                      <TextField
+                        label="Название (RO)"
+                        value={video.title.ro}
+                        onChange={(e) => {
+                          const newVideos = [...formData.youtubeVideos]
+                          newVideos[index].title.ro = e.target.value
+                          setFormData({ ...formData, youtubeVideos: newVideos })
+                        }}
+                        fullWidth
+                        required
+                      />
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        label="Описание (RU)"
+                        value={video.description?.ru || ''}
+                        onChange={(e) => {
+                          const newVideos = [...formData.youtubeVideos]
+                          if (!newVideos[index].description) {
+                            newVideos[index].description = { ru: '', ro: '' }
+                          }
+                          newVideos[index].description!.ru = e.target.value
+                          setFormData({ ...formData, youtubeVideos: newVideos })
+                        }}
+                        fullWidth
+                        multiline
+                        rows={2}
+                      />
+                      <TextField
+                        label="Описание (RO)"
+                        value={video.description?.ro || ''}
+                        onChange={(e) => {
+                          const newVideos = [...formData.youtubeVideos]
+                          if (!newVideos[index].description) {
+                            newVideos[index].description = { ru: '', ro: '' }
+                          }
+                          newVideos[index].description!.ro = e.target.value
+                          setFormData({ ...formData, youtubeVideos: newVideos })
+                        }}
+                        fullWidth
+                        multiline
+                        rows={2}
+                      />
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        label="Автор видео"
+                        value={video.author || ''}
+                        onChange={(e) => {
+                          const newVideos = [...formData.youtubeVideos]
+                          newVideos[index].author = e.target.value
+                          setFormData({ ...formData, youtubeVideos: newVideos })
+                        }}
+                        fullWidth
+                        placeholder="Имя автора или канала"
+                      />
+                      <TextField
+                        label="Длительность (минуты)"
+                        type="number"
+                        value={video.duration || ''}
+                        onChange={(e) => {
+                          const newVideos = [...formData.youtubeVideos]
+                          newVideos[index].duration = parseInt(e.target.value) || undefined
+                          setFormData({ ...formData, youtubeVideos: newVideos })
+                        }}
+                        fullWidth
+                        placeholder="Например: 15"
+                      />
+                    </Box>
+                  </Box>
+                </Paper>
+              ))}
+
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  setFormData({
+                    ...formData,
+                    youtubeVideos: [
+                      ...formData.youtubeVideos,
+                      {
+                        url: '',
+                        title: { ru: '', ro: '' },
+                        description: { ru: '', ro: '' },
+                        author: '',
+                        duration: undefined,
+                      },
+                    ],
+                  })
+                }}
+                sx={{ mt: 1 }}
+              >
+                Добавить YouTube видео
+              </Button>
+
+              {formData.youtubeVideos.length === 0 && (
+                <Alert severity="info">
+                  Нет добавленных видео. Нажмите кнопку выше, чтобы добавить образовательное видео к теме.
                 </Alert>
               )}
             </Box>
