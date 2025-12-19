@@ -195,6 +195,9 @@ export const importQuizzes = async (req: CustomRequest, res: Response) => {
         await quiz.save()
         result.imported++
 
+        // Log the saved quiz to verify topicId was saved
+        console.log(`✅ Quiz saved: "${quiz.title.ru}" (ID: ${quiz._id}) with topicId: ${quiz.topicId || 'null'}`)
+
         // Send Telegram notification about new quiz (non-blocking)
         if (process.env.TELEGRAM_BOT_TOKEN) {
           TelegramNotificationService.notifyNewQuiz(

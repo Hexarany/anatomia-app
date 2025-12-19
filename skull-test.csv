@@ -1,0 +1,2 @@
+quiz_slug,quiz_title_ru,quiz_title_ro,quiz_description_ru,quiz_description_ro,topic_slug,question_ru,question_ro,option1_ru,option1_ro,option2_ru,option2_ro,option3_ru,option3_ro,option4_ru,option4_ro,correct_answer,explanation_ru,explanation_ro
+skull-test-1,Тест черепа,Test craniu,Тест,Test,skull,Сколько костей в черепе?,Câte oase?,18,18,22,22,26,26,30,30,1,22 кости,22 oase

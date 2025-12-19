@@ -120,15 +120,19 @@ const QuizzesManager = () => {
   const handleOpenDialog = (quiz?: Quiz) => {
     if (quiz) {
       setEditingQuiz(quiz)
+      // Extract topicId - it might be a string or a populated object
+      const topicId = typeof quiz.topicId === 'string' ? quiz.topicId : (quiz.topicId as any)?._id || '';
+      const categoryId = typeof quiz.categoryId === 'string' ? quiz.categoryId : (quiz.categoryId as any)?._id || '';
+
       setFormData({
         title: quiz.title,
         description: quiz.description,
-        topicId: quiz.topicId || '',
+        topicId: topicId,
         questions: quiz.questions.map(q => ({
-             ...q, 
+             ...q,
              explanation: q.explanation || newQuestionBase.explanation // Обеспечиваем наличие explanation
         })),
-        categoryId: quiz.categoryId || '',
+        categoryId: categoryId,
       })
     } else {
       setEditingQuiz(null)
@@ -302,11 +306,17 @@ const QuizzesManager = () => {
           </TableHead>
           <TableBody>
             {quizzes.map((quiz) => {
-                const topic = topics.find(t => t._id === quiz.topicId);
+                // Handle both cases: topicId as string or populated Topic object
+                const quizTopicId = typeof quiz.topicId === 'string' ? quiz.topicId : (quiz.topicId as any)?._id;
+                const topic = topics.find(t => t._id === quizTopicId);
+
+                // If topicId is already populated, use it directly
+                const topicName = (quiz.topicId as any)?.name?.ru || topic?.name?.ru;
+
                 return (
                     <TableRow key={quiz._id}>
                       <TableCell>{quiz.title.ru}</TableCell>
-                      <TableCell>{topic ? topic.name.ru : '—'}</TableCell>
+                      <TableCell>{topicName || '—'}</TableCell>
                       <TableCell>{quiz.questions.length}</TableCell>
                       <TableCell>
                         <IconButton
