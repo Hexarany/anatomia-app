@@ -4,6 +4,10 @@ FROM node:20-alpine AS client-builder
 # Set working directory for client build
 WORKDIR /app/client
 
+# Cache bust to force rebuild - Updated 2025-12-19
+ARG CACHEBUST=1
+RUN echo "Cache bust: $CACHEBUST"
+
 # Copy client package files
 COPY client/package*.json ./
 
