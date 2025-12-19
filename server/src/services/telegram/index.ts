@@ -49,7 +49,7 @@ export async function initTelegramBot() {
     const webAppUrl = process.env.CLIENT_URL || 'https://anatomia-app-docker.onrender.com'
     try {
       await bot.telegram.setChatMenuButton({
-        menu_button: {
+        menuButton: {
           type: 'web_app',
           text: '📚 Открыть Anatomia',
           web_app: { url: webAppUrl }
