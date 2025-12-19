@@ -76,7 +76,7 @@ export async function startCommand(ctx: Context) {
           inline_keyboard: [[
             {
               text: '📚 Открыть Anatomia',
-              web_app: { url: process.env.CLIENT_URL || 'https://anatomia-app-docker.onrender.com' }
+              web_app: { url: getWebAppUrl() }
             }
           ]]
         }
@@ -97,7 +97,7 @@ export async function startCommand(ctx: Context) {
         inline_keyboard: [[
           {
             text: '📚 Открыть Anatomia',
-            web_app: { url: process.env.CLIENT_URL || 'https://anatomia-app-docker.onrender.com' }
+            web_app: { url: getWebAppUrl() }
           }
         ]]
       }
