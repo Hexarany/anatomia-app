@@ -7,13 +7,12 @@ import {
   deleteGroupFile,
   getGroupDeliveryStats,
 } from '../controllers/groupFileController'
-import { protect } from '../middleware/authMiddleware'
-import { requireRole } from '../middleware/roleMiddleware'
+import { authenticateToken, authorizeRole } from '../middleware/auth'
 
 const router = express.Router()
 
 // Все роуты требуют авторизации
-router.use(protect)
+router.use(authenticateToken)
 
 /**
  * POST /api/group-files/send
@@ -22,7 +21,7 @@ router.use(protect)
  */
 router.post(
   '/send',
-  requireRole(['teacher', 'admin']),
+  authorizeRole('teacher', 'admin'),
   sendFileToGroup
 )
 
@@ -38,7 +37,7 @@ router.get('/group/:groupId', getGroupFiles)
  */
 router.get(
   '/group/:groupId/stats',
-  requireRole(['teacher', 'admin']),
+  authorizeRole('teacher', 'admin'),
   getGroupDeliveryStats
 )
 
@@ -54,7 +53,7 @@ router.get('/:id', getGroupFileById)
  */
 router.post(
   '/:id/retry',
-  requireRole(['teacher', 'admin']),
+  authorizeRole('teacher', 'admin'),
   retryFailedDeliveries
 )
 
@@ -64,7 +63,7 @@ router.post(
  */
 router.delete(
   '/:id',
-  requireRole(['teacher', 'admin']),
+  authorizeRole('teacher', 'admin'),
   deleteGroupFile
 )
 

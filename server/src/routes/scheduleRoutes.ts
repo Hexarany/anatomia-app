@@ -7,13 +7,12 @@ import {
   deleteSchedule,
   generateCourseSchedule,
 } from '../controllers/scheduleController'
-import { protect } from '../middleware/authMiddleware'
-import { requireRole } from '../middleware/roleMiddleware'
+import { authenticateToken, authorizeRole } from '../middleware/auth'
 
 const router = express.Router()
 
 // Все роуты требуют авторизации
-router.use(protect)
+router.use(authenticateToken)
 
 /**
  * GET /api/schedule/group/:groupId
@@ -31,7 +30,7 @@ router.get('/:id', getScheduleById)
  * POST /api/schedule
  * Создать занятие (teacher, admin)
  */
-router.post('/', requireRole(['teacher', 'admin']), createSchedule)
+router.post('/', authorizeRole('teacher', 'admin'), createSchedule)
 
 /**
  * POST /api/schedule/generate
@@ -39,7 +38,7 @@ router.post('/', requireRole(['teacher', 'admin']), createSchedule)
  */
 router.post(
   '/generate',
-  requireRole(['teacher', 'admin']),
+  authorizeRole('teacher', 'admin'),
   generateCourseSchedule
 )
 
@@ -47,12 +46,12 @@ router.post(
  * PUT /api/schedule/:id
  * Обновить занятие (teacher, admin)
  */
-router.put('/:id', requireRole(['teacher', 'admin']), updateSchedule)
+router.put('/:id', authorizeRole('teacher', 'admin'), updateSchedule)
 
 /**
  * DELETE /api/schedule/:id
  * Удалить занятие (teacher, admin)
  */
-router.delete('/:id', requireRole(['teacher', 'admin']), deleteSchedule)
+router.delete('/:id', authorizeRole('teacher', 'admin'), deleteSchedule)
 
 export default router
