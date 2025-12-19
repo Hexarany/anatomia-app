@@ -1293,4 +1293,102 @@ export const createTelegramGroupChat = async (
   return response.data
 }
 
+// ============= Assignments Management =============
+
+// Get assignment by ID
+export const getAssignmentById = async (id: string, token?: string): Promise<any> => {
+  const response = await api.get(`/assignments/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Get all assignments for a group
+export const getGroupAssignments = async (groupId: string, token?: string): Promise<any[]> => {
+  const response = await api.get(`/assignments/group/${groupId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Get assignment for specific schedule
+export const getScheduleAssignment = async (scheduleId: string, token?: string): Promise<any> => {
+  const response = await api.get(`/assignments/schedule/${scheduleId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Create assignment (teacher/admin)
+export const createAssignment = async (assignmentData: any, token?: string): Promise<any> => {
+  const response = await api.post('/assignments', assignmentData, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Update assignment (teacher/admin)
+export const updateAssignment = async (id: string, assignmentData: any, token?: string): Promise<any> => {
+  const response = await api.put(`/assignments/${id}`, assignmentData, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Delete assignment (teacher/admin)
+export const deleteAssignment = async (id: string, token?: string): Promise<any> => {
+  const response = await api.delete(`/assignments/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Get all submissions for an assignment (teacher/admin)
+export const getAssignmentSubmissions = async (assignmentId: string, token?: string): Promise<any[]> => {
+  const response = await api.get(`/assignments/${assignmentId}/submissions`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Submit assignment (student)
+export const submitAssignment = async (assignmentId: string, submissionData: { textAnswer?: string; files?: string[] }, token?: string): Promise<any> => {
+  const response = await api.post(`/assignments/${assignmentId}/submit`, submissionData, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Get my submissions (student)
+export const getMySubmissions = async (token?: string): Promise<any[]> => {
+  const response = await api.get('/assignments/my/submissions', {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Update/resubmit assignment (student)
+export const updateSubmission = async (submissionId: string, submissionData: { textAnswer?: string; files?: string[]; comment?: string }, token?: string): Promise<any> => {
+  const response = await api.put(`/assignments/submissions/${submissionId}`, submissionData, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Grade submission (teacher/admin)
+export const gradeSubmission = async (submissionId: string, gradeData: { grade: number; feedback: string }, token?: string): Promise<any> => {
+  const response = await api.post(`/assignments/submissions/${submissionId}/grade`, gradeData, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
+// Delete submission
+export const deleteSubmission = async (submissionId: string, token?: string): Promise<any> => {
+  const response = await api.delete(`/assignments/submissions/${submissionId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return response.data
+}
+
 export default api
