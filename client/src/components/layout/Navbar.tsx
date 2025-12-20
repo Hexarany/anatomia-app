@@ -89,7 +89,7 @@ const Navbar = () => {
   const conditionalPages = []
   if (hasAccess('basic')) {
     conditionalPages.push({
-      name: i18n.language === 'ru' ? '💬 Чат' : '💬 Chat',
+      name: i18n.language === 'ru' ? 'Чат' : 'Chat',
       path: '/chat',
     })
   }
@@ -200,7 +200,7 @@ const Navbar = () => {
           </Typography>
 
           {/* Desktop Menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 0.5 }}>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center', ml: 2 }}>
             {allMainPages.map((page) => (
               <Button
                 key={page.name}
@@ -208,11 +208,16 @@ const Navbar = () => {
                 to={page.path}
                 onClick={handleCloseNavMenu}
                 sx={{
-                  my: 2,
                   color: 'white',
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  px: 1.5,
+                  fontSize: '0.9rem',
+                  px: 2,
+                  py: 1,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  borderRadius: 2,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
                 }}
               >
                 {page.name}
@@ -224,14 +229,20 @@ const Navbar = () => {
               onClick={handleOpenLearningMenu}
               endIcon={<ArrowDropDownIcon />}
               sx={{
-                my: 2,
                 color: 'white',
-                display: 'block',
-                fontSize: '0.875rem',
-                px: 1.5,
+                fontSize: '0.9rem',
+                px: 2,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 500,
+                borderRadius: 2,
+                backgroundColor: anchorElLearning ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
               }}
             >
-              {i18n.language === 'ru' ? '📚 Обучение' : '📚 Învățare'}
+              {i18n.language === 'ru' ? 'Обучение' : 'Învățare'}
             </Button>
             <Menu
               anchorEl={anchorElLearning}
