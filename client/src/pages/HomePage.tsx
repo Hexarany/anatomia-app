@@ -696,7 +696,7 @@ const HomePage = () => {
                   <Button
                     variant="contained"
                     size="large"
-                    href="https://t.me/AnatomiaBot"
+                    href="https://t.me/AnatomiaAppBot"
                     target="_blank"
                     rel="noopener noreferrer"
                     startIcon={<TelegramIcon />}
@@ -714,7 +714,7 @@ const HomePage = () => {
                     {i18n.language === 'ru' ? 'Открыть в Telegram' : 'Deschide în Telegram'}
                   </Button>
                   <Typography variant="caption" sx={{ display: 'block', mt: 2, opacity: 0.8 }}>
-                    @AnatomiaBot
+                    @AnatomiaAppBot
                   </Typography>
                 </Box>
               </Grid>
