@@ -161,8 +161,8 @@ const Navbar = () => {
                 </MenuItem>
               ))}
               <MenuItem disabled>
-                <Typography textAlign="center" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
-                  {i18n.language === 'ru' ? '📚 Обучение' : '📚 Învățare'}
+                <Typography textAlign="center" sx={{ fontWeight: 600, fontSize: '0.85rem', color: 'text.secondary' }}>
+                  {i18n.language === 'ru' ? 'Обучение' : 'Învățare'}
                 </Typography>
               </MenuItem>
               {learningResources.map((resource) => (
@@ -200,7 +200,7 @@ const Navbar = () => {
           </Typography>
 
           {/* Desktop Menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center', ml: 2 }}>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1.5, alignItems: 'center', ml: 3 }}>
             {allMainPages.map((page) => (
               <Button
                 key={page.name}
@@ -209,14 +209,16 @@ const Navbar = () => {
                 onClick={handleCloseNavMenu}
                 sx={{
                   color: 'white',
-                  fontSize: '0.9rem',
-                  px: 2,
+                  fontSize: '0.95rem',
+                  px: 2.5,
                   py: 1,
                   textTransform: 'none',
                   fontWeight: 500,
                   borderRadius: 2,
+                  transition: 'all 0.2s ease',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                    transform: 'translateY(-1px)',
                   },
                 }}
               >
@@ -230,15 +232,17 @@ const Navbar = () => {
               endIcon={<ArrowDropDownIcon />}
               sx={{
                 color: 'white',
-                fontSize: '0.9rem',
-                px: 2,
+                fontSize: '0.95rem',
+                px: 2.5,
                 py: 1,
                 textTransform: 'none',
                 fontWeight: 500,
                 borderRadius: 2,
+                transition: 'all 0.2s ease',
                 backgroundColor: anchorElLearning ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                  transform: 'translateY(-1px)',
                 },
               }}
             >
@@ -272,12 +276,19 @@ const Navbar = () => {
           </Box>
 
           {/* Right side icons and menus */}
-          <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', gap: 1.5 }}>
             {/* Search Icon */}
             <IconButton
               component={RouterLink}
               to="/search"
-              sx={{ color: 'white' }}
+              sx={{
+                color: 'white',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                  transform: 'translateY(-1px)',
+                },
+              }}
               aria-label="search"
             >
               <SearchIcon />
@@ -289,7 +300,14 @@ const Navbar = () => {
             {/* Theme Toggle */}
             <IconButton
               onClick={toggleTheme}
-              sx={{ color: 'white' }}
+              sx={{
+                color: 'white',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                  transform: 'translateY(-1px)',
+                },
+              }}
               aria-label="toggle theme"
               title={mode === 'light'
                 ? (i18n.language === 'ru' ? 'Тёмная тема' : 'Temă întunecată')
@@ -306,10 +324,15 @@ const Navbar = () => {
               size="small"
               sx={{
                 color: 'white',
+                borderRadius: 1.5,
+                transition: 'all 0.2s ease',
                 '.MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                  borderColor: 'rgba(255, 255, 255, 0.4)',
                 },
                 '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.7)',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                   borderColor: 'white',
                 },
                 '.MuiSvgIcon-root': {
@@ -326,7 +349,16 @@ const Navbar = () => {
               <>
                 <IconButton
                   onClick={handleOpenUserMenu}
-                  sx={{ color: 'white', p: 0 }}
+                  sx={{
+                    color: 'white',
+                    p: 0.5,
+                    ml: 0.5,
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                      transform: 'translateY(-1px)',
+                    },
+                  }}
                 >
                   <AccountCircleIcon sx={{ fontSize: 32 }} />
                 </IconButton>
@@ -437,7 +469,19 @@ const Navbar = () => {
                 <Button
                   component={RouterLink}
                   to="/login"
-                  sx={{ color: 'white', fontSize: '0.875rem' }}
+                  sx={{
+                    color: 'white',
+                    fontSize: '0.9rem',
+                    px: 2,
+                    py: 0.75,
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                    },
+                  }}
                 >
                   {i18n.language === 'ru' ? 'Вход' : 'Autentificare'}
                 </Button>
@@ -447,11 +491,18 @@ const Navbar = () => {
                   variant="outlined"
                   sx={{
                     color: 'white',
-                    borderColor: 'white',
-                    fontSize: '0.875rem',
+                    borderColor: 'rgba(255, 255, 255, 0.7)',
+                    fontSize: '0.9rem',
+                    px: 2.5,
+                    py: 0.75,
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease',
                     '&:hover': {
                       borderColor: 'white',
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                      transform: 'translateY(-1px)',
                     },
                   }}
                 >
