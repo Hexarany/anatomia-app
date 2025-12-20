@@ -85,16 +85,7 @@ const Navbar = () => {
     { name: i18n.language === 'ru' ? 'Библиотека' : 'Bibliotecă', path: '/resources' },
   ]
 
-  // Conditional main menu items
-  const conditionalPages = []
-  if (hasAccess('basic')) {
-    conditionalPages.push({
-      name: i18n.language === 'ru' ? 'Чат' : 'Chat',
-      path: '/chat',
-    })
-  }
-
-  const allMainPages = [...mainPages, ...conditionalPages]
+  const allMainPages = [...mainPages]
 
   return (
     <AppBar position="sticky">
