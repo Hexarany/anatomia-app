@@ -9,6 +9,7 @@ import { MainButtonProvider } from './contexts/MainButtonContext'
 // import PWAUpdatePrompt from './components/PWAUpdatePrompt'
 // import InstallPWA from './components/InstallPWA'
 import HomePage from './pages/HomePage'
+import CategoriesPage from './pages/CategoriesPage'
 import CategoryPage from './pages/CategoryPage'
 import TopicPage from './pages/TopicPage'
 import QuizPage from './pages/QuizPage'
@@ -59,6 +60,7 @@ function App() {
             <Route path="/subscription" element={<SubscriptionPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/payment-callback" element={<PaymentCallbackPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/category/:categoryId" element={<CategoryPage />} />
             <Route path="/topic/:topicId" element={<TopicPage />} />
             <Route path="/quiz/:quizId" element={<QuizPage />} />

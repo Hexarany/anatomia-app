@@ -72,7 +72,7 @@ const Navbar = () => {
   // Main navigation items (simplified)
   const mainPages = [
     { name: t('nav.home'), path: '/' },
-    { name: t('nav.categories'), path: '/#categories' },
+    { name: t('nav.categories'), path: '/categories' },
     { name: t('nav.quizzes'), path: '/quizzes' },
   ]
 
