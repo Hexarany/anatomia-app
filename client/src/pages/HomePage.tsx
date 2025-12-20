@@ -1,5 +1,6 @@
 import { useEffect, useState, memo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   Box,
   Container,
@@ -22,9 +23,7 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import View3DIcon from '@mui/icons-material/ViewInAr'
-import ImageIcon from '@mui/icons-material/Image'
 import QuizIcon from '@mui/icons-material/Quiz'
-import VideoLibraryIcon from '@mui/icons-material/VideoLibrary'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import SpaIcon from '@mui/icons-material/Spa'
 import GpsFixedIcon from '@mui/icons-material/GpsFixed'
@@ -118,6 +117,7 @@ CategoryCard.displayName = 'CategoryCard'
 const HomePage = () => {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
+  const { isAuthenticated } = useAuth()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -137,33 +137,6 @@ const HomePage = () => {
 
     fetchCategories()
   }, [])
-
-  const features = [
-    {
-      icon: <View3DIcon sx={{ fontSize: 60 }} />,
-      title: t('home.features.3d.title'),
-      description: t('home.features.3d.description'),
-      color: theme.palette.mode === 'dark' ? '#4fc3f7' : '#0288d1',
-    },
-    {
-      icon: <ImageIcon sx={{ fontSize: 60 }} />,
-      title: t('home.features.atlas.title'),
-      description: t('home.features.atlas.description'),
-      color: theme.palette.mode === 'dark' ? '#f06292' : '#c2185b',
-    },
-    {
-      icon: <QuizIcon sx={{ fontSize: 60 }} />,
-      title: t('home.features.quiz.title'),
-      description: t('home.features.quiz.description'),
-      color: theme.palette.mode === 'dark' ? '#ba68c8' : '#7b1fa2',
-    },
-    {
-      icon: <VideoLibraryIcon sx={{ fontSize: 60 }} />,
-      title: t('home.features.video.title'),
-      description: t('home.features.video.description'),
-      color: theme.palette.mode === 'dark' ? '#81c784' : '#388e3c',
-    },
-  ]
 
   // Theme-aware colors for categories
   const getCategoryColor = (index: number) => {
@@ -245,7 +218,7 @@ const HomePage = () => {
               size="large"
               color="secondary"
               component={RouterLink}
-              to="#categories"
+              to={isAuthenticated ? '/dashboard' : '/register'}
               endIcon={<ArrowForwardIcon />}
               sx={{
                 px: { xs: 4, md: 5 },
@@ -260,7 +233,10 @@ const HomePage = () => {
                 },
               }}
             >
-              {t('home.getStarted')}
+              {isAuthenticated
+                ? (i18n.language === 'ru' ? 'Мой прогресс' : 'Progresul meu')
+                : (i18n.language === 'ru' ? 'Начать обучение' : 'Începe învățarea')
+              }
             </Button>
           </Fade>
         </Container>
@@ -441,76 +417,6 @@ const HomePage = () => {
           </Grid>
         </Container>
       </Box>
-
-      {/* Features Section */}
-      <Container maxWidth="lg" sx={{ py: { xs: 6, sm: 8, md: 10 }, px: { xs: 2, sm: 3 } }}>
-        <Typography
-          variant="h3"
-          component="h2"
-          align="center"
-          gutterBottom
-          sx={{
-            mb: { xs: 4, md: 6 },
-            fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' },
-            fontWeight: 700,
-          }}
-        >
-          {t('home.features.title')}
-        </Typography>
-        <Grid container spacing={4}>
-          {features.map((feature, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Grow in timeout={500 + index * 150}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    p: 3,
-                    borderRadius: 3,
-                    transition: 'all 0.3s ease',
-                    border: `2px solid transparent`,
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: theme.palette.mode === 'dark'
-                        ? '0 12px 24px rgba(0,0,0,0.5)'
-                        : '0 12px 24px rgba(0,0,0,0.15)',
-                      borderColor: feature.color,
-                    },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      mb: 2,
-                      p: 2,
-                      borderRadius: '50%',
-                      bgcolor: alpha(feature.color, 0.1),
-                      color: feature.color,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        bgcolor: alpha(feature.color, 0.2),
-                        transform: 'rotate(360deg)',
-                      },
-                    }}
-                  >
-                    {feature.icon}
-                  </Box>
-                  <CardContent>
-                    <Typography variant="h6" component="h3" gutterBottom fontWeight={600}>
-                      {feature.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {feature.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grow>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
 
       {/* Categories Section */}
       <Box
