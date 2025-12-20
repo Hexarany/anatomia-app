@@ -688,6 +688,24 @@ const HomePage = () => {
                   <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
                     {i18n.language === 'ru' ? 'Начните сейчас!' : 'Începeți acum!'}
                   </Typography>
+
+                  {/* QR Code */}
+                  <Box
+                    sx={{
+                      display: 'inline-block',
+                      p: 2,
+                      bgcolor: 'white',
+                      borderRadius: 2,
+                      mb: 3,
+                    }}
+                  >
+                    <img
+                      src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://t.me/AnatomiaAppBot"
+                      alt="QR Code for Telegram Bot"
+                      style={{ display: 'block', width: 180, height: 180 }}
+                    />
+                  </Box>
+
                   <Typography variant="body2" sx={{ mb: 3, opacity: 0.9 }}>
                     {i18n.language === 'ru'
                       ? 'Отсканируйте QR-код или нажмите кнопку ниже'
