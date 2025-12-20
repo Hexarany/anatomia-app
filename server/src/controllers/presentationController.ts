@@ -21,7 +21,7 @@ export const getPresentations = async (req: Request, res: Response) => {
     if (published !== undefined) filter.isPublished = published === 'true'
 
     const presentations = await Presentation.find(filter)
-      .populate('uploadedBy', 'name email')
+      .populate('uploadedBy', 'firstName lastName email')
       .populate('categoryId', 'name')
       .sort({ order: 1, createdAt: -1 })
 
@@ -36,7 +36,7 @@ export const getPresentations = async (req: Request, res: Response) => {
 export const getPresentationById = async (req: Request, res: Response) => {
   try {
     const presentation = await Presentation.findById(req.params.id)
-      .populate('uploadedBy', 'name email')
+      .populate('uploadedBy', 'firstName lastName email')
       .populate('categoryId', 'name')
 
     if (!presentation) {
@@ -97,7 +97,7 @@ export const createPresentation = async (req: CustomRequest, res: Response) => {
     })
 
     const populatedPresentation = await Presentation.findById(presentation._id)
-      .populate('uploadedBy', 'name email')
+      .populate('uploadedBy', 'firstName lastName email')
       .populate('categoryId', 'name')
 
     res.status(201).json(populatedPresentation)
@@ -150,7 +150,7 @@ export const updatePresentation = async (req: CustomRequest, res: Response) => {
     await presentation.save()
 
     const updatedPresentation = await Presentation.findById(presentation._id)
-      .populate('uploadedBy', 'name email')
+      .populate('uploadedBy', 'firstName lastName email')
       .populate('categoryId', 'name')
 
     res.json(updatedPresentation)

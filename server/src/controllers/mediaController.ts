@@ -228,7 +228,7 @@ export const getMediaList = async (req: Request, res: Response) => {
     const mediaFiles = await Media.find()
       .sort({ createdAt: -1 })
       .select('-__v')
-      .populate('uploadedBy', 'name email')
+      .populate('uploadedBy', 'firstName lastName email')
 
     res.json(mediaFiles)
   } catch (error) {

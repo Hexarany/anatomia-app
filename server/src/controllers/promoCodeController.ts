@@ -19,7 +19,7 @@ export const getAllPromoCodes = async (req: CustomRequest, res: Response) => {
     }
 
     const promoCodes = await PromoCode.find(query)
-      .populate('createdBy', 'name email')
+      .populate('createdBy', 'firstName lastName email')
       .sort({ createdAt: -1 })
 
     res.json(promoCodes)
@@ -232,7 +232,7 @@ export const getPromoCodeStats = async (req: CustomRequest, res: Response) => {
   try {
     const { id } = req.params
 
-    const promoCode = await PromoCode.findById(id).populate('usedBy.userId', 'name email')
+    const promoCode = await PromoCode.findById(id).populate('usedBy.userId', 'firstName lastName email')
 
     if (!promoCode) {
       return res.status(404).json({ error: { message: 'Promo code not found' } })

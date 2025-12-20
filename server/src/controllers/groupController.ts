@@ -12,8 +12,8 @@ export const getAllGroups = async (req: Request, res: Response) => {
     const filter = userRole === 'teacher' ? { teacher: userId } : {}
 
     const groups = await Group.find(filter)
-      .populate('teacher', 'name email')
-      .populate('students', 'name email')
+      .populate('teacher', 'firstName lastName email')
+      .populate('students', 'firstName lastName email')
       .sort({ createdAt: -1 })
 
     res.json(groups)
@@ -26,8 +26,8 @@ export const getAllGroups = async (req: Request, res: Response) => {
 export const getGroupById = async (req: Request, res: Response) => {
   try {
     const group = await Group.findById(req.params.id)
-      .populate('teacher', 'name email')
-      .populate('students', 'name email')
+      .populate('teacher', 'firstName lastName email')
+      .populate('students', 'firstName lastName email')
 
     if (!group) {
       return res.status(404).json({ error: { message: 'Группа не найдена' } })
@@ -124,8 +124,8 @@ export const createGroup = async (req: Request, res: Response) => {
 
     // Populate для возврата с полной информацией
     const populatedGroup = await Group.findById(group._id)
-      .populate('teacher', 'name email')
-      .populate('students', 'name email')
+      .populate('teacher', 'firstName lastName email')
+      .populate('students', 'firstName lastName email')
 
     res.status(201).json(populatedGroup)
   } catch (error) {
@@ -182,8 +182,8 @@ export const updateGroup = async (req: Request, res: Response) => {
       req.body,
       { new: true, runValidators: true }
     )
-      .populate('teacher', 'name email')
-      .populate('students', 'name email')
+      .populate('teacher', 'firstName lastName email')
+      .populate('students', 'firstName lastName email')
 
     res.json(group)
   } catch (error) {
@@ -244,8 +244,8 @@ export const addStudentToGroup = async (req: Request, res: Response) => {
 
     // Возвращаем обновленную группу с populate
     const updatedGroup = await Group.findById(groupId)
-      .populate('teacher', 'name email')
-      .populate('students', 'name email')
+      .populate('teacher', 'firstName lastName email')
+      .populate('students', 'firstName lastName email')
 
     res.json(updatedGroup)
   } catch (error) {
@@ -283,8 +283,8 @@ export const removeStudentFromGroup = async (req: Request, res: Response) => {
 
     // Возвращаем обновленную группу с populate
     const updatedGroup = await Group.findById(groupId)
-      .populate('teacher', 'name email')
-      .populate('students', 'name email')
+      .populate('teacher', 'firstName lastName email')
+      .populate('students', 'firstName lastName email')
 
     res.json(updatedGroup)
   } catch (error) {

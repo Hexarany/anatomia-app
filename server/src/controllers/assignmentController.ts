@@ -115,7 +115,7 @@ export const getAssignmentById = async (req: CustomRequest, res: Response) => {
     const assignment = await Assignment.findById(id)
       .populate('schedule')
       .populate('group')
-      .populate('createdBy', 'name email')
+      .populate('createdBy', 'firstName lastName email')
 
     if (!assignment) {
       return res.status(404).json({ message: 'Assignment not found' })
@@ -242,7 +242,7 @@ export const getGroupAssignments = async (req: CustomRequest, res: Response) => 
 
     const assignments = await Assignment.find({ group: groupId })
       .populate('schedule')
-      .populate('createdBy', 'name email')
+      .populate('createdBy', 'firstName lastName email')
       .sort({ deadline: 1 })
 
     // Для студента: добавляем информацию о его сдачах
@@ -280,7 +280,7 @@ export const getScheduleAssignment = async (req: CustomRequest, res: Response) =
 
     const assignment = await Assignment.findOne({ schedule: scheduleId })
       .populate('group')
-      .populate('createdBy', 'name email')
+      .populate('createdBy', 'firstName lastName email')
 
     if (!assignment) {
       return res.status(404).json({ message: 'No assignment for this schedule' })
@@ -337,8 +337,8 @@ export const getAssignmentSubmissions = async (req: CustomRequest, res: Response
     }
 
     const submissions = await Submission.find({ assignment: id })
-      .populate('student', 'name email')
-      .populate('gradedBy', 'name email')
+      .populate('student', 'firstName lastName email')
+      .populate('gradedBy', 'firstName lastName email')
       .sort({ submittedAt: -1 })
 
     res.json(submissions)
@@ -438,10 +438,10 @@ export const getMySubmissions = async (req: CustomRequest, res: Response) => {
         populate: [
           { path: 'schedule' },
           { path: 'group' },
-          { path: 'createdBy', select: 'name email' },
+          { path: 'createdBy', select: 'firstName lastName email' },
         ],
       })
-      .populate('gradedBy', 'name email')
+      .populate('gradedBy', 'firstName lastName email')
       .sort({ submittedAt: -1 })
 
     res.json(submissions)
