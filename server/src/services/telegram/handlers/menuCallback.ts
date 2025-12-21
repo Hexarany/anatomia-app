@@ -52,38 +52,19 @@ export async function handleCommandCallback(ctx: Context) {
   const data = ctx.callbackQuery.data
   await ctx.answerCbQuery()
 
-  // Определяем какую команду вызвать
-  const commandMap: { [key: string]: string } = {
-    'cmd_homework': '/homework',
-    'cmd_grades': '/grades',
-    'cmd_schedule': '/schedule',
-    'cmd_quiz': '/quiz',
-    'cmd_anatomy': '/anatomy',
-    'cmd_help': '/help'
+  // Определяем какую команду вызвать и просто отправляем инструкцию
+  const instructions: { [key: string]: string } = {
+    'cmd_homework': 'Используйте команду /homework для просмотра заданий',
+    'cmd_grades': 'Используйте команду /grades для просмотра оценок',
+    'cmd_schedule': 'Используйте команду /schedule для просмотра расписания',
+    'cmd_quiz': 'Используйте команду /quiz для прохождения теста',
+    'cmd_anatomy': 'Используйте команду /anatomy <название> для поиска',
+    'cmd_help': 'Используйте команду /help для справки'
   }
 
-  const command = commandMap[data]
-  if (command) {
-    // Имитируем вызов команды
-    const message = {
-      ...ctx.message,
-      text: command
-    }
-    // @ts-ignore
-    ctx.message = message
-
-    // Удаляем callback query чтобы команда обработалась как обычная
-    // @ts-ignore
-    delete ctx.callbackQuery
-
-    // Вызываем соответствующий handler через processUpdate
-    // Telegraf автоматически обработает команду
-    if (ctx.chat?.id) {
-      await ctx.telegram.callApi('sendMessage', {
-        chat_id: ctx.chat.id,
-        text: `Выполняется команда ${command}...`
-      }).catch(() => {})
-    }
+  const instruction = instructions[data]
+  if (instruction) {
+    return ctx.reply(instruction)
   }
 }
 
