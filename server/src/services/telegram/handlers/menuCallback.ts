@@ -1,5 +1,9 @@
 import { Context } from 'telegraf'
 import { Markup } from 'telegraf'
+import { homeworkCommand, gradesCommand } from '../commands/homework'
+import { scheduleCommand } from '../commands/schedule'
+import { quizCommand } from '../commands/quiz'
+import { anatomyCommand } from '../commands/anatomy'
 
 /**
  * Показать главное меню с кнопками
@@ -52,19 +56,30 @@ export async function handleCommandCallback(ctx: Context) {
   const data = ctx.callbackQuery.data
   await ctx.answerCbQuery()
 
-  // Определяем какую команду вызвать и просто отправляем инструкцию
-  const instructions: { [key: string]: string } = {
-    'cmd_homework': 'Используйте команду /homework для просмотра заданий',
-    'cmd_grades': 'Используйте команду /grades для просмотра оценок',
-    'cmd_schedule': 'Используйте команду /schedule для просмотра расписания',
-    'cmd_quiz': 'Используйте команду /quiz для прохождения теста',
-    'cmd_anatomy': 'Используйте команду /anatomy <название> для поиска',
-    'cmd_help': 'Используйте команду /help для справки'
-  }
-
-  const instruction = instructions[data]
-  if (instruction) {
-    return ctx.reply(instruction)
+  // Вызываем соответствующую команду напрямую
+  switch (data) {
+    case 'cmd_homework':
+      return homeworkCommand(ctx)
+    case 'cmd_grades':
+      return gradesCommand(ctx)
+    case 'cmd_schedule':
+      return scheduleCommand(ctx)
+    case 'cmd_quiz':
+      return quizCommand(ctx)
+    case 'cmd_anatomy':
+      return ctx.reply('Используйте: /anatomy <название>')
+    case 'cmd_help':
+      return ctx.reply(
+        `🤖 *Доступные команды:*\n\n` +
+        `/start - Привязать аккаунт\n` +
+        `/menu - Главное меню\n` +
+        `/homework - Домашние задания\n` +
+        `/grades - Оценки\n` +
+        `/schedule - Расписание\n` +
+        `/quiz - Тесты\n` +
+        `/help - Помощь`,
+        { parse_mode: 'Markdown' }
+      )
   }
 }
 
