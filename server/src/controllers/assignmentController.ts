@@ -458,9 +458,13 @@ export const getMySubmissions = async (req: CustomRequest, res: Response) => {
       .populate('gradedBy', 'firstName lastName email')
       .sort({ submittedAt: -1 })
 
-    res.json(submissions)
+    // Filter out submissions with deleted assignments
+    const validSubmissions = submissions.filter(s => s.assignment !== null)
+
+    res.json(validSubmissions)
   } catch (error: any) {
     console.error('Error fetching my submissions:', error)
+    console.error('Error stack:', error.stack)
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 }
