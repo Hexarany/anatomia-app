@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
+import sgMail from '@sendgrid/mail'
 
 // Email configuration interface
 interface EmailConfig {
@@ -23,13 +24,45 @@ interface SendEmailOptions {
 class EmailService {
   private transporter: Transporter | null = null
   private from: string
+  private useSendGrid: boolean = false
+  private sendGridConfigured: boolean = false
 
   constructor() {
-    this.from = process.env.EMAIL_FROM || 'noreply@anatomia.app'
-    this.initializeTransporter()
+    this.from = process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || 'noreply@anatomia.app'
+    this.initializeEmailService()
   }
 
-  private initializeTransporter() {
+  private initializeEmailService() {
+    const emailService = process.env.EMAIL_SERVICE || 'smtp'
+
+    if (emailService === 'sendgrid') {
+      this.initializeSendGrid()
+    } else {
+      this.initializeSmtp()
+    }
+  }
+
+  private initializeSendGrid() {
+    try {
+      const apiKey = process.env.SENDGRID_API_KEY
+
+      if (!apiKey) {
+        console.warn('⚠️  SendGrid API key not configured. Email notifications will be disabled.')
+        return
+      }
+
+      sgMail.setApiKey(apiKey)
+      this.useSendGrid = true
+      this.sendGridConfigured = true
+      this.from = process.env.SENDGRID_FROM_EMAIL || this.from
+
+      console.log('✅ Email service initialized (SendGrid)')
+    } catch (error) {
+      console.error('❌ Failed to initialize SendGrid:', error)
+    }
+  }
+
+  private initializeSmtp() {
     try {
       const config: EmailConfig = {
         host: process.env.EMAIL_HOST || 'smtp.gmail.com',
@@ -43,19 +76,23 @@ class EmailService {
 
       // Check if email credentials are configured
       if (!config.auth.user || !config.auth.pass) {
-        console.warn('⚠️  Email credentials not configured. Email notifications will be disabled.')
+        console.warn('⚠️  SMTP credentials not configured. Email notifications will be disabled.')
         return
       }
 
       this.transporter = nodemailer.createTransport(config)
-      console.log('✅ Email service initialized')
+      console.log('✅ Email service initialized (SMTP)')
     } catch (error) {
-      console.error('❌ Failed to initialize email service:', error)
+      console.error('❌ Failed to initialize SMTP email service:', error)
     }
   }
 
   // Send email
   async sendEmail(options: SendEmailOptions): Promise<boolean> {
+    if (this.useSendGrid && this.sendGridConfigured) {
+      return this.sendEmailWithSendGrid(options)
+    }
+
     if (!this.transporter) {
       console.warn('Email service not configured. Skipping email to:', options.to)
       return false
@@ -73,6 +110,31 @@ class EmailService {
       return true
     } catch (error) {
       console.error(`❌ Failed to send email to ${options.to}:`, error)
+      return false
+    }
+  }
+
+  private async sendEmailWithSendGrid(options: SendEmailOptions): Promise<boolean> {
+    try {
+      const msg = {
+        to: options.to,
+        from: {
+          email: this.from.includes('<') ? this.from.match(/<(.+)>/)?.[1] || this.from : this.from,
+          name: process.env.SENDGRID_FROM_NAME || 'Anatomia App'
+        },
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      }
+
+      await sgMail.send(msg)
+      console.log(`✅ Email sent via SendGrid to ${options.to}: ${options.subject}`)
+      return true
+    } catch (error: any) {
+      console.error(`❌ Failed to send email via SendGrid to ${options.to}:`, error)
+      if (error.response) {
+        console.error('SendGrid error details:', error.response.body)
+      }
       return false
     }
   }
