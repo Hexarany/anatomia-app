@@ -10,46 +10,80 @@ const getWebAppUrl = () => {
 }
 
 export async function startCommand(ctx: Context) {
-  const telegramId = ctx.from?.id.toString()
-  const args = ctx.message && 'text' in ctx.message
-    ? ctx.message.text.split(' ').slice(1)
-    : []
+  try {
+    console.log('[Telegram Bot] /start command called by:', ctx.from?.id)
 
-  // If there's a link code
-  if (args.length > 0) {
-    const linkCode = args[0]
-    const user = await User.findOne({
-      telegramLinkCode: linkCode,
-      telegramLinkCodeExpires: { $gt: new Date() }
-    })
+    const telegramId = ctx.from?.id.toString()
+    const args = ctx.message && 'text' in ctx.message
+      ? ctx.message.text.split(' ').slice(1)
+      : []
 
-    if (user) {
-      user.telegramId = telegramId
-      user.telegramUsername = ctx.from?.username
-      user.telegramLinkCode = undefined
-      user.telegramLinkCodeExpires = undefined
-      user.telegramLinkedAt = new Date()
-      await user.save()
+    console.log('[Telegram Bot] Args:', args)
 
-      return ctx.reply(
-        `✅ Аккаунт успешно привязан!\n\n` +
-        `Добро пожаловать, ${user.firstName}!\n` +
-        `Используйте /help для просмотра доступных команд.`,
-        {
-          reply_markup: {
-            inline_keyboard: [[
-              {
-                text: '📚 Открыть Anatomia',
-                web_app: { url: getWebAppUrl() }
-              }
-            ]]
+    // If there's a link code
+    if (args.length > 0) {
+      const linkCode = args[0]
+      console.log('[Telegram Bot] Looking for user with linkCode:', linkCode)
+
+      const user = await User.findOne({
+        telegramLinkCode: linkCode,
+        telegramLinkCodeExpires: { $gt: new Date() }
+      })
+
+      if (user) {
+        console.log('[Telegram Bot] User found, linking account:', user._id)
+        user.telegramId = telegramId
+        user.telegramUsername = ctx.from?.username
+        user.telegramLinkCode = undefined
+        user.telegramLinkCodeExpires = undefined
+        user.telegramLinkedAt = new Date()
+        await user.save()
+        console.log('[Telegram Bot] Account linked successfully')
+
+        return ctx.reply(
+          `✅ Аккаунт успешно привязан!\n\n` +
+          `Добро пожаловать, ${user.firstName}!\n` +
+          `Используйте /help для просмотра доступных команд.`,
+          {
+            reply_markup: {
+              inline_keyboard: [[
+                {
+                  text: '📚 Открыть Anatomia',
+                  web_app: { url: getWebAppUrl() }
+                }
+              ]]
+            }
           }
-        }
-      )
-    } else {
+        )
+      } else {
+        console.log('[Telegram Bot] Link code not found or expired')
+        return ctx.reply(
+          `❌ Код недействителен или истек.\n` +
+          `Пожалуйста, получите новый код на сайте.`,
+          {
+            reply_markup: {
+              inline_keyboard: [[
+                {
+                  text: '📚 Открыть Anatomia',
+                  web_app: { url: getWebAppUrl() }
+                }
+              ]]
+            }
+          }
+        )
+      }
+    }
+
+    // Check if account is already linked
+    console.log('[Telegram Bot] Checking if account already linked:', telegramId)
+    const existingUser = await User.findOne({ telegramId })
+
+    if (existingUser) {
+      console.log('[Telegram Bot] Account already linked:', existingUser._id)
       return ctx.reply(
-        `❌ Код недействителен или истек.\n` +
-        `Пожалуйста, получите новый код на сайте.`,
+        `Привет, ${existingUser.firstName}! 👋\n\n` +
+        `Ваш аккаунт уже привязан.\n` +
+        `Используйте /help для просмотра команд.`,
         {
           reply_markup: {
             inline_keyboard: [[
@@ -62,15 +96,16 @@ export async function startCommand(ctx: Context) {
         }
       )
     }
-  }
 
-  // Check if account is already linked
-  const existingUser = await User.findOne({ telegramId })
-  if (existingUser) {
+    console.log('[Telegram Bot] Showing welcome message')
     return ctx.reply(
-      `Привет, ${existingUser.firstName}! 👋\n\n` +
-      `Ваш аккаунт уже привязан.\n` +
-      `Используйте /help для просмотра команд.`,
+      `👋 Добро пожаловать в Anatomia Bot!\n\n` +
+      `Для привязки вашего аккаунта:\n` +
+      `1. Войдите на сайт anatomia.md\n` +
+      `2. Перейдите в Профиль → Настройки\n` +
+      `3. Нажмите "Подключить Telegram"\n` +
+      `4. Скопируйте код и введите: /start ВАШ_КОД\n\n` +
+      `Или откройте приложение напрямую:`,
       {
         reply_markup: {
           inline_keyboard: [[
@@ -82,25 +117,9 @@ export async function startCommand(ctx: Context) {
         }
       }
     )
+  } catch (error) {
+    console.error('[Telegram Bot] Error in /start command:', error)
+    console.error('[Telegram Bot] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    throw error // Re-throw to be caught by global error handler
   }
-
-  return ctx.reply(
-    `👋 Добро пожаловать в Anatomia Bot!\n\n` +
-    `Для привязки вашего аккаунта:\n` +
-    `1. Войдите на сайт anatomia.md\n` +
-    `2. Перейдите в Профиль → Настройки\n` +
-    `3. Нажмите "Подключить Telegram"\n` +
-    `4. Скопируйте код и введите: /start ВАШ_КОД\n\n` +
-    `Или откройте приложение напрямую:`,
-    {
-      reply_markup: {
-        inline_keyboard: [[
-          {
-            text: '📚 Открыть Anatomia',
-            web_app: { url: getWebAppUrl() }
-          }
-        ]]
-      }
-    }
-  )
 }
