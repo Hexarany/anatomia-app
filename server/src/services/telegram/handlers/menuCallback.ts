@@ -78,10 +78,12 @@ export async function handleCommandCallback(ctx: Context) {
 
     // Вызываем соответствующий handler через processUpdate
     // Telegraf автоматически обработает команду
-    await ctx.telegram.callApi('sendMessage', {
-      chat_id: ctx.chat?.id,
-      text: `Выполняется команда ${command}...`
-    }).catch(() => {})
+    if (ctx.chat?.id) {
+      await ctx.telegram.callApi('sendMessage', {
+        chat_id: ctx.chat.id,
+        text: `Выполняется команда ${command}...`
+      }).catch(() => {})
+    }
   }
 }
 
