@@ -28,16 +28,18 @@ export async function scheduleCommand(ctx: Context) {
     return ctx.reply('У вас пока нет активных групп.')
   }
 
-  // Get schedule for all user's groups
+  // Get schedule for all user's groups (last 7 days + future)
   const groupIds = groups.map(g => g._id)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
   const scheduleEntries = await Schedule.find({
     group: { $in: groupIds },
-    date: { $gte: new Date() } // Only future/current lessons
+    date: { $gte: sevenDaysAgo } // Last 7 days + future lessons
   })
     .populate('group', 'name')
     .populate('topic', 'name')
-    .sort({ date: 1 })
-    .limit(10) // Show next 10 lessons
+    .sort({ date: -1 }) // Newest first
+    .limit(15) // Show 15 lessons
 
   if (scheduleEntries.length === 0) {
     return ctx.reply(

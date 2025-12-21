@@ -280,6 +280,11 @@ export const generateCourseSchedule = async (req: Request, res: Response) => {
 
       lessons.push(lesson)
 
+      // Send Telegram notification for each lesson (non-blocking)
+      const { TelegramNotificationService } = await import('../services/telegram/notificationService')
+      TelegramNotificationService.notifyNewSchedule(lesson._id.toString())
+        .catch(err => console.error('Failed to send Telegram schedule notification:', err))
+
       // Переходим к следующему дню для следующего занятия
       currentDate.setDate(currentDate.getDate() + 1)
       while (!weekdays.includes(currentDate.getDay())) {
