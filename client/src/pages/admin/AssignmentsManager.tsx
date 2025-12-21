@@ -499,13 +499,24 @@ const AssignmentsManager = () => {
                     }
                     label="Занятие"
                   >
-                    {schedule.map((lesson) => (
-                      <MenuItem key={lesson._id} value={lesson._id}>
-                        Урок {lesson.lessonNumber}: {lesson.title[language]} ({new Date(lesson.date).toLocaleDateString()})
+                    {schedule.length === 0 ? (
+                      <MenuItem disabled value="">
+                        Нет занятий. Сначала создайте расписание для группы.
                       </MenuItem>
-                    ))}
+                    ) : (
+                      schedule.map((lesson) => (
+                        <MenuItem key={lesson._id} value={lesson._id}>
+                          Урок {lesson.lessonNumber}: {lesson.title[language]} ({new Date(lesson.date).toLocaleDateString()})
+                        </MenuItem>
+                      ))
+                    )}
                   </Select>
                 </FormControl>
+                {schedule.length === 0 && (
+                  <Alert severity="warning" sx={{ mt: 1 }}>
+                    Сначала создайте расписание для этой группы в разделе "Расписание"
+                  </Alert>
+                )}
               </Grid>
 
               <Grid item xs={12} sm={6}>
@@ -654,10 +665,14 @@ const AssignmentsManager = () => {
                   component="label"
                   startIcon={<CloudUploadIcon />}
                   disabled={uploadingFile}
+                  fullWidth
                 >
-                  {uploadingFile ? 'Загрузка...' : 'Прикрепить файл'}
+                  {uploadingFile ? 'Загрузка...' : 'Прикрепить файл (PDF, Word, изображения)'}
                   <input type="file" hidden onChange={handleFileUpload} />
                 </Button>
+                <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: 'block' }}>
+                  Максимальный размер файла: 10 МБ
+                </Typography>
                 {assignmentForm.attachments.length > 0 && (
                   <Box sx={{ mt: 1 }}>
                     {assignmentForm.attachments.map((url, index) => (
