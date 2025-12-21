@@ -32,13 +32,19 @@ export async function homeworkCommand(ctx: Context) {
     // Получаем ID заданий, которые уже сданы
     const submittedAssignmentIds = submissions.map(s => s.assignment._id)
 
-    // Находим все группы, в которых состоит студент
+    // Находим все группы: где пользователь студент, преподаватель, или админ
     const Group = (await import('../../../models/Group')).default
-    const userGroups = await Group.find({
-      students: user._id,
-      isActive: true
-    }).select('_id').lean()
+    const groupQuery: any = { isActive: true }
 
+    // Если не админ, ограничиваем группы
+    if (user.role !== 'admin') {
+      groupQuery.$or = [
+        { students: user._id },  // Пользователь - студент
+        { teacher: user._id }     // Пользователь - преподаватель
+      ]
+    }
+
+    const userGroups = await Group.find(groupQuery).select('_id').lean()
     const groupIds = userGroups.map(g => g._id)
 
     // Получаем все активные задания для групп студента

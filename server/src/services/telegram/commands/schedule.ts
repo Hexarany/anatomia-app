@@ -11,11 +11,18 @@ export async function scheduleCommand(ctx: Context) {
     return ctx.reply('❌ Аккаунт не привязан. Используйте /start для привязки.')
   }
 
-  // Find user's groups
-  const groups = await Group.find({
-    students: user._id,
-    isActive: true
-  }).select('_id name')
+  // Find user's groups: where they are student, teacher, or admin
+  const groupQuery: any = { isActive: true }
+
+  // Если не админ, ограничиваем группы
+  if (user.role !== 'admin') {
+    groupQuery.$or = [
+      { students: user._id },  // Пользователь - студент
+      { teacher: user._id }     // Пользователь - преподаватель
+    ]
+  }
+
+  const groups = await Group.find(groupQuery).select('_id name')
 
   if (groups.length === 0) {
     return ctx.reply('У вас пока нет активных групп.')
