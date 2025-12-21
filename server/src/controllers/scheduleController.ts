@@ -137,6 +137,11 @@ export const createSchedule = async (req: Request, res: Response) => {
       .populate('group', 'name')
       .populate('topic', 'name description')
 
+    // Send Telegram notification (non-blocking)
+    const { TelegramNotificationService } = await import('../services/telegram/notificationService')
+    TelegramNotificationService.notifyNewSchedule(schedule._id.toString())
+      .catch(err => console.error('Failed to send Telegram schedule notification:', err))
+
     res.status(201).json(populatedSchedule)
   } catch (error) {
     console.error('Error creating schedule:', error)

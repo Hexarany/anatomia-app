@@ -3,6 +3,8 @@ import User from '../../models/User'
 import Group from '../../models/Group'
 import Assignment from '../../models/Assignment'
 import Submission from '../../models/Submission'
+import TelegramGroupChat from '../../models/TelegramGroupChat'
+import Schedule from '../../models/Schedule'
 
 export class TelegramNotificationService {
   // Send notification to a single user
@@ -231,6 +233,78 @@ export class TelegramNotificationService {
     } catch (error) {
       console.error('Failed to send deadline reminders:', error)
       return 0
+    }
+  }
+
+  // Send notification to linked Telegram group chat
+  static async sendToTelegramGroup(groupId: string, message: string, options?: any) {
+    try {
+      const telegramGroupChat = await TelegramGroupChat.findOne({
+        groupId,
+        isActive: true
+      })
+
+      if (!telegramGroupChat) {
+        console.log(`No active Telegram group chat linked to group ${groupId}`)
+        return false
+      }
+
+      await bot.telegram.sendMessage(telegramGroupChat.chatId, message, {
+        parse_mode: 'Markdown',
+        ...options
+      })
+
+      console.log(`✅ Message sent to Telegram group chat ${telegramGroupChat.chatId}`)
+      return true
+    } catch (error) {
+      console.error(`Failed to send message to Telegram group for group ${groupId}:`, error)
+      return false
+    }
+  }
+
+  // Notify about new schedule entry
+  static async notifyNewSchedule(scheduleId: string) {
+    try {
+      const schedule = await Schedule.findById(scheduleId)
+        .populate('group', 'name')
+        .populate('topic', 'name')
+        .lean()
+
+      if (!schedule) return false
+
+      const group = schedule.group as any
+      const scheduleDate = new Date(schedule.date)
+      const topic = schedule.topic as any
+
+      const message =
+        `📅 *Новое занятие!*\n\n` +
+        `*Урок ${schedule.lessonNumber}: ${schedule.title.ru}*\n\n` +
+        `Группа: ${group.name.ru}\n` +
+        `📍 ${schedule.location}\n` +
+        `🕐 ${scheduleDate.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}\n` +
+        `   ${scheduleDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}\n` +
+        `⏱ Длительность: ${schedule.duration} мин\n\n` +
+        (topic ? `📚 Тема: ${topic.name.ru}\n\n` : '') +
+        (schedule.description?.ru ? `📝 ${schedule.description.ru}\n\n` : '') +
+        (schedule.homework?.ru ? `📖 *Домашнее задание:*\n${schedule.homework.ru}\n\n` : '') +
+        `Подробнее на сайте anatomia.md`
+
+      // Send to linked Telegram group chat
+      const sentToGroup = await this.sendToTelegramGroup(group._id.toString(), message)
+
+      // Also send to individual students with personal notifications enabled
+      let sentToIndividuals = 0
+      for (const studentId of group.students || []) {
+        const sent = await this.sendToUser(studentId.toString(), message)
+        if (sent) sentToIndividuals++
+        await new Promise(resolve => setTimeout(resolve, 50))
+      }
+
+      console.log(`✅ New schedule notification: group chat=${sentToGroup}, individual=${sentToIndividuals}`)
+      return sentToGroup || sentToIndividuals > 0
+    } catch (error) {
+      console.error('Failed to send new schedule notifications:', error)
+      return false
     }
   }
 }
