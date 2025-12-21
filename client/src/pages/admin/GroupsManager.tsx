@@ -101,8 +101,10 @@ const GroupsManager = () => {
       setFormData({
         name: group.name,
         description: group.description,
-        teacher: typeof group.teacher === 'object' ? group.teacher._id : group.teacher,
-        students: group.students.map(s => s._id),
+        teacher: typeof group.teacher === 'object' && group.teacher !== null ? group.teacher._id : (group.teacher || ''),
+        students: group.students
+          .map(s => typeof s === 'object' && s !== null ? s._id : s)
+          .filter(Boolean) as string[],
         startDate: new Date(group.startDate).toISOString().split('T')[0],
         endDate: group.endDate ? new Date(group.endDate).toISOString().split('T')[0] : '',
         isActive: group.isActive,
