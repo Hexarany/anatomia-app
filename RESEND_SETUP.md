@@ -31,7 +31,7 @@
 7. Нажмите **Add**
 8. **ВАЖНО**: Скопируйте API ключ!
    ```
-   re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   re_gp532ndX_AvZox7NLgm24UBFFGfXcXj1i
    ```
    Ключ показывается только один раз!
 

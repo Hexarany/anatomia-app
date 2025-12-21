@@ -51,11 +51,15 @@ export async function linkgroupCommand(ctx: Context) {
     )
   }
 
-  // Получаем группы учителя
-  const groups = await Group.find({
-    teacher: user._id,
-    isActive: true,
-  })
+  // Получаем группы учителя (или все группы для админа)
+  const groupQuery: any = { isActive: true }
+
+  // Если не админ, показываем только группы где пользователь - teacher
+  if (user.role !== 'admin') {
+    groupQuery.teacher = user._id
+  }
+
+  const groups = await Group.find(groupQuery)
 
   if (groups.length === 0) {
     return ctx.reply(

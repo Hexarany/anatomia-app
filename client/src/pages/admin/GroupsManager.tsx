@@ -237,14 +237,16 @@ const GroupsManager = () => {
     setSnackbar({ open: true, message, severity })
   }
 
-  const getTeacherName = (teacher: UserBasic) => {
+  const getTeacherName = (teacher: UserBasic | undefined | null) => {
+    if (!teacher) return 'Не указан'
     if (teacher.name) return teacher.name
-    return `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || teacher.email
+    return `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || teacher.email || 'Неизвестно'
   }
 
-  const getStudentName = (student: UserBasic) => {
+  const getStudentName = (student: UserBasic | undefined | null) => {
+    if (!student) return 'Неизвестно'
     if (student.name) return student.name
-    return `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.email
+    return `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.email || 'Неизвестно'
   }
 
   const getAvailableStudents = () => {
@@ -273,8 +275,8 @@ const GroupsManager = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+        <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
               <TableCell>Название (RU)</TableCell>
