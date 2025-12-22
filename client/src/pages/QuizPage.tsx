@@ -139,7 +139,8 @@ const QuizPage = () => {
     })
 
     return () => hideMainButton()
-  }, [isInTelegram, quiz, showResults, loading, currentQuestion, selectedAnswer, t, setMainButton, hideMainButton])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInTelegram, quiz, showResults, loading, currentQuestion, selectedAnswer, t])
 
   // Telegram MainButton integration - Results screen
   useEffect(() => {
@@ -151,7 +152,8 @@ const QuizPage = () => {
     })
 
     return () => hideMainButton()
-  }, [isInTelegram, quiz, showResults, t, setMainButton, hideMainButton])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInTelegram, quiz, showResults, t])
 
   if (showResults) {
     const score = calculateScore()
