@@ -13,14 +13,25 @@ export async function showMainMenu(ctx: Context) {
     `🏠 *Главное меню*\n\n` +
     `Выберите нужное действие:`
 
-  const keyboard = Markup.inlineKeyboard([
+  const buttons = [
     [Markup.button.callback('📚 Домашние задания', 'cmd_homework')],
     [Markup.button.callback('📊 Мои оценки', 'cmd_grades')],
     [Markup.button.callback('📅 Расписание', 'cmd_schedule')],
     [Markup.button.callback('📝 Пройти тест', 'cmd_quiz')],
     [Markup.button.callback('🔍 Поиск по анатомии', 'cmd_anatomy')],
     [Markup.button.callback('❓ Помощь', 'cmd_help')]
-  ])
+  ]
+
+  // Добавляем кнопки для преподавателей
+  const user = await import('../../../models/User').then(m => m.default)
+  const telegramId = ctx.from?.id.toString()
+  const userDoc = await user.findOne({ telegramId })
+
+  if (userDoc && (userDoc.role === 'teacher' || userDoc.role === 'admin')) {
+    buttons.push([Markup.button.callback('👨‍🏫 Работы на проверку', 'cmd_mysubmissions')])
+  }
+
+  const keyboard = Markup.inlineKeyboard(buttons)
 
   if (ctx.callbackQuery) {
     // Если вызвано через callback, редактируем сообщение

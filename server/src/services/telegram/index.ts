@@ -5,6 +5,7 @@ import { anatomyCommand } from './commands/anatomy'
 import { scheduleCommand } from './commands/schedule'
 import { linkgroupCommand, unlinkgroupCommand, handleLinkGroupCallback } from './commands/linkgroup'
 import { homeworkCommand, submitCommand, resubmitCommand, gradesCommand } from './commands/homework'
+import { mySubmissionsCommand, myStudentsCommand, handleViewSubmission } from './commands/teacher'
 import { initDailyScheduler } from './scheduler'
 import { handleQuizCallback } from './handlers/quizCallback'
 import { showMainMenu, handleMainMenuCallback, handleCommandCallback, handleSubmitCallback } from './handlers/menuCallback'
@@ -21,6 +22,8 @@ bot.command('resubmit', resubmitCommand)
 bot.command('grades', gradesCommand)
 bot.command('linkgroup', linkgroupCommand)
 bot.command('unlinkgroup', unlinkgroupCommand)
+bot.command('mysubmissions', mySubmissionsCommand)
+bot.command('mystudents', myStudentsCommand)
 
 // Handle file submissions with /submit or /resubmit caption
 bot.on(['document', 'photo'], async (ctx) => {
@@ -45,7 +48,10 @@ bot.command('help', (ctx) => {
     `/quiz - Пройти тест\n` +
     `/anatomy <название> - Найти информацию\n` +
     `/linkgroup - Привязать Telegram группу (только в групповых чатах)\n` +
-    `/unlinkgroup - Отвязать Telegram группу (только в групповых чатах)\n` +
+    `/unlinkgroup - Отвязать Telegram группу (только в групповых чатах)\n\n` +
+    `*Для преподавателей:*\n` +
+    `/mysubmissions - Работы на проверку\n` +
+    `/mystudents - Список студентов\n\n` +
     `/help - Эта справка`,
     { parse_mode: 'Markdown' }
   )
@@ -65,6 +71,11 @@ bot.on('callback_query', async (ctx) => {
     return handleCommandCallback(ctx)
   } else if (data.startsWith('submit_')) {
     return handleSubmitCallback(ctx)
+  } else if (data.startsWith('view_submission_')) {
+    return handleViewSubmission(ctx)
+  } else if (data === 'cmd_mysubmissions') {
+    await ctx.answerCbQuery()
+    return mySubmissionsCommand(ctx)
   }
 
   // Unknown callback
