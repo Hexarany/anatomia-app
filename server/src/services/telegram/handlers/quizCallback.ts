@@ -44,7 +44,7 @@ export async function handleQuizCallback(ctx: Context) {
       resultMessage += `Правильный ответ: ${correctOption.ru}\n`
     }
 
-    if (question.explanation) {
+    if (question.explanation && question.explanation.ru) {
       resultMessage += `\n💡 ${question.explanation.ru}`
     }
 
