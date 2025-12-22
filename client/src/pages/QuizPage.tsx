@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -97,7 +97,7 @@ const QuizPage = () => {
     setSelectedAnswer(event.target.value)
   }
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const answerIndex = parseInt(selectedAnswer)
     const newAnswers = [...answers, answerIndex]
     setAnswers(newAnswers)
@@ -108,7 +108,7 @@ const QuizPage = () => {
     } else {
       setShowResults(true)
     }
-  }
+  }, [selectedAnswer, answers, currentQuestion, quiz])
 
   const calculateScore = () => {
     return answers.reduce((score, answer, index) => {
@@ -116,12 +116,12 @@ const QuizPage = () => {
     }, 0)
   }
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     setCurrentQuestion(0)
     setAnswers([])
     setSelectedAnswer('')
     setShowResults(false)
-  }
+  }, [])
 
   // Telegram MainButton integration - During quiz
   useEffect(() => {
@@ -140,7 +140,7 @@ const QuizPage = () => {
 
     return () => hideMainButton()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInTelegram, quiz, showResults, loading, currentQuestion, selectedAnswer, t])
+  }, [isInTelegram, quiz, showResults, loading, currentQuestion, selectedAnswer, t, handleNext])
 
   // Telegram MainButton integration - Results screen
   useEffect(() => {
@@ -153,7 +153,7 @@ const QuizPage = () => {
 
     return () => hideMainButton()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInTelegram, quiz, showResults, t])
+  }, [isInTelegram, quiz, showResults, t, handleRetry])
 
   if (showResults) {
     const score = calculateScore()
