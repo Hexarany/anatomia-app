@@ -70,6 +70,56 @@ const QuizPage = () => {
     loadQuiz()
   }, [quizId, token])
 
+  // Telegram MainButton integration - During quiz
+  useEffect(() => {
+    if (!isInTelegram || !quiz || showResults || loading) return
+
+    const isLastQuestion = currentQuestion >= quiz.questions.length - 1
+    const buttonText = isLastQuestion
+      ? t('quiz.finish')
+      : t('quiz.next')
+
+    const handleClick = () => {
+      const answerIndex = parseInt(selectedAnswer)
+      const newAnswers = [...answers, answerIndex]
+      setAnswers(newAnswers)
+
+      if (currentQuestion < quiz.questions.length - 1) {
+        setCurrentQuestion(currentQuestion + 1)
+        setSelectedAnswer('')
+      } else {
+        setShowResults(true)
+      }
+    }
+
+    setMainButton({
+      text: buttonText,
+      onClick: handleClick,
+      disabled: !selectedAnswer
+    })
+
+    return () => hideMainButton()
+  }, [isInTelegram, quiz, showResults, loading, currentQuestion, selectedAnswer, answers, t, setMainButton, hideMainButton])
+
+  // Telegram MainButton integration - Results screen
+  useEffect(() => {
+    if (!isInTelegram || !quiz || !showResults) return
+
+    const handleClick = () => {
+      setCurrentQuestion(0)
+      setAnswers([])
+      setSelectedAnswer('')
+      setShowResults(false)
+    }
+
+    setMainButton({
+      text: t('quiz.tryAgain'),
+      onClick: handleClick
+    })
+
+    return () => hideMainButton()
+  }, [isInTelegram, quiz, showResults, t, setMainButton, hideMainButton])
+
   if (loading) {
     return (
       <Container maxWidth="md" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
@@ -122,56 +172,6 @@ const QuizPage = () => {
     setSelectedAnswer('')
     setShowResults(false)
   }
-
-  // Telegram MainButton integration - During quiz
-  useEffect(() => {
-    if (!isInTelegram || !quiz || showResults || loading) return
-
-    const isLastQuestion = currentQuestion >= quiz.questions.length - 1
-    const buttonText = isLastQuestion
-      ? t('quiz.finish')
-      : t('quiz.next')
-
-    const handleClick = () => {
-      const answerIndex = parseInt(selectedAnswer)
-      const newAnswers = [...answers, answerIndex]
-      setAnswers(newAnswers)
-
-      if (currentQuestion < quiz.questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1)
-        setSelectedAnswer('')
-      } else {
-        setShowResults(true)
-      }
-    }
-
-    setMainButton({
-      text: buttonText,
-      onClick: handleClick,
-      disabled: !selectedAnswer
-    })
-
-    return () => hideMainButton()
-  }, [isInTelegram, quiz, showResults, loading, currentQuestion, selectedAnswer, answers, t, setMainButton, hideMainButton])
-
-  // Telegram MainButton integration - Results screen
-  useEffect(() => {
-    if (!isInTelegram || !quiz || !showResults) return
-
-    const handleClick = () => {
-      setCurrentQuestion(0)
-      setAnswers([])
-      setSelectedAnswer('')
-      setShowResults(false)
-    }
-
-    setMainButton({
-      text: t('quiz.tryAgain'),
-      onClick: handleClick
-    })
-
-    return () => hideMainButton()
-  }, [isInTelegram, quiz, showResults, t, setMainButton, hideMainButton])
 
   if (showResults) {
     const score = calculateScore()
