@@ -169,15 +169,11 @@ app.use('/api/schedule', scheduleRoutes)
 app.use('/api/assignments', assignmentRoutes)
 app.use('/api/telegram', telegramRoutes)
 
-// Serve static files from React app in production
-if (process.env.NODE_ENV === 'production') {
-  const clientDistPath = path.join(__dirname, '..', '..', 'client', 'dist');
+// Serve static files from React app whenever the bundle exists
+const clientDistPath = path.join(__dirname, '..', '..', 'client', 'dist');
 
-  if (!fs.existsSync(clientDistPath)) {
-    throw new Error(
-      `Client dist folder not found (${clientDistPath}). Run "npm run build --prefix client" before deploying.`,
-    );
-  }
+if (fs.existsSync(clientDistPath)) {
+  console.log('Serving client bundle from', clientDistPath);
 
   app.use(express.static(clientDistPath, {
     maxAge: '1y',
@@ -191,6 +187,8 @@ if (process.env.NODE_ENV === 'production') {
     res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(path.join(clientDistPath, 'index.html'));
   });
+} else {
+  console.warn(`Client dist folder not found (${clientDistPath}). Static assets will 404. Ensure "npm run build --prefix client" runs before deployment.`);
 }
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
