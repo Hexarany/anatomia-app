@@ -118,7 +118,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Telegram webhook endpoint (if configured)
-app.use(telegramWebhookPath, telegramWebhookCallback)
+app.use(telegramWebhookCallback)
 
 // Health check endpoints - MUST be before all other routes for fast response
 app.get('/health', (req, res) => {
