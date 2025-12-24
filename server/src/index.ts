@@ -40,7 +40,7 @@ import groupFileRoutes from './routes/groupFileRoutes'
 import scheduleRoutes from './routes/scheduleRoutes'
 import assignmentRoutes from './routes/assignmentRoutes'
 import telegramRoutes from './routes/telegramRoutes'
-import { initTelegramBot } from './services/telegram'
+import { initTelegramBot, telegramWebhookCallback, telegramWebhookPath } from './services/telegram'
 
 // Load environment variables
 dotenv.config()
@@ -116,6 +116,9 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+// Telegram webhook endpoint (if configured)
+app.use(telegramWebhookPath, telegramWebhookCallback)
 
 // Health check endpoints - MUST be before all other routes for fast response
 app.get('/health', (req, res) => {

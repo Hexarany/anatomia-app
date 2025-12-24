@@ -4,11 +4,35 @@ import { quizCommand } from './commands/quiz'
 import { anatomyCommand } from './commands/anatomy'
 import { scheduleCommand } from './commands/schedule'
 import { linkgroupCommand, unlinkgroupCommand, handleLinkGroupCallback } from './commands/linkgroup'
-import { homeworkCommand, submitCommand, resubmitCommand, gradesCommand } from './commands/homework'
+import {
+  homeworkCommand,
+  submitCommand,
+  resubmitCommand,
+  gradesCommand,
+  pendingSubmissionMiddleware,
+  cancelCommand,
+} from './commands/homework'
 import { mySubmissionsCommand, myStudentsCommand, handleViewSubmission } from './commands/teacher'
+import { settingsCommand, handleSettingsCallback } from './commands/settings'
 import { initDailyScheduler } from './scheduler'
 import { handleQuizCallback } from './handlers/quizCallback'
-import { showMainMenu, handleMainMenuCallback, handleCommandCallback, handleSubmitCallback } from './handlers/menuCallback'
+import {
+  showMainMenu,
+  handleMainMenuCallback,
+  handleCommandCallback,
+  handleSubmitCallback,
+} from './handlers/menuCallback'
+import { t } from './i18n'
+import { getTelegramLang } from './utils'
+import User from '../../models/User'
+
+const TELEGRAM_WEBHOOK_PATH = process.env.TELEGRAM_WEBHOOK_PATH || '/api/telegram/webhook'
+
+export const telegramWebhookPath = TELEGRAM_WEBHOOK_PATH
+export const telegramWebhookCallback = bot.webhookCallback(telegramWebhookPath)
+
+// Handle pending homework submissions and caption-based commands
+bot.on('message', pendingSubmissionMiddleware)
 
 // Register commands
 bot.command('start', startCommand)
@@ -24,37 +48,20 @@ bot.command('linkgroup', linkgroupCommand)
 bot.command('unlinkgroup', unlinkgroupCommand)
 bot.command('mysubmissions', mySubmissionsCommand)
 bot.command('mystudents', myStudentsCommand)
+bot.command('settings', settingsCommand)
+bot.command('cancel', cancelCommand)
 
-// Handle file submissions with /submit or /resubmit caption
-bot.on(['document', 'photo'], async (ctx) => {
-  const caption = (ctx.message as any)?.caption || ''
-  if (caption.startsWith('/submit')) {
-    return submitCommand(ctx)
-  } else if (caption.startsWith('/resubmit')) {
-    return resubmitCommand(ctx)
+bot.command('help', async (ctx) => {
+  const telegramId = ctx.from?.id.toString()
+  const user = telegramId ? await User.findOne({ telegramId }).select('telegramLanguage role') : null
+  const lang = getTelegramLang(ctx, user?.telegramLanguage)
+
+  let message = `📌 *${t(lang, 'common.helpTitle')}*\n\n${t(lang, 'help.general')}`
+  if (user && (user.role === 'teacher' || user.role === 'admin')) {
+    message += `\n\n*${t(lang, 'common.helpTeacherTitle')}*\n\n${t(lang, 'help.teacher')}`
   }
-})
 
-bot.command('help', (ctx) => {
-  return ctx.reply(
-    `🤖 *Доступные команды:*\n\n` +
-    `/start - Привязать аккаунт\n` +
-    `/menu - Главное меню с кнопками\n` +
-    `/schedule - Расписание занятий\n` +
-    `/homework - Список домашних заданий\n` +
-    `/submit <ID> <ответ> - Сдать домашнюю работу\n` +
-    `/resubmit <ID> <ответ> - Пересдать работу\n` +
-    `/grades - Мои оценки\n` +
-    `/quiz - Пройти тест\n` +
-    `/anatomy <название> - Найти информацию\n` +
-    `/linkgroup - Привязать Telegram группу (только в групповых чатах)\n` +
-    `/unlinkgroup - Отвязать Telegram группу (только в групповых чатах)\n\n` +
-    `*Для преподавателей:*\n` +
-    `/mysubmissions - Работы на проверку\n` +
-    `/mystudents - Список студентов\n\n` +
-    `/help - Эта справка`,
-    { parse_mode: 'Markdown' }
-  )
+  return ctx.reply(message, { parse_mode: 'Markdown' })
 })
 
 // Register callback query handlers
@@ -63,58 +70,84 @@ bot.on('callback_query', async (ctx) => {
 
   if (data.startsWith('link_group:')) {
     return handleLinkGroupCallback(ctx)
-  } else if (data.startsWith('quiz_')) {
+  }
+  if (data.startsWith('quiz_')) {
     return handleQuizCallback(ctx)
-  } else if (data === 'main_menu') {
+  }
+  if (data === 'main_menu') {
     return handleMainMenuCallback(ctx)
-  } else if (data.startsWith('cmd_')) {
+  }
+  if (data.startsWith('cmd_')) {
     return handleCommandCallback(ctx)
-  } else if (data.startsWith('submit_')) {
+  }
+  if (data.startsWith('submit_')) {
     return handleSubmitCallback(ctx)
-  } else if (data.startsWith('view_submission_')) {
+  }
+  if (data.startsWith('view_submission_')) {
     return handleViewSubmission(ctx)
-  } else if (data === 'cmd_mysubmissions') {
+  }
+  if (data.startsWith('settings_')) {
+    return handleSettingsCallback(ctx)
+  }
+  if (data === 'cmd_mysubmissions') {
     await ctx.answerCbQuery()
     return mySubmissionsCommand(ctx)
   }
 
-  // Unknown callback
-  return ctx.answerCbQuery('Неизвестная команда')
+  const lang = getTelegramLang(ctx)
+  return ctx.answerCbQuery(t(lang, 'common.unknownCommand'))
 })
 
 // Error handling
 bot.catch((err, ctx) => {
   console.error('[Telegram Bot] Error:', err)
-  ctx.reply('Произошла ошибка. Попробуйте позже.')
+  const lang = getTelegramLang(ctx)
+  ctx.reply(t(lang, 'common.serverError'))
 })
+
+const resolveWebhookUrl = () => {
+  if (process.env.TELEGRAM_WEBHOOK_URL) {
+    return process.env.TELEGRAM_WEBHOOK_URL
+  }
+  const domain =
+    process.env.TELEGRAM_WEBHOOK_DOMAIN ||
+    process.env.RENDER_EXTERNAL_URL ||
+    process.env.PUBLIC_URL
+  if (!domain) return null
+  return `${domain.replace(/\\/$/, '')}${TELEGRAM_WEBHOOK_PATH}`
+}
 
 // Initialize
 export async function initTelegramBot() {
   try {
-    console.log('🔄 Starting Telegram bot...')
+    console.log('[Telegram Bot] Starting Telegram bot...')
 
-    // Launch bot without timeout - let it take as long as needed
-    await bot.launch({
-      dropPendingUpdates: true // Skip old updates on startup
-    })
-
-    console.log('✅ Telegram bot started successfully')
+    const webhookUrl = resolveWebhookUrl()
+    if (webhookUrl) {
+      await bot.telegram.setWebhook(webhookUrl)
+      console.log('[Telegram Bot] Webhook configured:', webhookUrl)
+    } else {
+      await bot.launch({
+        dropPendingUpdates: true,
+      })
+      console.log('[Telegram Bot] Polling started')
+    }
 
     // Set up Web App button (non-blocking)
-    // Extract production URL from CLIENT_URL (which may contain multiple URLs for CORS)
     const clientUrl = process.env.CLIENT_URL || 'https://anatomia-app-docker.onrender.com'
-    const urls = clientUrl.split(',').map(url => url.trim())
-    const webAppUrl = urls.find(url => url.startsWith('https://')) || 'https://anatomia-app-docker.onrender.com'
+    const urls = clientUrl.split(',').map((url) => url.trim())
+    const webAppUrl = urls.find((url) => url.startsWith('https://')) || 'https://anatomia-app-docker.onrender.com'
 
-    bot.telegram.setChatMenuButton({
-      menuButton: {
-        type: 'web_app',
-        text: '📚 Открыть Anatomia',
-        web_app: { url: webAppUrl }
-      }
-    })
-      .then(() => console.log('✅ Web App menu button configured:', webAppUrl))
-      .catch((err: any) => console.error('❌ Failed to set Web App button:', err.message))
+    bot.telegram
+      .setChatMenuButton({
+        menuButton: {
+          type: 'web_app',
+          text: t('ru', 'buttons.openApp'),
+          web_app: { url: webAppUrl },
+        },
+      })
+      .then(() => console.log('[Telegram Bot] Web App menu button configured:', webAppUrl))
+      .catch((err: any) => console.error('[Telegram Bot] Failed to set Web App button:', err.message))
 
     // Initialize daily scheduler
     initDailyScheduler()
@@ -123,8 +156,8 @@ export async function initTelegramBot() {
     process.once('SIGINT', () => bot.stop('SIGINT'))
     process.once('SIGTERM', () => bot.stop('SIGTERM'))
   } catch (error: any) {
-    console.error('❌ Failed to start Telegram bot:', error.message)
-    console.error('Full error:', error)
-    console.log('⚠️  Server will continue without Telegram bot')
+    console.error('[Telegram Bot] Failed to start Telegram bot:', error.message)
+    console.error('[Telegram Bot] Full error:', error)
+    console.log('[Telegram Bot] Server will continue without Telegram bot')
   }
 }

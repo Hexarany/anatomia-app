@@ -1,137 +1,107 @@
-import { Context } from 'telegraf'
-import { Markup } from 'telegraf'
+import { Context, Markup } from 'telegraf'
 import User from '../../../models/User'
+import { t } from '../i18n'
+import { getTelegramLang } from '../utils'
 
-// Get production URL for Web App (Telegram doesn't support localhost)
 const getWebAppUrl = () => {
   const clientUrl = process.env.CLIENT_URL || 'https://anatomia-app-docker.onrender.com'
-  // If CLIENT_URL contains multiple URLs (for CORS), use the production one
-  const urls = clientUrl.split(',').map(url => url.trim())
-  return urls.find(url => url.startsWith('https://')) || 'https://anatomia-app-docker.onrender.com'
+  const urls = clientUrl.split(',').map((url) => url.trim())
+  return urls.find((url) => url.startsWith('https://')) || 'https://anatomia-app-docker.onrender.com'
 }
 
-// Get appropriate button based on chat type
-// web_app buttons only work in private chats and open embedded Telegram Web App
-// url buttons work everywhere but open in browser
-const getAnatomiaButton = (chatType?: string) => {
+const getWebAppButton = (lang: 'ru' | 'ro', chatType?: string) => {
   const isPrivateChat = chatType === 'private'
+  const text = t(lang, 'buttons.openApp')
 
   if (isPrivateChat) {
-    // In private chats, use web_app for embedded experience
     return {
-      text: '📚 Открыть Anatomia',
-      web_app: { url: getWebAppUrl() }
+      text,
+      web_app: { url: getWebAppUrl() },
     }
-  } else {
-    // In groups, use regular url
-    return {
-      text: '📚 Открыть Anatomia',
-      url: getWebAppUrl()
-    }
+  }
+
+  return {
+    text,
+    url: getWebAppUrl(),
   }
 }
 
 export async function startCommand(ctx: Context) {
   try {
-    console.log('[Telegram Bot] /start command called by:', ctx.from?.id)
-
     const telegramId = ctx.from?.id.toString()
-    const args = ctx.message && 'text' in ctx.message
-      ? ctx.message.text.split(' ').slice(1)
-      : []
+    const args =
+      ctx.message && 'text' in ctx.message ? ctx.message.text.split(' ').slice(1) : []
 
-    console.log('[Telegram Bot] Args:', args)
+    const fallbackLang = getTelegramLang(ctx)
 
-    // If there's a link code
     if (args.length > 0) {
       const linkCode = args[0]
-      console.log('[Telegram Bot] Looking for user with linkCode:', linkCode)
 
       const user = await User.findOne({
         telegramLinkCode: linkCode,
-        telegramLinkCodeExpires: { $gt: new Date() }
+        telegramLinkCodeExpires: { $gt: new Date() },
       })
 
       if (user) {
-        console.log('[Telegram Bot] User found, linking account:', user._id)
         user.telegramId = telegramId
         user.telegramUsername = ctx.from?.username
         user.telegramLinkCode = undefined
         user.telegramLinkCodeExpires = undefined
         user.telegramLinkedAt = new Date()
+        if (!user.telegramLanguage) {
+          user.telegramLanguage = fallbackLang
+        }
         await user.save()
-        console.log('[Telegram Bot] Account linked successfully')
+
+        const lang = getTelegramLang(ctx, user.telegramLanguage)
 
         return ctx.reply(
-          `✅ Аккаунт успешно привязан!\n\n` +
-          `Добро пожаловать, ${user.firstName}!\n` +
-          `Используйте /menu для открытия главного меню.`,
+          `${t(lang, 'start.linkedSuccess', { name: user.firstName })}\n\n${t(lang, 'start.linkedHint')}`,
           {
             reply_markup: {
               inline_keyboard: [
-                [getAnatomiaButton(ctx.chat?.type)],
-                [Markup.button.callback('📋 Главное меню', 'main_menu')]
-              ]
-            }
-          }
-        )
-      } else {
-        console.log('[Telegram Bot] Link code not found or expired')
-        return ctx.reply(
-          `❌ Код недействителен или истек.\n` +
-          `Пожалуйста, получите новый код на сайте.`,
-          {
-            reply_markup: {
-              inline_keyboard: [[
-                getAnatomiaButton(ctx.chat?.type)
-              ]]
-            }
+                [getWebAppButton(lang, ctx.chat?.type)],
+                [Markup.button.callback(t(lang, 'buttons.mainMenu'), 'main_menu')],
+              ],
+            },
           }
         )
       }
+
+      return ctx.reply(t(fallbackLang, 'start.linkedInvalid'), {
+        reply_markup: {
+          inline_keyboard: [[getWebAppButton(fallbackLang, ctx.chat?.type)]],
+        },
+      })
     }
 
-    // Check if account is already linked
-    console.log('[Telegram Bot] Checking if account already linked:', telegramId)
-    const existingUser = await User.findOne({ telegramId })
+    const existingUser = telegramId ? await User.findOne({ telegramId }) : null
 
     if (existingUser) {
-      console.log('[Telegram Bot] Account already linked:', existingUser._id)
+      const lang = getTelegramLang(ctx, existingUser.telegramLanguage)
       return ctx.reply(
-        `Привет, ${existingUser.firstName}! 👋\n\n` +
-        `Ваш аккаунт уже привязан.\n` +
-        `Используйте /menu для открытия главного меню.`,
+        `${t(lang, 'start.linkedAlready', { name: existingUser.firstName })}\n\n${t(lang, 'start.linkedHint')}`,
         {
           reply_markup: {
             inline_keyboard: [
-              [getAnatomiaButton(ctx.chat?.type)],
-              [Markup.button.callback('📋 Главное меню', 'main_menu')]
-            ]
-          }
+              [getWebAppButton(lang, ctx.chat?.type)],
+              [Markup.button.callback(t(lang, 'buttons.mainMenu'), 'main_menu')],
+            ],
+          },
         }
       )
     }
 
-    console.log('[Telegram Bot] Showing welcome message')
     return ctx.reply(
-      `👋 Добро пожаловать в Anatomia Bot!\n\n` +
-      `Для привязки вашего аккаунта:\n` +
-      `1. Войдите на сайт anatomia.md\n` +
-      `2. Перейдите в Профиль → Настройки\n` +
-      `3. Нажмите "Подключить Telegram"\n` +
-      `4. Скопируйте код и введите: /start ВАШ_КОД\n\n` +
-      `Или откройте приложение напрямую:`,
+      t(fallbackLang, 'start.welcome', { appName: t(fallbackLang, 'common.appName') }),
       {
         reply_markup: {
-          inline_keyboard: [[
-            getAnatomiaButton(ctx.chat?.type)
-          ]]
-        }
+          inline_keyboard: [[getWebAppButton(fallbackLang, ctx.chat?.type)]],
+        },
       }
     )
   } catch (error) {
     console.error('[Telegram Bot] Error in /start command:', error)
-    console.error('[Telegram Bot] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
-    throw error // Re-throw to be caught by global error handler
+    throw error
   }
 }

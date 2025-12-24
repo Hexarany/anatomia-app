@@ -14,6 +14,17 @@ interface User {
   accessLevel: 'free' | 'basic' | 'premium'
   paymentAmount?: number
   paymentDate?: string
+  paymentHistory?: Array<{
+    amount: number
+    fromTier: 'free' | 'basic' | 'premium'
+    toTier: 'free' | 'basic' | 'premium'
+    paymentMethod: string
+    paypalOrderId?: string
+    paypalPayerId?: string
+    date: string
+  }>
+  subscriptionStatus?: 'none' | 'active' | 'trial' | 'expired' | 'cancelled'
+  subscriptionEndDate?: string
   telegramId?: string
   telegramUsername?: string
 }

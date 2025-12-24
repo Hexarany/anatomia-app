@@ -43,6 +43,17 @@ export interface IUser extends Document {
     grades: boolean
     dailyChallenge: boolean
   }
+  telegramLanguage?: 'ru' | 'ro'
+  telegramQuietHours?: {
+    enabled: boolean
+    start: string
+    end: string
+  }
+  telegramPendingAction?: {
+    action: 'submit' | 'resubmit'
+    assignmentId: mongoose.Types.ObjectId
+    createdAt: Date
+  }
   telegramLinkedAt?: Date
   // Email notifications
   emailNotifications?: {
@@ -171,6 +182,29 @@ const userSchema = new Schema<IUser>(
       homework: { type: Boolean, default: true },
       grades: { type: Boolean, default: true },
       dailyChallenge: { type: Boolean, default: true },
+    },
+    telegramLanguage: {
+      type: String,
+      enum: ['ru', 'ro'],
+      default: 'ru',
+    },
+    telegramQuietHours: {
+      enabled: { type: Boolean, default: false },
+      start: { type: String, default: '22:00' },
+      end: { type: String, default: '08:00' },
+    },
+    telegramPendingAction: {
+      action: {
+        type: String,
+        enum: ['submit', 'resubmit'],
+      },
+      assignmentId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Assignment',
+      },
+      createdAt: {
+        type: Date,
+      },
     },
     telegramLinkedAt: {
       type: Date,

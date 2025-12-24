@@ -3,12 +3,28 @@ import User from '../../models/User'
 import Group from '../../models/Group'
 import GroupFile from '../../models/GroupFile'
 import Media from '../../models/Media'
-import axios from 'axios'
+import { escapeMarkdown, resolveTelegramLang, t } from './i18n'
+
+const getUserLang = (user?: any) => resolveTelegramLang(user?.telegramLanguage)
+
+const buildCaption = (lang: 'ru' | 'ro', title?: string, description?: string, media?: any) => {
+  const lines: string[] = []
+
+  if (title) {
+    lines.push(`*${escapeMarkdown(title)}*`)
+  }
+  if (description) {
+    lines.push(escapeMarkdown(description))
+  }
+  if (media) {
+    lines.push(`${t(lang, 'labels.file')}: ${escapeMarkdown(media.originalName)}`)
+    lines.push(`${t(lang, 'labels.size')}: ${(media.size / 1024 / 1024).toFixed(2)} MB`)
+  }
+
+  return lines.join('\n')
+}
 
 export class TelegramFileService {
-  /**
-   * Отправить файл одному пользователю
-   */
   static async sendFileToUser(
     userId: string,
     fileUrl: string,
@@ -25,7 +41,6 @@ export class TelegramFileService {
         }
       }
 
-      // Определяем тип файла и отправляем соответствующим методом
       let result
       if (mimetype?.startsWith('image/')) {
         result = await bot.telegram.sendPhoto(user.telegramId, fileUrl, {
@@ -38,7 +53,6 @@ export class TelegramFileService {
           parse_mode: 'Markdown',
         })
       } else {
-        // Для всех остальных типов используем sendDocument
         result = await bot.telegram.sendDocument(user.telegramId, fileUrl, {
           caption,
           parse_mode: 'Markdown',
@@ -58,9 +72,6 @@ export class TelegramFileService {
     }
   }
 
-  /**
-   * Отправить файл всем студентам группы
-   */
   static async sendFileToGroup(
     groupId: string,
     mediaId: string,
@@ -73,7 +84,6 @@ export class TelegramFileService {
     failedCount: number
   }> {
     try {
-      // Получаем группу и медиа
       const group = await Group.findById(groupId).populate('students')
       const media = await Media.findById(mediaId)
 
@@ -85,7 +95,6 @@ export class TelegramFileService {
         throw new Error('Файл не найден')
       }
 
-      // Создаем запись GroupFile
       const groupFile = new GroupFile({
         group: groupId,
         media: mediaId,
@@ -96,26 +105,13 @@ export class TelegramFileService {
         sentToTelegramGroup: false,
       })
 
-      // Формируем сообщение с информацией о файле
-      let caption = ''
-      if (title) {
-        caption += `📎 *${title}*\n`
-      }
-      if (description) {
-        caption += `\n${description}\n`
-      }
-      if (caption) {
-        caption += `\n---\n`
-      }
-      caption += `Файл: ${media.originalName}\n`
-      caption += `Размер: ${(media.size / 1024 / 1024).toFixed(2)} MB`
-
       let successCount = 0
       let failedCount = 0
 
-      // Отправляем файл каждому студенту
       const students = group.students as any[]
       for (const student of students) {
+        const lang = getUserLang(student)
+        const caption = buildCaption(lang, title, description, media)
         const result = await this.sendFileToUser(
           student._id.toString(),
           media.url,
@@ -138,15 +134,10 @@ export class TelegramFileService {
           failedCount++
         }
 
-        // Небольшая задержка для избежания rate limiting
         await new Promise((resolve) => setTimeout(resolve, 100))
       }
 
       await groupFile.save()
-
-      console.log(
-        `✅ File sent to group ${groupId}: ${successCount} success, ${failedCount} failed`
-      )
 
       return {
         groupFileId: groupFile._id.toString(),
@@ -160,9 +151,6 @@ export class TelegramFileService {
     }
   }
 
-  /**
-   * Повторная отправка файла студентам, которым не удалось доставить
-   */
   static async retryFailedDeliveries(groupFileId: string): Promise<{
     successCount: number
     stillFailedCount: number
@@ -178,25 +166,14 @@ export class TelegramFileService {
       let successCount = 0
       let stillFailedCount = 0
 
-      // Формируем caption
-      let caption = ''
-      if (groupFile.title) {
-        caption += `📎 *${groupFile.title}*\n`
-      }
-      if (groupFile.description) {
-        caption += `\n${groupFile.description}\n`
-      }
-      if (caption) {
-        caption += `\n---\n`
-      }
-      caption += `Файл: ${media.originalName}\n`
-      caption += `Размер: ${(media.size / 1024 / 1024).toFixed(2)} MB`
-
-      // Пытаемся отправить неудачным доставкам
       for (let i = 0; i < groupFile.deliveryStatus.length; i++) {
         const delivery = groupFile.deliveryStatus[i]
 
         if (!delivery.delivered) {
+          const student = await User.findById(delivery.student)
+          const lang = getUserLang(student)
+          const caption = buildCaption(lang, groupFile.title, groupFile.description, media)
+
           const result = await this.sendFileToUser(
             delivery.student.toString(),
             media.url,
@@ -204,7 +181,6 @@ export class TelegramFileService {
             media.mimetype
           )
 
-          // Обновляем статус доставки
           groupFile.deliveryStatus[i].delivered = result.success
           groupFile.deliveryStatus[i].deliveredAt = result.success
             ? new Date()
@@ -230,9 +206,6 @@ export class TelegramFileService {
     }
   }
 
-  /**
-   * Отправить файл в Telegram группу
-   */
   static async sendFileToTelegramGroup(
     groupFileId: string,
     chatId: number
@@ -245,20 +218,7 @@ export class TelegramFileService {
       }
 
       const media = groupFile.media as any
-
-      // Формируем caption
-      let caption = ''
-      if (groupFile.title) {
-        caption += `📎 *${groupFile.title}*\n`
-      }
-      if (groupFile.description) {
-        caption += `\n${groupFile.description}\n`
-      }
-      if (caption) {
-        caption += `\n---\n`
-      }
-      caption += `Файл: ${media.originalName}\n`
-      caption += `Размер: ${(media.size / 1024 / 1024).toFixed(2)} MB`
+      const caption = buildCaption('ru', groupFile.title, groupFile.description, media)
 
       let result
       if (media.mimetype?.startsWith('image/')) {
@@ -278,7 +238,6 @@ export class TelegramFileService {
         })
       }
 
-      // Обновляем статус отправки
       groupFile.sentToTelegramGroup = true
       groupFile.telegramMessageId = result.message_id
       await groupFile.save()

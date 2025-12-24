@@ -66,6 +66,11 @@ export const register = async (req: Request, res: Response) => {
         lastName: user.lastName,
         role: user.role,
         accessLevel: user.accessLevel,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionEndDate: user.subscriptionEndDate,
+        paymentAmount: user.paymentAmount,
+        paymentDate: user.paymentDate,
+        paymentHistory: user.paymentHistory,
       },
     })
   } catch (error) {
@@ -116,6 +121,10 @@ export const login = async (req: Request, res: Response) => {
         role: user.role,
         accessLevel: user.accessLevel,
         paymentAmount: user.paymentAmount,
+        paymentDate: user.paymentDate,
+        paymentHistory: user.paymentHistory,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionEndDate: user.subscriptionEndDate,
       },
     })
   } catch (error) {
@@ -146,6 +155,9 @@ export const getProfile = async (req: Request, res: Response) => {
         accessLevel: user.accessLevel,
         paymentAmount: user.paymentAmount,
         paymentDate: user.paymentDate,
+        paymentHistory: user.paymentHistory,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionEndDate: user.subscriptionEndDate,
         createdAt: user.createdAt,
       },
     })
@@ -184,6 +196,10 @@ export const updateProfile = async (req: Request, res: Response) => {
         role: user.role,
         accessLevel: user.accessLevel,
         paymentAmount: user.paymentAmount,
+        paymentDate: user.paymentDate,
+        paymentHistory: user.paymentHistory,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionEndDate: user.subscriptionEndDate,
       },
     })
   } catch (error) {
@@ -380,7 +396,12 @@ export const telegramAuth = async (req: Request, res: Response) => {
         role: user.role,
         accessLevel: user.accessLevel,
         telegramId: user.telegramId,
-        telegramUsername: user.telegramUsername
+        telegramUsername: user.telegramUsername,
+        paymentAmount: user.paymentAmount,
+        paymentDate: user.paymentDate,
+        paymentHistory: user.paymentHistory,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionEndDate: user.subscriptionEndDate,
       },
     })
   } catch (error) {

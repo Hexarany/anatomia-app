@@ -1,5 +1,8 @@
 import { Context } from 'telegraf'
 import Quiz from '../../../models/Quiz'
+import User from '../../../models/User'
+import { escapeMarkdown, t } from '../i18n'
+import { getLocalizedText, getTelegramLang } from '../utils'
 
 export async function handleQuizCallback(ctx: Context) {
   if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) {
@@ -7,76 +10,80 @@ export async function handleQuizCallback(ctx: Context) {
   }
 
   const data = ctx.callbackQuery.data
+  const telegramId = ctx.from?.id.toString()
+  const user = telegramId ? await User.findOne({ telegramId }).select('telegramLanguage') : null
+  const lang = getTelegramLang(ctx, user?.telegramLanguage)
 
-  // Format: quiz_{quizId}_{questionIndex}_{answerIndex}
   const parts = data.split('_')
   if (parts[0] !== 'quiz' || parts.length !== 4) {
     return
   }
 
   const quizId = parts[1]
-  const questionIndex = parseInt(parts[2])
-  const answerIndex = parseInt(parts[3])
+  const questionIndex = parseInt(parts[2], 10)
+  const answerIndex = parseInt(parts[3], 10)
 
   try {
     const quiz = await Quiz.findById(quizId)
     if (!quiz) {
-      return ctx.answerCbQuery('Тест не найден')
+      return ctx.answerCbQuery(t(lang, 'quiz.notFound'))
     }
 
     const question = quiz.questions[questionIndex]
     if (!question) {
-      return ctx.answerCbQuery('Вопрос не найден')
+      return ctx.answerCbQuery(t(lang, 'quiz.questionNotFound'))
     }
 
     const isCorrect = question.correctAnswer === answerIndex
-    const selectedOption = question.options[answerIndex]
+    const selectedOption = getLocalizedText(question.options[answerIndex], lang)
 
-    // Answer callback query with result
-    await ctx.answerCbQuery(isCorrect ? '✅ Правильно!' : '❌ Неправильно')
+    await ctx.answerCbQuery(isCorrect ? t(lang, 'quiz.correct') : t(lang, 'quiz.incorrect'))
 
-    // Build result message
-    let resultMessage = `${isCorrect ? '✅ Правильно!' : '❌ Неправильно'}\n\n`
-    resultMessage += `Ваш ответ: ${selectedOption.ru}\n`
+    let resultMessage = `${isCorrect ? t(lang, 'quiz.correct') : t(lang, 'quiz.incorrect')}\n\n`
+    resultMessage += `${t(lang, 'quiz.answerLabel')}: ${escapeMarkdown(selectedOption)}\n`
 
     if (!isCorrect) {
-      const correctOption = question.options[question.correctAnswer]
-      resultMessage += `Правильный ответ: ${correctOption.ru}\n`
+      const correctOption = getLocalizedText(question.options[question.correctAnswer], lang)
+      resultMessage += `${t(lang, 'quiz.correctAnswerLabel')}: ${escapeMarkdown(correctOption)}\n`
     }
 
-    if (question.explanation && question.explanation.ru) {
-      resultMessage += `\n💡 ${question.explanation.ru}`
+    if (question.explanation && question.explanation[lang]) {
+      resultMessage += `\n${escapeMarkdown(question.explanation[lang])}`
     }
 
-    // Check if there are more questions
     const nextQuestionIndex = questionIndex + 1
     if (nextQuestionIndex < quiz.questions.length) {
       const nextQuestion = quiz.questions[nextQuestionIndex]
+      const nextQuestionText = escapeMarkdown(getLocalizedText(nextQuestion.question, lang))
 
-      // Create keyboard for next question
       const keyboard = {
-        inline_keyboard: nextQuestion.options.map((opt, idx) => [{
-          text: opt.ru,
-          callback_data: `quiz_${quizId}_${nextQuestionIndex}_${idx}`
-        }])
+        inline_keyboard: nextQuestion.options.map((opt, idx) => [
+          {
+            text: getLocalizedText(opt, lang),
+            callback_data: `quiz_${quizId}_${nextQuestionIndex}_${idx}`,
+          },
+        ]),
       }
 
-      resultMessage += `\n\n---\n\n*Вопрос ${nextQuestionIndex + 1}/${quiz.questions.length}:*\n${nextQuestion.question.ru}`
+      resultMessage += `\n\n---\n\n*${t(lang, 'quiz.question', {
+        current: nextQuestionIndex + 1,
+        total: quiz.questions.length,
+      })}:*\n${nextQuestionText}`
 
       await ctx.editMessageText(resultMessage, {
         parse_mode: 'Markdown',
-        reply_markup: keyboard
+        reply_markup: keyboard,
       })
-    } else {
-      // Quiz finished
-      resultMessage += `\n\n🎉 *Тест завершен!*\n\nСпасибо за участие! Используйте /quiz для нового теста.`
-
-      await ctx.editMessageText(resultMessage, {
-        parse_mode: 'Markdown'
-      })
+      return
     }
+
+    resultMessage += `\n\n*${t(lang, 'quiz.finishedTitle')}*\n\n${t(lang, 'quiz.finishedHint')}`
+
+    await ctx.editMessageText(resultMessage, {
+      parse_mode: 'Markdown',
+    })
   } catch (error) {
     console.error('Error handling quiz callback:', error)
-    await ctx.answerCbQuery('Произошла ошибка')
+    await ctx.answerCbQuery(t(lang, 'common.serverError'))
   }
 }

@@ -332,6 +332,12 @@ export interface TelegramLinkStatus {
     grades: boolean
     dailyChallenge: boolean
   }
+  language?: 'ru' | 'ro'
+  quietHours?: {
+    enabled: boolean
+    start: string
+    end: string
+  }
 }
 
 export interface TelegramLinkCode {

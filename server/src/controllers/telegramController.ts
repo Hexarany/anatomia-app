@@ -40,13 +40,17 @@ export const getLinkStatus = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId
 
-    const user = await User.findById(userId).select('telegramId telegramUsername telegramLinkedAt telegramNotifications')
+    const user = await User.findById(userId).select(
+      'telegramId telegramUsername telegramLinkedAt telegramNotifications telegramLanguage telegramQuietHours'
+    )
 
     res.json({
       isLinked: !!user?.telegramId,
       telegramUsername: user?.telegramUsername,
       linkedAt: user?.telegramLinkedAt,
-      notifications: user?.telegramNotifications
+      notifications: user?.telegramNotifications,
+      language: user?.telegramLanguage,
+      quietHours: user?.telegramQuietHours,
     })
   } catch (error) {
     console.error('Error getting link status:', error)

@@ -3,9 +3,10 @@ import User from '../../models/User'
 import Quiz from '../../models/Quiz'
 import Topic from '../../models/Topic'
 import { TelegramNotificationService } from './notificationService'
+import { escapeMarkdown, resolveTelegramLang, t } from './i18n'
+import { getLocalizedText } from './utils'
 
 export function initDailyScheduler() {
-  // Daily anatomy at 9:00 AM
   cron.schedule('0 9 * * *', async () => {
     console.log('[Scheduler] Sending daily anatomy fact...')
 
@@ -14,20 +15,26 @@ export function initDailyScheduler() {
       if (topics.length === 0) return
 
       const randomTopic = topics[Math.floor(Math.random() * topics.length)]
-
       const users = await User.find({
         'telegramNotifications.enabled': true,
         'telegramNotifications.dailyChallenge': true,
-        telegramId: { $exists: true }
+        telegramId: { $exists: true },
       })
 
-      const message = `🌅 *Анатомия дня*\n\n` +
-                     `📚 ${randomTopic.name.ru}\n\n` +
-                     `${randomTopic.description.ru.substring(0, 200)}...\n\n` +
-                     `Изучить подробнее: anatomia.md`
+      const clientUrl =
+        process.env.CLIENT_URL?.split(',')[0].trim() || 'https://anatomia-app-docker.onrender.com'
 
       for (const user of users) {
-        await TelegramNotificationService.sendToUser(user._id.toString(), message)
+        const lang = resolveTelegramLang(user.telegramLanguage)
+        const topicName = escapeMarkdown(getLocalizedText(randomTopic.name, lang))
+        const topicDescription = escapeMarkdown(getLocalizedText(randomTopic.description, lang)).substring(0, 200)
+        const message =
+          `*${t(lang, 'daily.anatomyTitle')}*\n\n` +
+          `${topicName}\n\n` +
+          `${topicDescription}...\n\n` +
+          `${t(lang, 'daily.anatomyHint', { url: clientUrl })}`
+
+        await TelegramNotificationService.sendToUser(user._id.toString(), message, undefined, user)
       }
 
       console.log(`[Scheduler] Daily anatomy sent to ${users.length} users`)
@@ -36,7 +43,6 @@ export function initDailyScheduler() {
     }
   })
 
-  // Daily quiz at 6:00 PM
   cron.schedule('0 18 * * *', async () => {
     console.log('[Scheduler] Sending daily quiz...')
 
@@ -45,19 +51,21 @@ export function initDailyScheduler() {
       if (quizzes.length === 0) return
 
       const randomQuiz = quizzes[Math.floor(Math.random() * quizzes.length)]
-
       const users = await User.find({
         'telegramNotifications.enabled': true,
         'telegramNotifications.dailyChallenge': true,
-        telegramId: { $exists: true }
+        telegramId: { $exists: true },
       })
 
-      const message = `🎯 *Вечерний тест*\n\n` +
-                     `${randomQuiz.title.ru}\n\n` +
-                     `Пройдите тест: /quiz`
-
       for (const user of users) {
-        await TelegramNotificationService.sendToUser(user._id.toString(), message)
+        const lang = resolveTelegramLang(user.telegramLanguage)
+        const quizTitle = escapeMarkdown(getLocalizedText(randomQuiz.title, lang))
+        const message =
+          `*${t(lang, 'daily.quizTitle')}*\n\n` +
+          `${quizTitle}\n\n` +
+          `${t(lang, 'daily.quizHint')}`
+
+        await TelegramNotificationService.sendToUser(user._id.toString(), message, undefined, user)
       }
 
       console.log(`[Scheduler] Daily quiz sent to ${users.length} users`)
@@ -66,7 +74,6 @@ export function initDailyScheduler() {
     }
   })
 
-  // Check for homework deadlines every 6 hours
   cron.schedule('0 */6 * * *', async () => {
     console.log('[Scheduler] Checking homework deadlines...')
 
@@ -78,5 +85,5 @@ export function initDailyScheduler() {
     }
   })
 
-  console.log('✅ Daily scheduler initialized (daily content + homework deadlines)')
+  console.log('[Scheduler] Daily scheduler initialized (daily content + homework deadlines)')
 }

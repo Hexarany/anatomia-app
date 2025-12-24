@@ -5,20 +5,48 @@ import Assignment from '../../models/Assignment'
 import Submission from '../../models/Submission'
 import TelegramGroupChat from '../../models/TelegramGroupChat'
 import Schedule from '../../models/Schedule'
+import { escapeMarkdown, resolveTelegramLang, t } from './i18n'
+import { getLocalizedText, getLocale } from './utils'
+
+const isWithinQuietHours = (user: any, now: Date = new Date()) => {
+  if (!user?.telegramQuietHours?.enabled) return false
+
+  const parseTime = (value: string) => {
+    const [hours, minutes] = value.split(':').map(Number)
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null
+    return hours * 60 + minutes
+  }
+
+  const startMinutes = parseTime(user.telegramQuietHours.start)
+  const endMinutes = parseTime(user.telegramQuietHours.end)
+  if (startMinutes === null || endMinutes === null) return false
+  if (startMinutes === endMinutes) return false
+
+  const nowMinutes = now.getHours() * 60 + now.getMinutes()
+  if (startMinutes < endMinutes) {
+    return nowMinutes >= startMinutes && nowMinutes < endMinutes
+  }
+  return nowMinutes >= startMinutes || nowMinutes < endMinutes
+}
+
+const getUserLang = (user?: any) => resolveTelegramLang(user?.telegramLanguage)
 
 export class TelegramNotificationService {
-  // Send notification to a single user
-  static async sendToUser(userId: string, message: string, options?: any) {
-    const user = await User.findById(userId)
+  static async sendToUser(userId: string, message: string, options?: any, userOverride?: any) {
+    const user = userOverride || (await User.findById(userId))
 
     if (!user?.telegramId || !user.telegramNotifications?.enabled) {
+      return false
+    }
+
+    if (isWithinQuietHours(user)) {
       return false
     }
 
     try {
       await bot.telegram.sendMessage(user.telegramId, message, {
         parse_mode: 'Markdown',
-        ...options
+        ...options,
       })
       return true
     } catch (error) {
@@ -27,59 +55,62 @@ export class TelegramNotificationService {
     }
   }
 
-  // Send notification to a group of students
   static async sendToGroup(groupId: string, message: string, options?: any) {
     const group = await Group.findById(groupId).populate('students')
     if (!group) return 0
 
     let sentCount = 0
     for (const student of group.students as any[]) {
-      const sent = await this.sendToUser(student._id.toString(), message, options)
+      const sent = await this.sendToUser(student._id.toString(), message, options, student)
       if (sent) sentCount++
     }
 
     return sentCount
   }
 
-  // Notify about new content
   static async notifyNewContent(contentType: string, title: string, userIds: string[]) {
-    const message = `📚 *Новый ${contentType}!*\n\n${title}\n\nПерейдите на сайт для изучения.`
-
     let sentCount = 0
     for (const userId of userIds) {
-      const sent = await this.sendToUser(userId, message)
+      const user = await User.findById(userId)
+      if (!user) continue
+
+      const lang = getUserLang(user)
+      const message = t(lang, 'notifications.newContent', {
+        contentType,
+        title,
+      })
+
+      const sent = await this.sendToUser(userId, message, undefined, user)
       if (sent) sentCount++
     }
 
     return sentCount
   }
 
-  // Notify all users with enabled notifications about new quiz
   static async notifyNewQuiz(quizTitle: { ru: string; ro: string }, questionsCount: number) {
     try {
-      // Find all users with Telegram notifications enabled for new content
       const users = await User.find({
         telegramId: { $exists: true },
         'telegramNotifications.enabled': true,
-        'telegramNotifications.newContent': true
+        'telegramNotifications.newContent': true,
       })
 
       let sentCount = 0
       for (const user of users) {
+        const lang = getUserLang(user)
+        const title = escapeMarkdown(getLocalizedText(quizTitle, lang))
         const message =
-          `📝 *Новый тест!*\n\n` +
-          `${quizTitle.ru}\n\n` +
-          `Вопросов: ${questionsCount}\n\n` +
-          `Пройти тест: /quiz`
+          `*${t(lang, 'notifications.newQuiz')}*\n\n` +
+          `${title}\n\n` +
+          `${t(lang, 'labels.questions')}: ${questionsCount}\n\n` +
+          `${t(lang, 'notifications.quizHint')}`
 
-        const sent = await this.sendToUser(user._id.toString(), message)
+        const sent = await this.sendToUser(user._id.toString(), message, undefined, user)
         if (sent) sentCount++
 
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise((resolve) => setTimeout(resolve, 50))
       }
 
-      console.log(`✅ Quiz notification sent to ${sentCount} users`)
       return sentCount
     } catch (error) {
       console.error('Failed to send quiz notifications:', error)
@@ -87,7 +118,6 @@ export class TelegramNotificationService {
     }
   }
 
-  // Notify student about new assignment
   static async notifyNewAssignment(assignmentId: string) {
     try {
       const assignment = await Assignment.findById(assignmentId)
@@ -100,137 +130,142 @@ export class TelegramNotificationService {
       const deadline = new Date(assignment.deadline)
       const daysUntil = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
 
-      const message =
-        `📝 *Новое домашнее задание!*\n\n` +
-        `*${assignment.title.ru}*\n\n` +
-        `Группа: ${group.name.ru}\n` +
-        `Дедлайн: ${deadline.toLocaleDateString('ru-RU')} ${deadline.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}\n` +
-        `Осталось: ${daysUntil} ${daysUntil === 1 ? 'день' : daysUntil < 5 ? 'дня' : 'дней'}\n` +
-        `Максимальный балл: ${assignment.maxScore}\n\n` +
-        `Описание: ${assignment.description.ru.substring(0, 150)}${assignment.description.ru.length > 150 ? '...' : ''}\n\n` +
-        `Просмотреть: /homework`
+      const groupNameRu = escapeMarkdown(getLocalizedText(group.name, 'ru'))
+      const groupMessageRu =
+        `*${t('ru', 'notifications.newAssignment')}*\n\n` +
+        `*${escapeMarkdown(getLocalizedText(assignment.title, 'ru'))}*\n\n` +
+        `${t('ru', 'labels.group')}: ${groupNameRu}\n` +
+        `${t('ru', 'labels.deadline')}: ${deadline.toLocaleDateString(getLocale('ru'))} ${deadline.toLocaleTimeString(getLocale('ru'), {
+          hour: '2-digit',
+          minute: '2-digit',
+        })}\n` +
+        `${t('ru', 'labels.daysLeft')}: ${daysUntil}\n` +
+        `${t('ru', 'labels.maxScore')}: ${assignment.maxScore}\n\n` +
+        `${escapeMarkdown(getLocalizedText(assignment.description, 'ru')).substring(0, 150)}${assignment.description?.ru?.length > 150 ? '...' : ''}\n\n` +
+        `${t('ru', 'notifications.homeworkHint')}`
 
-      // Send to linked Telegram group chat
-      const sentToGroup = await this.sendToTelegramGroup(group._id.toString(), message)
+      const sentToGroup = await this.sendToTelegramGroup(group._id.toString(), groupMessageRu)
 
-      // Also send to individual students with personal notifications enabled
       let sentCount = 0
       for (const studentId of group.students) {
-        const sent = await this.sendToUser(studentId.toString(), message)
+        const user = await User.findById(studentId)
+        if (!user) continue
+
+        const lang = getUserLang(user)
+        const message =
+          `*${t(lang, 'notifications.newAssignment')}*\n\n` +
+          `*${escapeMarkdown(getLocalizedText(assignment.title, lang))}*\n\n` +
+          `${t(lang, 'labels.group')}: ${escapeMarkdown(getLocalizedText(group.name, lang))}\n` +
+          `${t(lang, 'labels.deadline')}: ${deadline.toLocaleDateString(getLocale(lang))} ${deadline.toLocaleTimeString(getLocale(lang), {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}\n` +
+          `${t(lang, 'labels.daysLeft')}: ${daysUntil}\n` +
+          `${t(lang, 'labels.maxScore')}: ${assignment.maxScore}\n\n` +
+          `${escapeMarkdown(getLocalizedText(assignment.description, lang)).substring(0, 150)}${getLocalizedText(assignment.description, lang).length > 150 ? '...' : ''}\n\n` +
+          `${t(lang, 'notifications.homeworkHint')}`
+
+        const sent = await this.sendToUser(studentId.toString(), message, undefined, user)
         if (sent) sentCount++
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise((resolve) => setTimeout(resolve, 50))
       }
 
-      console.log(`✅ New assignment notification: group chat=${sentToGroup}, individual=${sentCount}`)
-      return sentCount
+      return sentCount + (sentToGroup ? 1 : 0)
     } catch (error) {
       console.error('Failed to send new assignment notifications:', error)
       return 0
     }
   }
 
-  // Notify student about upcoming deadline
   static async notifyDeadlineReminder(assignmentId: string, studentId: string) {
     try {
-      const assignment = await Assignment.findById(assignmentId)
-        .populate('group', 'name')
-        .lean()
-
+      const assignment = await Assignment.findById(assignmentId).populate('group', 'name').lean()
       if (!assignment) return false
 
       const deadline = new Date(assignment.deadline)
       const hoursUntil = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60))
 
-      const urgencyEmoji = hoursUntil <= 6 ? '🔴' : hoursUntil <= 12 ? '🟡' : '🟠'
-
+      const user = await User.findById(studentId)
+      const lang = getUserLang(user)
       const message =
-        `${urgencyEmoji} *Напоминание о дедлайне!*\n\n` +
-        `*${assignment.title.ru}*\n\n` +
-        `Группа: ${(assignment.group as any).name.ru}\n` +
-        `Дедлайн: ${deadline.toLocaleDateString('ru-RU')} ${deadline.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}\n` +
-        `Осталось: ${hoursUntil} ${hoursUntil === 1 ? 'час' : hoursUntil < 5 ? 'часа' : 'часов'}\n\n` +
-        `⚠️ *Не забудьте сдать работу!*\n\n` +
-        `Сдать: /submit ${assignmentId} <ваш ответ>\n` +
-        `Или используйте веб-интерфейс`
+        `*${t(lang, 'notifications.deadlineReminder')}*\n\n` +
+        `*${escapeMarkdown(getLocalizedText(assignment.title, lang))}*\n\n` +
+        `${t(lang, 'labels.group')}: ${escapeMarkdown(getLocalizedText((assignment.group as any).name, lang))}\n` +
+        `${t(lang, 'labels.deadline')}: ${deadline.toLocaleDateString(getLocale(lang))} ${deadline.toLocaleTimeString(getLocale(lang), {
+          hour: '2-digit',
+          minute: '2-digit',
+        })}\n` +
+        `${t(lang, 'labels.hoursLeft')}: ${hoursUntil}\n\n` +
+        `${t(lang, 'notifications.deadlineHint', { id: assignmentId })}`
 
-      const sent = await this.sendToUser(studentId, message)
-      return sent
+      return this.sendToUser(studentId, message, undefined, user)
     } catch (error) {
       console.error(`Failed to send deadline reminder to student ${studentId}:`, error)
       return false
     }
   }
 
-  // Notify student that their submission was graded
   static async notifySubmissionGraded(submissionId: string) {
     try {
       const submission = await Submission.findById(submissionId)
         .populate('assignment', 'title maxScore')
-        .populate('student', 'telegramId')
+        .populate('student', 'telegramId telegramLanguage')
         .lean()
 
       if (!submission) return false
 
       const assignment = submission.assignment as any
+      const user = submission.student as any
+      const lang = getUserLang(user)
       const scorePercent = Math.round((submission.grade! / assignment.maxScore) * 100)
-      const emoji = scorePercent >= 90 ? '🌟' : scorePercent >= 75 ? '✅' : scorePercent >= 60 ? '📝' : '📌'
 
-      const message =
-        `${emoji} *Работа проверена!*\n\n` +
-        `*${assignment.title.ru}*\n\n` +
-        `Ваша оценка: *${submission.grade}/${assignment.maxScore}* (${scorePercent}%)\n\n` +
-        `💬 *Комментарий преподавателя:*\n${submission.feedback}\n\n` +
-        `Посмотреть подробнее: /grades`
+      let message =
+        `*${t(lang, 'notifications.graded')}*\n\n` +
+        `*${escapeMarkdown(getLocalizedText(assignment.title, lang))}*\n\n` +
+        `${t(lang, 'labels.score')}: *${submission.grade}/${assignment.maxScore}* (${scorePercent}%)\n\n`
 
-      const sent = await this.sendToUser(submission.student.toString(), message)
-      return sent
+      if (submission.feedback) {
+        message += `${t(lang, 'labels.feedback')}: ${escapeMarkdown(submission.feedback)}\n\n`
+      }
+
+      message += `${t(lang, 'notifications.gradesHint')}`
+
+      return this.sendToUser(submission.student.toString(), message, undefined, user)
     } catch (error) {
       console.error(`Failed to send grade notification for submission ${submissionId}:`, error)
       return false
     }
   }
 
-  // Check all assignments and send reminders for those due soon
   static async sendDeadlineReminders() {
     try {
       const now = new Date()
       const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
 
-      // Find assignments with deadline in the next 24 hours
       const upcomingAssignments = await Assignment.find({
         deadline: {
           $gte: now,
-          $lte: tomorrow
-        }
-      }).populate('group', 'students').lean()
+          $lte: tomorrow,
+        },
+      })
+        .populate('group', 'students')
+        .lean()
 
       let totalSent = 0
-
       for (const assignment of upcomingAssignments) {
         const group = assignment.group as any
         const assignmentId = assignment._id.toString()
-
-        // Find submissions for this assignment
-        const submissions = await Submission.find({
-          assignment: assignmentId
-        }).distinct('student')
-
-        // Get students who haven't submitted yet
-        const studentsWhoSubmitted = new Set(submissions.map(s => s.toString()))
+        const submissions = await Submission.find({ assignment: assignmentId }).distinct('student')
+        const studentsWhoSubmitted = new Set(submissions.map((s) => s.toString()))
         const studentsToNotify = group.students.filter(
           (studentId: any) => !studentsWhoSubmitted.has(studentId.toString())
         )
 
-        // Send reminder to each student
         for (const studentId of studentsToNotify) {
           const sent = await this.notifyDeadlineReminder(assignmentId, studentId.toString())
           if (sent) totalSent++
-          await new Promise(resolve => setTimeout(resolve, 100))
+          await new Promise((resolve) => setTimeout(resolve, 100))
         }
-      }
-
-      if (totalSent > 0) {
-        console.log(`✅ Deadline reminders sent to ${totalSent} students`)
       }
 
       return totalSent
@@ -240,25 +275,22 @@ export class TelegramNotificationService {
     }
   }
 
-  // Send notification to linked Telegram group chat
   static async sendToTelegramGroup(groupId: string, message: string, options?: any) {
     try {
       const telegramGroupChat = await TelegramGroupChat.findOne({
         groupId,
-        isActive: true
+        isActive: true,
       })
 
       if (!telegramGroupChat) {
-        console.log(`No active Telegram group chat linked to group ${groupId}`)
         return false
       }
 
       await bot.telegram.sendMessage(telegramGroupChat.chatId, message, {
         parse_mode: 'Markdown',
-        ...options
+        ...options,
       })
 
-      console.log(`✅ Message sent to Telegram group chat ${telegramGroupChat.chatId}`)
       return true
     } catch (error) {
       console.error(`Failed to send message to Telegram group for group ${groupId}:`, error)
@@ -266,11 +298,10 @@ export class TelegramNotificationService {
     }
   }
 
-  // Notify about new schedule entry
   static async notifyNewSchedule(scheduleId: string) {
     try {
       const schedule = await Schedule.findById(scheduleId)
-        .populate('group', 'name')
+        .populate('group', 'name students')
         .populate('topic', 'name')
         .lean()
 
@@ -282,31 +313,63 @@ export class TelegramNotificationService {
 
       const clientUrl = process.env.CLIENT_URL?.split(',')[0].trim() || 'https://anatomia-app-docker.onrender.com'
 
-      const message =
-        `📅 *Новое занятие!*\n\n` +
-        `*Урок ${schedule.lessonNumber}: ${schedule.title.ru}*\n\n` +
-        `Группа: ${group.name.ru}\n` +
-        `📍 ${schedule.location}\n` +
-        `🕐 ${scheduleDate.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}\n` +
-        `   ${scheduleDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}\n` +
-        `⏱ Длительность: ${schedule.duration} мин\n\n` +
-        (topic ? `📚 Тема: ${topic.name.ru}\n\n` : '') +
-        (schedule.description?.ru ? `📝 ${schedule.description.ru}\n\n` : '') +
-        (schedule.homework?.ru ? `📖 *Домашнее задание:*\n${schedule.homework.ru}\n\n` : '') +
-        `Подробнее: ${clientUrl}`
+      const messageRu =
+        `*${t('ru', 'notifications.newSchedule')}*\n\n` +
+        `*${t('ru', 'labels.lesson')} ${schedule.lessonNumber}: ${escapeMarkdown(getLocalizedText(schedule.title, 'ru'))}*\n\n` +
+        `${t('ru', 'labels.group')}: ${escapeMarkdown(getLocalizedText(group.name, 'ru'))}\n` +
+        `${t('ru', 'labels.location')}: ${escapeMarkdown(schedule.location || '')}\n` +
+        `${scheduleDate.toLocaleDateString(getLocale('ru'), {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })}\n` +
+        `${scheduleDate.toLocaleTimeString(getLocale('ru'), { hour: '2-digit', minute: '2-digit' })}\n` +
+        `${t('ru', 'labels.duration')}: ${schedule.duration}\n\n` +
+        (topic ? `${t('ru', 'labels.topic')}: ${escapeMarkdown(getLocalizedText(topic.name, 'ru'))}\n\n` : '') +
+        (schedule.description?.ru
+          ? `${escapeMarkdown(schedule.description.ru)}\n\n`
+          : '') +
+        (schedule.homework?.ru
+          ? `${escapeMarkdown(schedule.homework.ru)}\n\n`
+          : '') +
+        `${t('ru', 'notifications.scheduleHint', { url: clientUrl })}`
 
-      // Send to linked Telegram group chat
-      const sentToGroup = await this.sendToTelegramGroup(group._id.toString(), message)
+      const sentToGroup = await this.sendToTelegramGroup(group._id.toString(), messageRu)
 
-      // Also send to individual students with personal notifications enabled
       let sentToIndividuals = 0
       for (const studentId of group.students || []) {
-        const sent = await this.sendToUser(studentId.toString(), message)
+        const user = await User.findById(studentId)
+        if (!user) continue
+
+        const lang = getUserLang(user)
+        const message =
+          `*${t(lang, 'notifications.newSchedule')}*\n\n` +
+          `*${t(lang, 'labels.lesson')} ${schedule.lessonNumber}: ${escapeMarkdown(getLocalizedText(schedule.title, lang))}*\n\n` +
+          `${t(lang, 'labels.group')}: ${escapeMarkdown(getLocalizedText(group.name, lang))}\n` +
+          `${t(lang, 'labels.location')}: ${escapeMarkdown(schedule.location || '')}\n` +
+          `${scheduleDate.toLocaleDateString(getLocale(lang), {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          })}\n` +
+          `${scheduleDate.toLocaleTimeString(getLocale(lang), { hour: '2-digit', minute: '2-digit' })}\n` +
+          `${t(lang, 'labels.duration')}: ${schedule.duration}\n\n` +
+          (topic ? `${t(lang, 'labels.topic')}: ${escapeMarkdown(getLocalizedText(topic.name, lang))}\n\n` : '') +
+          (getLocalizedText(schedule.description, lang)
+            ? `${escapeMarkdown(getLocalizedText(schedule.description, lang))}\n\n`
+            : '') +
+          (getLocalizedText(schedule.homework, lang)
+            ? `${escapeMarkdown(getLocalizedText(schedule.homework, lang))}\n\n`
+            : '') +
+          `${t(lang, 'notifications.scheduleHint', { url: clientUrl })}`
+
+        const sent = await this.sendToUser(studentId.toString(), message, undefined, user)
         if (sent) sentToIndividuals++
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise((resolve) => setTimeout(resolve, 50))
       }
 
-      console.log(`✅ New schedule notification: group chat=${sentToGroup}, individual=${sentToIndividuals}`)
       return sentToGroup || sentToIndividuals > 0
     } catch (error) {
       console.error('Failed to send new schedule notifications:', error)
