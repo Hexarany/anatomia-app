@@ -25,6 +25,8 @@ export interface IUser extends Document {
   paymentAmount?: number
   paymentDate?: Date
   paymentHistory: PaymentHistoryItem[]
+  resetPasswordToken?: string
+  resetPasswordExpires?: Date
   // DEPRECATED: Keep for backward compatibility
   subscriptionStatus?: 'none' | 'active' | 'trial' | 'expired' | 'cancelled'
   subscriptionEndDate?: Date
@@ -106,6 +108,12 @@ const userSchema = new Schema<IUser>(
       type: Number,
     },
     paymentDate: {
+      type: Date,
+    },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
       type: Date,
     },
     paymentHistory: [

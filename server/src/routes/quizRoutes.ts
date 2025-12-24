@@ -8,14 +8,15 @@ import {
   updateQuiz, // НОВЫЙ
   deleteQuiz, // НОВЫЙ
 } from '../controllers/quizController'
-import { authenticateToken, authorizeRole, optionalAuth } from '../middleware/auth'
+import { authenticateToken, authorizeRole } from '../middleware/auth'
+import { requireTier } from '../middleware/tierAccess'
 
 const router = express.Router()
 
-// PUBLIC: Чтение викторин
-router.get('/', optionalAuth, getAllQuizzes)
-router.get('/:id', optionalAuth, getQuizById)
-router.get('/topic/:topicId', optionalAuth, getQuizzesByTopic)
+// PREMIUM ACCESS: Чтение викторин
+router.get('/', authenticateToken, requireTier('premium'), getAllQuizzes)
+router.get('/topic/:topicId', authenticateToken, requireTier('premium'), getQuizzesByTopic)
+router.get('/:id', authenticateToken, requireTier('premium'), getQuizById)
 
 // ADMIN ONLY: CRUD для викторин
 router.post('/', authenticateToken, authorizeRole('admin'), createQuiz)

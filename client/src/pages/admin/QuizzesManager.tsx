@@ -87,12 +87,14 @@ const QuizzesManager = () => {
 
   const loadQuizzes = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/quizzes`)
+      const response = await axios.get(`${API_BASE_URL}/quizzes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       setQuizzes(response.data)
     } catch (error) {
       showSnackbar('Ошибка загрузки викторин', 'error')
     }
-  }, [])
+  }, [token])
 
   const loadTopics = useCallback(async () => {
     try {

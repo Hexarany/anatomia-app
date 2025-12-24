@@ -20,6 +20,8 @@ import QuizIcon from '@mui/icons-material/Quiz'
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import axios from 'axios'
+import AccessGate from '@/components/AccessGate'
+import { useAuth } from '@/contexts/AuthContext'
 import type { Quiz } from '@/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api')
@@ -27,15 +29,24 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/a
 const QuizzesPage = () => {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'ru' | 'ro'
+  const { hasAccess, token, loading: authLoading } = useAuth()
+  const canAccess = hasAccess('premium')
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchQuizzes = async () => {
+      if (authLoading || !canAccess || !token) {
+        setLoading(false)
+        return
+      }
+
       try {
         setLoading(true)
-        const response = await axios.get(`${API_BASE_URL}/quizzes`)
+        const response = await axios.get(`${API_BASE_URL}/quizzes`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
         setQuizzes(response.data)
       } catch (error) {
         console.error('Failed to fetch quizzes:', error)
@@ -45,12 +56,28 @@ const QuizzesPage = () => {
     }
 
     fetchQuizzes()
-  }, [])
+  }, [authLoading, canAccess, token])
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 8, display: 'flex', justifyContent: 'center' }}>
         <CircularProgress />
+      </Container>
+    )
+  }
+
+  if (!canAccess) {
+    return (
+      <Container maxWidth="md" sx={{ py: 6 }}>
+        <AccessGate
+          requiredTier="premium"
+          preview={lang === 'ru'
+            ? 'Для прохождения тестов требуется Premium-доступ.'
+            : 'Pentru a realiza teste este necesar acces Premium.'}
+          contentType={lang === 'ru' ? 'тестам' : 'teste'}
+        >
+          <Box />
+        </AccessGate>
       </Container>
     )
   }

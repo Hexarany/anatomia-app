@@ -1,6 +1,14 @@
 import express from 'express'
 import { body } from 'express-validator'
-import { register, login, getProfile, updateProfile, telegramAuth } from '../controllers/authController'
+import {
+  register,
+  login,
+  getProfile,
+  updateProfile,
+  telegramAuth,
+  requestPasswordReset,
+  resetPassword,
+} from '../controllers/authController'
 import { authenticateToken } from '../middleware/auth'
 
 const router = express.Router()
@@ -78,6 +86,36 @@ router.post(
       .withMessage('initData is required'),
   ],
   telegramAuth
+)
+
+// POST /api/auth/password-reset/request - Запрос ссылки для сброса пароля
+router.post(
+  '/password-reset/request',
+  [
+    body('email')
+      .isEmail()
+      .withMessage('Введите корректный email')
+      .normalizeEmail(),
+    body('language')
+      .optional()
+      .isIn(['ru', 'ro'])
+      .withMessage('Language must be ru or ro'),
+  ],
+  requestPasswordReset
+)
+
+// POST /api/auth/password-reset/confirm - Смена пароля по токену
+router.post(
+  '/password-reset/confirm',
+  [
+    body('token')
+      .notEmpty()
+      .withMessage('Token is required'),
+    body('password')
+      .isLength({ min: 6 })
+      .withMessage('Пароль должен быть минимум 6 символов'),
+  ],
+  resetPassword
 )
 
 export default router

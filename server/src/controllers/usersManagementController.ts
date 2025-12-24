@@ -93,7 +93,16 @@ export const getUserById = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-    const { firstName, lastName, role, accessLevel, paymentAmount, paymentDate } = req.body
+    const {
+      firstName,
+      lastName,
+      role,
+      accessLevel,
+      paymentAmount,
+      paymentDate,
+      subscriptionStatus,
+      subscriptionEndDate,
+    } = req.body
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Недопустимый ID пользователя' })
@@ -109,8 +118,18 @@ export const updateUser = async (req: Request, res: Response) => {
     if (lastName !== undefined) user.lastName = lastName
     if (role !== undefined) user.role = role
     if (accessLevel !== undefined) user.accessLevel = accessLevel
-    if (paymentAmount !== undefined) user.paymentAmount = paymentAmount
-    if (paymentDate !== undefined) user.paymentDate = paymentDate
+    if (paymentAmount !== undefined) {
+      user.paymentAmount = paymentAmount === '' || paymentAmount === null ? undefined : Number(paymentAmount)
+    }
+    if (paymentDate !== undefined) {
+      user.paymentDate = paymentDate ? new Date(paymentDate) : undefined
+    }
+    if (subscriptionStatus !== undefined) {
+      user.subscriptionStatus = subscriptionStatus
+    }
+    if (subscriptionEndDate !== undefined) {
+      user.subscriptionEndDate = subscriptionEndDate ? new Date(subscriptionEndDate) : undefined
+    }
 
     await user.save({ validateBeforeSave: true })
 

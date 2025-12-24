@@ -46,6 +46,18 @@ router.put(
       .isIn(['free', 'basic', 'premium'])
       .withMessage('Недопустимый уровень доступа'),
     body('paymentAmount').optional().isNumeric().withMessage('Сумма должна быть числом'),
+    body('paymentDate')
+      .optional({ checkFalsy: true, nullable: true })
+      .isISO8601()
+      .withMessage('Некорректная дата'),
+    body('subscriptionStatus')
+      .optional()
+      .isIn(['none', 'active', 'trial', 'expired', 'cancelled'])
+      .withMessage('Некорректный статус'),
+    body('subscriptionEndDate')
+      .optional({ checkFalsy: true, nullable: true })
+      .isISO8601()
+      .withMessage('Некорректная дата'),
   ],
   updateUser
 )

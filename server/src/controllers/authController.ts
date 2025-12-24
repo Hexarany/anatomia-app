@@ -4,9 +4,11 @@ import jwt from 'jsonwebtoken'
 import { validationResult } from 'express-validator'
 import crypto from 'crypto'
 import User from '../models/User'
+import emailService from '../services/emailService'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
 const JWT_EXPIRES_IN = '7d' // Токен действителен 7 дней
+const PASSWORD_RESET_EXPIRATION_MS = 60 * 60 * 1000
 
 // Регистрация нового пользователя
 export const register = async (req: Request, res: Response) => {
@@ -42,7 +44,6 @@ export const register = async (req: Request, res: Response) => {
     await user.save()
 
     // Send welcome email (non-blocking)
-    const emailService = require('../services/emailService').default
     const userName = `${user.firstName} ${user.lastName || ''}`.trim()
     emailService.sendWelcomeEmail(user.email, userName, 'ru')
       .catch((err: any) => console.error('Failed to send welcome email:', err))
@@ -188,6 +189,71 @@ export const updateProfile = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Update profile error:', error)
     res.status(500).json({ message: 'Ошибка сервера при обновлении профиля' })
+  }
+}
+
+// Запрос на сброс пароля
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  try {
+    const { email, language = 'ru' } = req.body
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' })
+    }
+
+    const user = await User.findOne({ email })
+
+    if (user) {
+      const resetToken = crypto.randomBytes(32).toString('hex')
+      const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex')
+
+      user.resetPasswordToken = resetTokenHash
+      user.resetPasswordExpires = new Date(Date.now() + PASSWORD_RESET_EXPIRATION_MS)
+      await user.save()
+
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+      const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`
+      const fullName = `${user.firstName} ${user.lastName || ''}`.trim()
+
+      await emailService.sendPasswordResetEmail(user.email, fullName, resetUrl, language)
+    }
+
+    res.json({ message: 'Если аккаунт существует, ссылка отправлена на email.' })
+  } catch (error) {
+    console.error('Request password reset error:', error)
+    res.status(500).json({ message: 'Ошибка при запросе сброса пароля' })
+  }
+}
+
+// Смена пароля по токену
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body
+
+    if (!token || !password) {
+      return res.status(400).json({ message: 'Token and password are required' })
+    }
+
+    const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex')
+    const user = await User.findOne({
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpires: { $gt: new Date() },
+    })
+
+    if (!user) {
+      return res.status(400).json({ message: 'Ссылка недействительна или истекла' })
+    }
+
+    const saltRounds = 10
+    user.password = await bcrypt.hash(password, saltRounds)
+    user.resetPasswordToken = undefined
+    user.resetPasswordExpires = undefined
+    await user.save()
+
+    res.json({ message: 'Пароль успешно обновлен' })
+  } catch (error) {
+    console.error('Reset password error:', error)
+    res.status(500).json({ message: 'Ошибка при смене пароля' })
   }
 }
 

@@ -16,6 +16,21 @@
     "learning": "Învățare",
     "practice": "Practică"
   },
+  "auth": {
+    "reset": {
+      "title": "Schimbare parolă",
+      "subtitle": "Introduceți o parolă nouă pentru cont.",
+      "password": "Parolă nouă",
+      "confirm": "Confirmați parola",
+      "submit": "Schimbă parola",
+      "success": "Parola a fost actualizată. Te poți autentifica.",
+      "missingToken": "Linkul de resetare nu este valid.",
+      "mismatch": "Parolele nu coincid.",
+      "passwordTooShort": "Parola trebuie să aibă cel puțin 6 caractere.",
+      "error": "Nu s-a putut schimba parola.",
+      "backToLogin": "Autentificare"
+    }
+  },
   "home": {
     "hero": {
       "title": "Platformă completă de formare în masaj",

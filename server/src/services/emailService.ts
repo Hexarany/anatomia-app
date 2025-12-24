@@ -535,6 +535,67 @@ class EmailService {
     return this.sendEmail({ to, subject, html })
   }
 
+  // Template: Password Reset
+  async sendPasswordResetEmail(
+    to: string,
+    name: string,
+    resetUrl: string,
+    language: 'ru' | 'ro' = 'ru'
+  ): Promise<boolean> {
+    const isRussian = language === 'ru'
+    const recipientName = name || (isRussian ? 'друг' : 'prieten')
+
+    const subject = isRussian
+      ? 'Сброс пароля'
+      : 'Resetare parola'
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+    .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+    .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>${isRussian ? 'Сброс пароля' : 'Resetare parola'}</h1>
+    </div>
+    <div class="content">
+      <p>${isRussian ? 'Здравствуйте' : 'Bună ziua'}, ${recipientName}!</p>
+      <p>${isRussian
+        ? 'Мы получили запрос на смену пароля. Нажмите кнопку ниже, чтобы установить новый пароль.'
+        : 'Am primit o cerere de schimbare a parolei. Apăsați butonul de mai jos pentru a seta o parolă nouă.'}</p>
+
+      <a href="${resetUrl}" class="button">
+        ${isRussian ? 'Сменить пароль' : 'Schimbă parola'}
+      </a>
+
+      <p style="margin-top: 20px; color: #666; font-size: 14px;">
+        ${isRussian
+          ? 'Если вы не запрашивали смену пароля, просто проигнорируйте это письмо.'
+          : 'Dacă nu ați solicitat schimbarea parolei, ignorați acest mesaj.'}
+      </p>
+    </div>
+    <div class="footer">
+      <p>Anatomia Interactive Team</p>
+    </div>
+  </div>
+</body>
+</html>
+    `
+
+    return this.sendEmail({ to, subject, html })
+  }
+
   /**
    * Send custom email to user(s)
    * For admin messaging functionality

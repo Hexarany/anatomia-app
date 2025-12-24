@@ -35,6 +35,8 @@ import {
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
   Email as EmailIcon,
+  Block as BlockIcon,
+  LockReset as LockResetIcon,
 } from '@mui/icons-material'
 import axios from 'axios'
 import { useAuth } from '@/contexts/AuthContext'
@@ -51,6 +53,8 @@ interface User {
   accessLevel: 'free' | 'basic' | 'premium'
   paymentAmount?: number
   paymentDate?: string
+  subscriptionStatus?: 'none' | 'active' | 'trial' | 'expired' | 'cancelled'
+  subscriptionEndDate?: string
   createdAt: string
 }
 
@@ -81,6 +85,7 @@ const UsersManager = () => {
   const [stats, setStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   // Фильтры и пагинация
   const [page, setPage] = useState(0)
@@ -98,6 +103,10 @@ const UsersManager = () => {
     lastName: '',
     role: 'student' as 'student' | 'teacher' | 'admin',
     accessLevel: 'free' as 'free' | 'basic' | 'premium',
+    paymentAmount: '',
+    paymentDate: '',
+    subscriptionStatus: 'none' as 'none' | 'active' | 'trial' | 'expired' | 'cancelled',
+    subscriptionEndDate: '',
   })
 
   // Диалог удаления
@@ -166,6 +175,10 @@ const UsersManager = () => {
       lastName: user.lastName,
       role: user.role,
       accessLevel: user.accessLevel,
+      paymentAmount: user.paymentAmount !== undefined ? String(user.paymentAmount) : '',
+      paymentDate: formatDateInput(user.paymentDate),
+      subscriptionStatus: user.subscriptionStatus || 'none',
+      subscriptionEndDate: formatDateInput(user.subscriptionEndDate),
     })
     setEditDialogOpen(true)
   }
@@ -175,9 +188,16 @@ const UsersManager = () => {
     if (!selectedUser) return
 
     try {
+      const payload = {
+        ...editFormData,
+        paymentAmount: editFormData.paymentAmount === '' ? undefined : Number(editFormData.paymentAmount),
+        paymentDate: editFormData.paymentDate || undefined,
+        subscriptionEndDate: editFormData.subscriptionEndDate || undefined,
+      }
+
       await axios.put(
         `${API_URL}/users-management/${selectedUser._id}`,
-        editFormData,
+        payload,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -212,6 +232,46 @@ const UsersManager = () => {
       loadStats()
     } catch (err: any) {
       setError(err.response?.data?.message || 'Ошибка удаления пользователя')
+    }
+  }
+
+  const handleSendPasswordReset = async (user: User) => {
+    setError('')
+    setSuccess('')
+
+    try {
+      await axios.post(
+        `${API_URL}/auth/password-reset/request`,
+        { email: user.email, language: 'ru' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setSuccess(`Ссылка для смены пароля отправлена: ${user.email}`)
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Не удалось отправить ссылку для смены пароля')
+    }
+  }
+
+  const handleCancelSubscription = async (user: User) => {
+    const fullName = `${user.firstName} ${user.lastName}`.trim()
+    if (!window.confirm(`Отключить подписку у ${fullName}?`)) return
+
+    try {
+      await axios.put(
+        `${API_URL}/users-management/${user._id}`,
+        {
+          accessLevel: 'free',
+          subscriptionStatus: 'cancelled',
+          subscriptionEndDate: new Date().toISOString(),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+
+      loadUsers()
+      loadStats()
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Не удалось отключить подписку')
     }
   }
 
@@ -268,6 +328,48 @@ const UsersManager = () => {
     }
   }
 
+  const formatDateInput = (value?: string) => {
+    if (!value) return ''
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return ''
+    return date.toISOString().slice(0, 10)
+  }
+
+  const formatDateDisplay = (value?: string) => {
+    if (!value) return '-'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return '-'
+    return date.toLocaleDateString('ru-RU')
+  }
+
+  const getSubscriptionLabel = (status?: User['subscriptionStatus']) => {
+    switch (status) {
+      case 'active':
+        return 'Активна'
+      case 'trial':
+        return 'Триал'
+      case 'expired':
+        return 'Истекла'
+      case 'cancelled':
+        return 'Отменена'
+      default:
+        return 'Нет'
+    }
+  }
+
+  const getSubscriptionColor = (status?: User['subscriptionStatus']) => {
+    switch (status) {
+      case 'active':
+      case 'trial':
+        return 'success'
+      case 'expired':
+      case 'cancelled':
+        return 'warning'
+      default:
+        return 'default'
+    }
+  }
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -280,6 +382,11 @@ const UsersManager = () => {
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
           {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess('')}>
+          {success}
         </Alert>
       )}
 
@@ -415,6 +522,7 @@ const UsersManager = () => {
               <TableCell>Email</TableCell>
               <TableCell>Роль</TableCell>
               <TableCell>Уровень доступа</TableCell>
+              <TableCell>Подписка</TableCell>
               <TableCell>Оплачено</TableCell>
               <TableCell>Дата регистрации</TableCell>
               <TableCell align="right">Действия</TableCell>
@@ -423,13 +531,13 @@ const UsersManager = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                <TableCell colSpan={9} align="center">
                   <CircularProgress />
                 </TableCell>
               </TableRow>
             ) : users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} align="center">
+                <TableCell colSpan={9} align="center">
                   Пользователи не найдены
                 </TableCell>
               </TableRow>
@@ -456,6 +564,18 @@ const UsersManager = () => {
                       size="small"
                     />
                   </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Chip
+                        label={getSubscriptionLabel(user.subscriptionStatus)}
+                        color={getSubscriptionColor(user.subscriptionStatus)}
+                        size="small"
+                      />
+                      <Typography variant="caption" color="text.secondary">
+                        {user.subscriptionEndDate ? `до ${formatDateDisplay(user.subscriptionEndDate)}` : '—'}
+                      </Typography>
+                    </Box>
+                  </TableCell>
                   <TableCell>${user.paymentAmount || 0}</TableCell>
                   <TableCell>{new Date(user.createdAt).toLocaleDateString('ru-RU')}</TableCell>
                   <TableCell align="right">
@@ -466,6 +586,23 @@ const UsersManager = () => {
                       title="Отправить Email"
                     >
                       <EmailIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="secondary"
+                      onClick={() => handleSendPasswordReset(user)}
+                      title="Ссылка для смены пароля"
+                    >
+                      <LockResetIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="warning"
+                      onClick={() => handleCancelSubscription(user)}
+                      disabled={user.accessLevel === 'free' || user.role !== 'student'}
+                      title="Отключить подписку"
+                    >
+                      <BlockIcon fontSize="small" />
                     </IconButton>
                     <IconButton size="small" onClick={() => handleEditClick(user)}>
                       <EditIcon fontSize="small" />
@@ -552,6 +689,50 @@ const UsersManager = () => {
                 <MenuItem value="premium">Premium</MenuItem>
               </Select>
             </FormControl>
+            <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
+              <InputLabel>Статус подписки</InputLabel>
+              <Select
+                value={editFormData.subscriptionStatus}
+                label="Статус подписки"
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    subscriptionStatus: e.target.value as 'none' | 'active' | 'trial' | 'expired' | 'cancelled',
+                  })
+                }
+              >
+                <MenuItem value="none">Нет</MenuItem>
+                <MenuItem value="active">Активна</MenuItem>
+                <MenuItem value="trial">Триал</MenuItem>
+                <MenuItem value="expired">Истекла</MenuItem>
+                <MenuItem value="cancelled">Отменена</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              fullWidth
+              type="date"
+              label="Дата окончания подписки"
+              value={editFormData.subscriptionEndDate}
+              onChange={(e) => setEditFormData({ ...editFormData, subscriptionEndDate: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              type="number"
+              label="Сумма оплаты"
+              value={editFormData.paymentAmount}
+              onChange={(e) => setEditFormData({ ...editFormData, paymentAmount: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              type="date"
+              label="Дата оплаты"
+              value={editFormData.paymentDate}
+              onChange={(e) => setEditFormData({ ...editFormData, paymentDate: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
           </Box>
         </DialogContent>
         <DialogActions>

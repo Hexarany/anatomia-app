@@ -30,9 +30,10 @@ const QuizPage = () => {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const lang = i18n.language as 'ru' | 'ro'
-  const { hasAccess, token } = useAuth()
+  const { hasAccess, token, loading: authLoading } = useAuth()
   const { setMainButton, hideMainButton } = useMainButton()
   const { isInTelegram } = useTelegram()
+  const canAccess = hasAccess('premium')
 
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [loading, setLoading] = useState(true)
@@ -44,6 +45,11 @@ const QuizPage = () => {
 
   // Load quiz from API
   useEffect(() => {
+    if (authLoading || !canAccess) {
+      setLoading(false)
+      return
+    }
+
     console.log('🔄 useEffect triggered, loading quiz...')
     const loadQuiz = async () => {
       if (!quizId) {
@@ -68,7 +74,7 @@ const QuizPage = () => {
     }
 
     loadQuiz()
-  }, [quizId, token])
+  }, [quizId, token, authLoading, canAccess])
 
   // Telegram MainButton integration - During quiz
   useEffect(() => {
@@ -120,10 +126,24 @@ const QuizPage = () => {
     return () => hideMainButton()
   }, [isInTelegram, quiz, showResults, t, setMainButton, hideMainButton])
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <Container maxWidth="md" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
         <CircularProgress />
+      </Container>
+    )
+  }
+
+  if (!canAccess) {
+    return (
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <AccessGate
+          requiredTier="premium"
+          preview={lang === 'ru' ? 'Для прохождения тестов требуется Premium-доступ.' : 'Pentru a realiza teste este necesar acces Premium.'}
+          contentType={lang === 'ru' ? 'тестам' : 'teste'}
+        >
+          <Box />
+        </AccessGate>
       </Container>
     )
   }
