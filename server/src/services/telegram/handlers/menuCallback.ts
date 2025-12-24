@@ -1,73 +1,65 @@
-import { Context } from 'telegraf'
-import { Markup } from 'telegraf'
+import { Context, Markup } from 'telegraf'
+import User from '../../../models/User'
 import { homeworkCommand, gradesCommand } from '../commands/homework'
 import { scheduleCommand } from '../commands/schedule'
 import { quizCommand } from '../commands/quiz'
-import { anatomyCommand } from '../commands/anatomy'
+import { settingsCommand } from '../commands/settings'
+import { t } from '../i18n'
+import { getTelegramLang } from '../utils'
 
-/**
- * Показать главное меню с кнопками
- */
 export async function showMainMenu(ctx: Context) {
-  const menuText =
-    `🏠 *Главное меню*\n\n` +
-    `Выберите нужное действие:`
+  const telegramId = ctx.from?.id.toString()
+  const userDoc = telegramId ? await User.findOne({ telegramId }).select('role telegramLanguage') : null
+  const lang = getTelegramLang(ctx, userDoc?.telegramLanguage)
+
+  const menuText = `*${t(lang, 'common.mainMenuTitle')}*\n\n${t(lang, 'common.chooseAction')}`
 
   const buttons = [
-    [Markup.button.callback('📚 Домашние задания', 'cmd_homework')],
-    [Markup.button.callback('📊 Мои оценки', 'cmd_grades')],
-    [Markup.button.callback('📅 Расписание', 'cmd_schedule')],
-    [Markup.button.callback('📝 Пройти тест', 'cmd_quiz')],
-    [Markup.button.callback('🔍 Поиск по анатомии', 'cmd_anatomy')],
-    [Markup.button.callback('❓ Помощь', 'cmd_help')]
+    [Markup.button.callback(t(lang, 'buttons.homework'), 'cmd_homework')],
+    [Markup.button.callback(t(lang, 'buttons.grades'), 'cmd_grades')],
+    [Markup.button.callback(t(lang, 'buttons.schedule'), 'cmd_schedule')],
+    [Markup.button.callback(t(lang, 'buttons.quiz'), 'cmd_quiz')],
+    [Markup.button.callback(t(lang, 'buttons.anatomy'), 'cmd_anatomy')],
+    [Markup.button.callback(t(lang, 'buttons.settings'), 'cmd_settings')],
+    [Markup.button.callback(t(lang, 'buttons.help'), 'cmd_help')],
   ]
 
-  // Добавляем кнопки для преподавателей
-  const user = await import('../../../models/User').then(m => m.default)
-  const telegramId = ctx.from?.id.toString()
-  const userDoc = await user.findOne({ telegramId })
-
   if (userDoc && (userDoc.role === 'teacher' || userDoc.role === 'admin')) {
-    buttons.push([Markup.button.callback('👨‍🏫 Работы на проверку', 'cmd_mysubmissions')])
+    buttons.push([Markup.button.callback(t(lang, 'buttons.mySubmissions'), 'cmd_mysubmissions')])
   }
 
   const keyboard = Markup.inlineKeyboard(buttons)
 
   if (ctx.callbackQuery) {
-    // Если вызвано через callback, редактируем сообщение
     return ctx.editMessageText(menuText, {
       parse_mode: 'Markdown',
-      ...keyboard
-    })
-  } else {
-    // Если вызвано командой, отправляем новое сообщение
-    return ctx.reply(menuText, {
-      parse_mode: 'Markdown',
-      ...keyboard
+      ...keyboard,
     })
   }
+
+  return ctx.reply(menuText, {
+    parse_mode: 'Markdown',
+    ...keyboard,
+  })
 }
 
-/**
- * Обработчик callback для главного меню
- */
 export async function handleMainMenuCallback(ctx: Context) {
   await ctx.answerCbQuery()
   return showMainMenu(ctx)
 }
 
-/**
- * Обработчик callback для команд через кнопки
- */
 export async function handleCommandCallback(ctx: Context) {
   if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) {
     return
   }
 
   const data = ctx.callbackQuery.data
+  const telegramId = ctx.from?.id.toString()
+  const userDoc = telegramId ? await User.findOne({ telegramId }).select('role telegramLanguage') : null
+  const lang = getTelegramLang(ctx, userDoc?.telegramLanguage)
+
   await ctx.answerCbQuery()
 
-  // Вызываем соответствующую команду напрямую
   switch (data) {
     case 'cmd_homework':
       return homeworkCommand(ctx)
@@ -78,25 +70,19 @@ export async function handleCommandCallback(ctx: Context) {
     case 'cmd_quiz':
       return quizCommand(ctx)
     case 'cmd_anatomy':
-      return ctx.reply('Используйте: /anatomy <название>')
-    case 'cmd_help':
-      return ctx.reply(
-        `🤖 *Доступные команды:*\n\n` +
-        `/start - Привязать аккаунт\n` +
-        `/menu - Главное меню\n` +
-        `/homework - Домашние задания\n` +
-        `/grades - Оценки\n` +
-        `/schedule - Расписание\n` +
-        `/quiz - Тесты\n` +
-        `/help - Помощь`,
-        { parse_mode: 'Markdown' }
-      )
+      return ctx.reply(t(lang, 'anatomy.usage'))
+    case 'cmd_settings':
+      return settingsCommand(ctx)
+    case 'cmd_help': {
+      let message = `*${t(lang, 'common.helpTitle')}*\n\n${t(lang, 'help.general')}`
+      if (userDoc && (userDoc.role === 'teacher' || userDoc.role === 'admin')) {
+        message += `\n\n*${t(lang, 'common.helpTeacherTitle')}*\n\n${t(lang, 'help.teacher')}`
+      }
+      return ctx.reply(message, { parse_mode: 'Markdown' })
+    }
   }
 }
 
-/**
- * Обработчик callback для кнопки "Сдать работу"
- */
 export async function handleSubmitCallback(ctx: Context) {
   if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) {
     return
@@ -105,24 +91,34 @@ export async function handleSubmitCallback(ctx: Context) {
   const data = ctx.callbackQuery.data
   await ctx.answerCbQuery()
 
-  // Извлекаем ID задания из callback data (формат: submit_<assignment_id>)
   const assignmentId = data.replace('submit_', '')
+  const telegramId = ctx.from?.id.toString()
+  const userDoc = telegramId ? await User.findOne({ telegramId }) : null
+  const lang = getTelegramLang(ctx, userDoc?.telegramLanguage)
+
+  if (!userDoc) {
+    return ctx.reply(t(lang, 'common.notLinked'))
+  }
+
+  userDoc.telegramPendingAction = {
+    action: 'submit',
+    assignmentId,
+    createdAt: new Date(),
+  } as any
+  await userDoc.save()
 
   const helpText =
-    `📝 *Сдача работы*\n\n` +
-    `ID задания: \`${assignmentId}\`\n\n` +
-    `*Текстовый ответ:*\n` +
-    `/submit ${assignmentId} <ваш текст>\n\n` +
-    `*Или отправьте файл* с подписью:\n` +
-    `/submit ${assignmentId}`
+    `📝 *${t(lang, 'buttons.submit')}*\n\n` +
+    `${t(lang, 'labels.id')}: \`${assignmentId}\`\n\n` +
+    `${t(lang, 'submit.prompt')}`
 
   const keyboard = Markup.inlineKeyboard([
-    [Markup.button.callback('« Назад к заданиям', 'cmd_homework')],
-    [Markup.button.callback('🏠 Главное меню', 'main_menu')]
+    [Markup.button.callback(t(lang, 'buttons.homework'), 'cmd_homework')],
+    [Markup.button.callback(t(lang, 'buttons.mainMenu'), 'main_menu')],
   ])
 
   return ctx.reply(helpText, {
     parse_mode: 'Markdown',
-    ...keyboard
+    ...keyboard,
   })
 }
