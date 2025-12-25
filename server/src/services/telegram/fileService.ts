@@ -137,17 +137,22 @@ const getCloudinarySignedUrls = (
 
 const downloadFileBuffer = async (url: string, fallbackUrls: string[] = []) => {
   const tryFetch = async (target: string) => {
+    console.log('[Telegram] Trying to download file from:', target)
     const response = await fetch(target)
     if (!response.ok) {
+      console.log('[Telegram] Download failed:', response.status, response.statusText)
       throw new Error(`Failed to download file: ${response.status} ${response.statusText}`)
     }
     const arrayBuffer = await response.arrayBuffer()
+    console.log('[Telegram] File downloaded successfully, size:', arrayBuffer.byteLength)
     return Buffer.from(arrayBuffer)
   }
 
   const candidates = [url, ...fallbackUrls].filter((candidate, index, array) => {
     return candidate && array.indexOf(candidate) === index
   })
+
+  console.log('[Telegram] Attempting to download file from', candidates.length, 'URLs')
 
   let lastError: any
   for (const candidate of candidates) {
