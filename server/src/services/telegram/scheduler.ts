@@ -22,7 +22,7 @@ export function initDailyScheduler() {
       })
 
       const clientUrl =
-        process.env.CLIENT_URL?.split(',')[0].trim() || 'https://anatomia-app-docker.onrender.com'
+        process.env.CLIENT_URL?.split(',')[0].trim() || 'https://mateevmassage.com'
 
       for (const user of users) {
         const lang = resolveTelegramLang(user.telegramLanguage)

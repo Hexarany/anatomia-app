@@ -55,7 +55,7 @@ Then open in Chrome and check:
 - DevTools → Application → Service Workers
 
 ### Production:
-PWA features only work on HTTPS. Render.com provides HTTPS by default.
+PWA features only work on HTTPS. Ensure SSL is configured (e.g., Nginx + certbot).
 
 ## Browser Support:
 

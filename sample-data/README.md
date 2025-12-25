@@ -21,7 +21,7 @@ This directory contains ready-made CSV files with educational content on anatomy
 ```
 http://localhost:5173/admin
 или / or
-https://anatomia-app.onrender.com/admin
+https://mateevmassage.com/admin
 ```
 
 ### 2. Откройте вкладку "Импорт данных" / Open "Import Data" Tab

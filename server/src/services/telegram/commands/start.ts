@@ -4,9 +4,9 @@ import { t } from '../i18n'
 import { getTelegramLang } from '../utils'
 
 const getWebAppUrl = () => {
-  const clientUrl = process.env.CLIENT_URL || 'https://anatomia-app-docker.onrender.com'
+  const clientUrl = process.env.CLIENT_URL || 'https://mateevmassage.com'
   const urls = clientUrl.split(',').map((url) => url.trim())
-  return urls.find((url) => url.startsWith('https://')) || 'https://anatomia-app-docker.onrender.com'
+  return urls.find((url) => url.startsWith('https://')) || 'https://mateevmassage.com'
 }
 
 const getWebAppButton = (lang: 'ru' | 'ro', chatType?: string) => {

@@ -255,7 +255,7 @@ npm install
 3. **Разверните в production**
    - Настройте MongoDB Atlas
    - Разверните на Vercel/Netlify (frontend)
-   - Разверните на Railway/Render (backend)
+- Разверните на VPS/Docker (backend)
 
 4. **Изучите документацию**
    - Прочитайте `DEVELOPER_GUIDE.md` для деталей разработки

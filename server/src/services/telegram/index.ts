@@ -111,7 +111,6 @@ const resolveWebhookUrl = () => {
   }
   const domain =
     process.env.TELEGRAM_WEBHOOK_DOMAIN ||
-    process.env.RENDER_EXTERNAL_URL ||
     process.env.PUBLIC_URL
   if (!domain) return null
   return `${domain.replace(/\/$/, '')}${TELEGRAM_WEBHOOK_PATH}`
@@ -146,9 +145,9 @@ export async function initTelegramBot() {
     }
 
     // Set up Web App button (non-blocking)
-    const clientUrl = process.env.CLIENT_URL || 'https://anatomia-app-docker.onrender.com'
+    const clientUrl = process.env.CLIENT_URL || 'https://mateevmassage.com'
     const urls = clientUrl.split(',').map((url) => url.trim())
-    const webAppUrl = urls.find((url) => url.startsWith('https://')) || 'https://anatomia-app-docker.onrender.com'
+    const webAppUrl = urls.find((url) => url.startsWith('https://')) || 'https://mateevmassage.com'
 
     bot.telegram
       .setChatMenuButton({

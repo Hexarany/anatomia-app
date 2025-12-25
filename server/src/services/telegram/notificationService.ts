@@ -311,7 +311,7 @@ export class TelegramNotificationService {
       const scheduleDate = new Date(schedule.date)
       const topic = schedule.topic as any
 
-      const clientUrl = process.env.CLIENT_URL?.split(',')[0].trim() || 'https://anatomia-app-docker.onrender.com'
+      const clientUrl = process.env.CLIENT_URL?.split(',')[0].trim() || 'https://mateevmassage.com'
 
       const messageRu =
         `*${t('ru', 'notifications.newSchedule')}*\n\n` +
