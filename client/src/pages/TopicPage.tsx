@@ -211,11 +211,24 @@ const TopicPage = () => {
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
           <FitnessCenterIcon sx={{ fontSize: 48, color: 'primary.main', mr: 2 }} />
           <Box sx={{ flexGrow: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="h3" component="h1" sx={{ fontWeight: 700, flexGrow: 1 }}>
-                {topic.name[lang]}
-              </Typography>
-              <BookmarkButton contentType="topic" contentId={topicId || ''} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  flexGrow: 1,
+                  minWidth: 0,
+                  flexBasis: { xs: '100%', sm: 'auto' }
+                }}
+              >
+                <Typography variant="h3" component="h1" sx={{ fontWeight: 700, flexGrow: 1, minWidth: 0 }}>
+                  {topic.name[lang]}
+                </Typography>
+                <Box sx={{ flexShrink: 0 }}>
+                  <BookmarkButton contentType="topic" contentId={topicId || ''} />
+                </Box>
+              </Box>
               {isAuthenticated && (
                 <Button
                   variant={isCompleted ? "outlined" : "contained"}
@@ -223,11 +236,15 @@ const TopicPage = () => {
                   startIcon={<CheckCircleIcon />}
                   onClick={handleCompleteClick}
                   disabled={completing || isCompleted}
-                  sx={{ minWidth: '180px' }}
+                  sx={{
+                    minWidth: { xs: '100%', sm: '180px' },
+                    width: { xs: '100%', sm: 'auto' },
+                    alignSelf: { xs: 'stretch', sm: 'center' }
+                  }}
                 >
                   {isCompleted
-                    ? (lang === 'ru' ? 'Завершено' : 'Finalizat')
-                    : (lang === 'ru' ? 'Завершить тему' : 'Finalizează tema')
+                    ? (lang === 'ru' ? '?????????' : 'Finalizat')
+                    : (lang === 'ru' ? '????????? ????' : 'Finalizeaz? tema')
                   }
                 </Button>
               )}
