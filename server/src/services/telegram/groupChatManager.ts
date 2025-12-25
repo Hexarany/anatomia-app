@@ -24,7 +24,7 @@ export class GroupChatManager {
       // Return instructions
       return `Чтобы завершить создание группового чата:\n` +
              `1. Создайте группу в Telegram с названием: "${chatTitle}"\n` +
-             `2. Добавьте бота @${process.env.TELEGRAM_BOT_USERNAME || 'AnatomiaBot'} в группу\n` +
+             `2. Добавьте бота @${process.env.TELEGRAM_BOT_USERNAME || process.env.TELEGRAM_BOT_NAME || 'AnatomiaBot'} в группу\n` +
              `3. Сделайте бота администратором\n` +
              `4. Бот автоматически подключится`
     } catch (error) {

@@ -10,10 +10,13 @@ export const generateLinkCode = async (req: Request, res: Response) => {
 
     const code = await TelegramLinkService.generateLinkCode(userId)
 
+    const botUsername =
+      process.env.TELEGRAM_BOT_USERNAME || process.env.TELEGRAM_BOT_NAME || 'AnatomiaBot'
+
     res.json({
       code,
       expiresIn: 15 * 60, // seconds
-      botUsername: process.env.TELEGRAM_BOT_USERNAME || 'AnatomiaBot'
+      botUsername,
     })
   } catch (error) {
     console.error('Error generating link code:', error)
