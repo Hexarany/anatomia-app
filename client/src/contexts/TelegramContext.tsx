@@ -55,9 +55,26 @@ export const TelegramProvider = ({ children }: TelegramProviderProps) => {
       tg.ready()
       tg.expand()
 
-      // Set theme
-      tg.setHeaderColor('#1976d2')
-      tg.setBackgroundColor('#ffffff')
+      const applyThemeParams = () => {
+        if (!tg.themeParams) return
+        const nextParams = {
+          bg_color: tg.themeParams.bg_color,
+          text_color: tg.themeParams.text_color,
+          hint_color: tg.themeParams.hint_color,
+          link_color: tg.themeParams.link_color,
+          button_color: tg.themeParams.button_color,
+          button_text_color: tg.themeParams.button_text_color,
+          secondary_bg_color: tg.themeParams.secondary_bg_color
+        }
+        setThemeParams(nextParams)
+
+        if (nextParams.bg_color) {
+          tg.setBackgroundColor(nextParams.bg_color)
+        }
+        if (nextParams.secondary_bg_color || nextParams.bg_color) {
+          tg.setHeaderColor(nextParams.secondary_bg_color || nextParams.bg_color)
+        }
+      }
 
       // Get user data
       if (tg.initDataUnsafe?.user) {
@@ -70,29 +87,24 @@ export const TelegramProvider = ({ children }: TelegramProviderProps) => {
         })
       }
 
-      // Get theme params
-      if (tg.themeParams) {
-        setThemeParams({
-          bg_color: tg.themeParams.bg_color,
-          text_color: tg.themeParams.text_color,
-          hint_color: tg.themeParams.hint_color,
-          link_color: tg.themeParams.link_color,
-          button_color: tg.themeParams.button_color,
-          button_text_color: tg.themeParams.button_text_color,
-          secondary_bg_color: tg.themeParams.secondary_bg_color
-        })
-      }
+      applyThemeParams()
+      tg.onEvent('themeChanged', applyThemeParams)
 
       setWebApp(tg)
       setIsInTelegram(true)
 
-      console.log('🤖 Telegram WebApp initialized', {
+      console.log('Telegram WebApp initialized', {
         platform: tg.platform,
         version: tg.version,
         user: tg.initDataUnsafe?.user
       })
+
+      setReady(true)
+      return () => {
+        tg.offEvent('themeChanged', applyThemeParams)
+      }
     } else {
-      console.log('🌐 Running in regular browser')
+      console.log('Running in regular browser')
     }
 
     setReady(true)

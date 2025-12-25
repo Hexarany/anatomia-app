@@ -243,8 +243,8 @@ const TopicPage = () => {
                   }}
                 >
                   {isCompleted
-                    ? (lang === 'ru' ? '?????????' : 'Finalizat')
-                    : (lang === 'ru' ? '????????? ????' : 'Finalizeaz? tema')
+                    ? (lang === 'ru' ? 'ÐÐ°Ð²ÐµÑÑÐµÐ½Ð¾' : 'Finalizat')
+                    : (lang === 'ru' ? 'ÐÐ°Ð²ÐµÑÑÐ¸ÑÑ ÑÐµÐ¼Ñ' : 'FinalizeazÄ tema')
                   }
                 </Button>
               )}

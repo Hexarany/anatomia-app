@@ -38,19 +38,42 @@ export const ThemeContextProvider: React.FC<ThemeProviderProps> = ({ children })
   }
 
   const [mode, setMode] = useState<ThemeMode>(getInitialTheme)
+  const [manualOverride, setManualOverride] = useState(() => localStorage.getItem('themeModeOverride') === '1')
 
   // Save theme preference to localStorage
   useEffect(() => {
     localStorage.setItem('themeMode', mode)
   }, [mode])
 
+  useEffect(() => {
+    if (manualOverride) {
+      localStorage.setItem('themeModeOverride', '1')
+    } else {
+      localStorage.removeItem('themeModeOverride')
+    }
+  }, [manualOverride])
+
+  useEffect(() => {
+    if (!isInTelegram || !themeParams || manualOverride) {
+      return
+    }
+    const isDark = themeParams.bg_color?.startsWith('#0') ||
+      themeParams.bg_color?.startsWith('#1') ||
+      themeParams.bg_color?.startsWith('#2')
+    const nextMode: ThemeMode = isDark ? 'dark' : 'light'
+    if (nextMode !== mode) {
+      setMode(nextMode)
+    }
+  }, [isInTelegram, themeParams, manualOverride, mode])
+
   const toggleTheme = () => {
+    setManualOverride(true)
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'))
   }
 
   const theme = useMemo(() => {
     // Use Telegram theme colors if running in Telegram
-    if (isInTelegram && themeParams) {
+    if (isInTelegram && themeParams && !manualOverride) {
       // Determine if theme is dark based on background color
       const isDark = themeParams.bg_color?.startsWith('#0') ||
                      themeParams.bg_color?.startsWith('#1') ||
@@ -210,7 +233,7 @@ export const ThemeContextProvider: React.FC<ThemeProviderProps> = ({ children })
         },
       },
     })
-  }, [mode, isInTelegram, themeParams])
+  }, [mode, isInTelegram, themeParams, manualOverride])
 
   return (
     <ThemeContext.Provider value={{ mode, toggleTheme }}>
