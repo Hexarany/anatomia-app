@@ -156,7 +156,7 @@ const MediaManager = () => {
           ref={fileInputRef}
           hidden
           onChange={handleFileChange}
-          accept="image/*,.glb,.mp4"
+          accept="image/*,video/*,.glb,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
         />
         <Button
           variant="contained"
@@ -168,7 +168,7 @@ const MediaManager = () => {
           {isUploading ? 'Загрузка...' : 'Выбрать файл для загрузки'}
         </Button>
         <Typography variant="caption" sx={{ mt: 1 }}>
-            Макс. 10MB. Поддерживаются изображения, видео (.mp4), 3D-модели (.glb)
+            Макс. 10MB. Поддерживаются изображения, видео, 3D-модели (.glb), документы (PDF, Word, Excel, PowerPoint), архивы
         </Typography>
       </Paper>
 
