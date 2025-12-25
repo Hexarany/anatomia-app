@@ -73,17 +73,21 @@ const getCloudinaryResourceType = (mimetype?: string) => {
   return 'raw'
 }
 
-const getCloudinarySignedUrl = (publicId?: string, mimetype?: string) => {
-  if (!publicId) return null
-  return cloudinary.url(publicId, {
-    resource_type: getCloudinaryResourceType(mimetype),
-    type: 'upload',
-    secure: true,
-    sign_url: true,
-  })
+const getCloudinarySignedUrls = (publicId?: string, mimetype?: string) => {
+  if (!publicId) return []
+  const resourceType = getCloudinaryResourceType(mimetype)
+  const deliveryTypes = ['upload', 'authenticated', 'private'] as const
+  return deliveryTypes.map((type) =>
+    cloudinary.url(publicId, {
+      resource_type: resourceType,
+      type,
+      secure: true,
+      sign_url: true,
+    })
+  )
 }
 
-const downloadFileBuffer = async (url: string, fallbackUrl?: string) => {
+const downloadFileBuffer = async (url: string, fallbackUrls: string[] = []) => {
   const tryFetch = async (target: string) => {
     const response = await fetch(target)
     if (!response.ok) {
@@ -93,14 +97,20 @@ const downloadFileBuffer = async (url: string, fallbackUrl?: string) => {
     return Buffer.from(arrayBuffer)
   }
 
-  try {
-    return await tryFetch(url)
-  } catch (error) {
-    if (fallbackUrl && fallbackUrl !== url) {
-      return await tryFetch(fallbackUrl)
+  const candidates = [url, ...fallbackUrls].filter((candidate, index, array) => {
+    return candidate && array.indexOf(candidate) === index
+  })
+
+  let lastError: any
+  for (const candidate of candidates) {
+    try {
+      return await tryFetch(candidate)
+    } catch (error) {
+      lastError = error
     }
-    throw error
   }
+
+  throw lastError
 }
 
 const buildCaption = (
@@ -140,7 +150,7 @@ export class TelegramFileService {
     try {
       const resolvedUrl = resolveMediaUrl(fileUrl)
       const resolvedFilename = filename || getFilenameFromUrl(resolvedUrl, 'document')
-      const signedUrl = getCloudinarySignedUrl(cloudinaryPublicId, mimetype) || undefined
+      const signedUrls = getCloudinarySignedUrls(cloudinaryPublicId, mimetype)
       const user = await User.findById(userId)
 
       if (!user?.telegramId) {
@@ -160,7 +170,7 @@ export class TelegramFileService {
           caption,
         })
       } else {
-        const fileBuffer = await downloadFileBuffer(resolvedUrl, signedUrl)
+        const fileBuffer = await downloadFileBuffer(resolvedUrl, signedUrls)
         result = await bot.telegram.sendDocument(user.telegramId, {
           source: fileBuffer,
           filename: resolvedFilename,
@@ -334,7 +344,7 @@ export class TelegramFileService {
       const media = groupFile.media as any
       const resolvedUrl = resolveMediaUrl(media.url)
       const resolvedFilename = media.originalName || getFilenameFromUrl(resolvedUrl, 'document')
-      const signedUrl = getCloudinarySignedUrl(media.cloudinaryPublicId, media.mimetype) || undefined
+      const signedUrls = getCloudinarySignedUrls(media.cloudinaryPublicId, media.mimetype)
       const caption = buildCaption('ru', groupFile.title, groupFile.description, media)
 
       let result
@@ -347,7 +357,7 @@ export class TelegramFileService {
           caption,
         })
       } else {
-        const fileBuffer = await downloadFileBuffer(resolvedUrl, signedUrl)
+        const fileBuffer = await downloadFileBuffer(resolvedUrl, signedUrls)
         result = await bot.telegram.sendDocument(chatId, {
           source: fileBuffer,
           filename: resolvedFilename,
