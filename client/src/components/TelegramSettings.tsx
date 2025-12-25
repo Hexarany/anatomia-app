@@ -26,6 +26,7 @@ const TelegramSettings = () => {
   const { token } = useAuth()
   const [status, setStatus] = useState<any>(null)
   const [linkCode, setLinkCode] = useState<string | null>(null)
+  const [botUsername, setBotUsername] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' })
 
@@ -49,6 +50,7 @@ const TelegramSettings = () => {
     try {
       const data = await generateTelegramLinkCode(token)
       setLinkCode(data.code)
+      setBotUsername(data.botUsername || null)
       showSnackbar('Код сгенерирован! Действителен 15 минут.', 'success')
     } catch (error) {
       showSnackbar('Ошибка при генерации кода', 'error')
@@ -65,6 +67,7 @@ const TelegramSettings = () => {
       showSnackbar('Telegram аккаунт отвязан', 'success')
       loadStatus()
       setLinkCode(null)
+      setBotUsername(null)
     } catch (error) {
       showSnackbar('Ошибка при отвязке', 'error')
     } finally {
@@ -189,7 +192,7 @@ const TelegramSettings = () => {
                   <Typography variant="body2" sx={{ mt: 2 }}>
                     1. Откройте Telegram
                     <br />
-                    2. Найдите @AnatomiaBot
+                    2. Найдите @{botUsername || 'AnatomiaBot'}
                     <br />
                     3. Отправьте команду: /start {linkCode}
                     <br />
