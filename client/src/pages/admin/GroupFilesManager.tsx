@@ -387,15 +387,19 @@ const GroupFilesManager = () => {
                         {new Date(file.createdAt).toLocaleString('ru-RU')}
                       </TableCell>
                       <TableCell>
-                        {delivered}/{total}
-                        {failedCount > 0 && (
-                          <Chip
-                            label={`${failedCount} ошибок`}
-                            color="error"
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                        )}
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          <Typography variant="body2">Students: {delivered}/{total}</Typography>
+                          <Typography variant="body2">
+                            Group: {file.sentToTelegramGroup ? 'sent' : 'not sent'}
+                          </Typography>
+                          {failedCount > 0 && (
+                            <Chip
+                              label={`${failedCount} student errors`}
+                              color={file.sentToTelegramGroup ? 'warning' : 'error'}
+                              size="small"
+                            />
+                          )}
+                        </Box>
                       </TableCell>
                       <TableCell>
                         <IconButton onClick={() => handleViewDetails(file)} size="small">
@@ -511,6 +515,9 @@ const GroupFilesManager = () => {
                   {detailsDialog.description || 'Не указано'}
                 </Typography>
                 <Typography variant="body2">
+                  <strong>Group delivery:</strong> {detailsDialog.sentToTelegramGroup ? 'sent' : 'not sent'}
+                </Typography>
+                <Typography variant="body2">
                   <strong>Дата отправки:</strong>{' '}
                   {new Date(detailsDialog.createdAt).toLocaleString('ru-RU')}
                 </Typography>
@@ -520,31 +527,33 @@ const GroupFilesManager = () => {
                 Статусы доставки:
               </Typography>
               <List>
-                {detailsDialog.deliveryStatus.map((delivery: any, idx: number) => (
-                  <ListItem key={idx}>
-                    <ListItemText
-                      primary={
-                        delivery.student?.firstName +
-                        ' ' +
-                        delivery.student?.lastName
-                      }
-                      secondary={
-                        delivery.delivered
-                          ? `Доставлено ${new Date(
+                {detailsDialog.deliveryStatus.map((delivery: any, idx: number) => {
+                  const studentName = [delivery.student?.firstName, delivery.student?.lastName]
+                    .filter(Boolean)
+                    .join(' ')
+                  const displayName = studentName || delivery.student?.email || 'Unknown user'
+                  return (
+                    <ListItem key={idx}>
+                      <ListItemText
+                        primary={displayName}
+                        secondary={
+                          delivery.delivered
+                            ? `Доставлено ${new Date(
                               delivery.deliveredAt
                             ).toLocaleString('ru-RU')}`
-                          : delivery.error || 'Не доставлено'
-                      }
-                    />
-                    <ListItemSecondaryAction>
-                      <Chip
-                        label={delivery.delivered ? 'Доставлено' : 'Ошибка'}
-                        color={delivery.delivered ? 'success' : 'error'}
-                        size="small"
+                            : delivery.error || 'Не доставлено'
+                        }
                       />
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
+                      <ListItemSecondaryAction>
+                        <Chip
+                          label={delivery.delivered ? 'Доставлено' : 'Ошибка'}
+                          color={delivery.delivered ? 'success' : 'error'}
+                          size="small"
+                        />
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  )
+                })}
               </List>
             </DialogContent>
             <DialogActions>

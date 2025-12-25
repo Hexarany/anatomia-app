@@ -7,6 +7,53 @@ import { escapeMarkdown, resolveTelegramLang, t } from './i18n'
 
 const getUserLang = (user?: any) => resolveTelegramLang(user?.telegramLanguage)
 
+const normalizeBaseUrl = (value?: string | null) => {
+  if (!value) return null
+  let base = value.trim()
+  if (!base) return null
+  if (!/^https?:\/\//i.test(base)) {
+    base = `https://${base}`
+  }
+  return base.replace(/\/$/, '')
+}
+
+const getPublicBaseUrl = () => {
+  const clientUrls = process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(',').map((url) => url.trim()).filter(Boolean)
+    : []
+  const clientUrl = clientUrls.find((url) => url.startsWith('https://')) || clientUrls[0]
+  let webhookOrigin: string | null = null
+  if (process.env.TELEGRAM_WEBHOOK_URL) {
+    try {
+      webhookOrigin = new URL(process.env.TELEGRAM_WEBHOOK_URL).origin
+    } catch {
+      webhookOrigin = null
+    }
+  }
+  return (
+    normalizeBaseUrl(process.env.PUBLIC_URL) ||
+    normalizeBaseUrl(clientUrl) ||
+    normalizeBaseUrl(process.env.TELEGRAM_WEBHOOK_DOMAIN) ||
+    normalizeBaseUrl(webhookOrigin)
+  )
+}
+
+const resolveMediaUrl = (url: string) => {
+  if (!url) return url
+  const baseUrl = getPublicBaseUrl()
+
+  if (/^https?:\/\//i.test(url)) {
+    if (baseUrl && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(url)) {
+      return url.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, baseUrl)
+    }
+    return url
+  }
+
+  if (!baseUrl) return url
+  const path = url.startsWith('/') ? url : `/${url}`
+  return `${baseUrl}${path}`
+}
+
 const buildCaption = (lang: 'ru' | 'ro', title?: string, description?: string, media?: any) => {
   const lines: string[] = []
 
@@ -32,6 +79,7 @@ export class TelegramFileService {
     mimetype?: string
   ): Promise<{ success: boolean; error?: string; messageId?: number }> {
     try {
+      const resolvedUrl = resolveMediaUrl(fileUrl)
       const user = await User.findById(userId)
 
       if (!user?.telegramId) {
@@ -43,17 +91,17 @@ export class TelegramFileService {
 
       let result
       if (mimetype?.startsWith('image/')) {
-        result = await bot.telegram.sendPhoto(user.telegramId, fileUrl, {
+        result = await bot.telegram.sendPhoto(user.telegramId, resolvedUrl, {
           caption,
           parse_mode: 'Markdown',
         })
       } else if (mimetype?.startsWith('video/')) {
-        result = await bot.telegram.sendVideo(user.telegramId, fileUrl, {
+        result = await bot.telegram.sendVideo(user.telegramId, resolvedUrl, {
           caption,
           parse_mode: 'Markdown',
         })
       } else {
-        result = await bot.telegram.sendDocument(user.telegramId, fileUrl, {
+        result = await bot.telegram.sendDocument(user.telegramId, resolvedUrl, {
           caption,
           parse_mode: 'Markdown',
         })
@@ -218,21 +266,22 @@ export class TelegramFileService {
       }
 
       const media = groupFile.media as any
+      const resolvedUrl = resolveMediaUrl(media.url)
       const caption = buildCaption('ru', groupFile.title, groupFile.description, media)
 
       let result
       if (media.mimetype?.startsWith('image/')) {
-        result = await bot.telegram.sendPhoto(chatId, media.url, {
+        result = await bot.telegram.sendPhoto(chatId, resolvedUrl, {
           caption,
           parse_mode: 'Markdown',
         })
       } else if (media.mimetype?.startsWith('video/')) {
-        result = await bot.telegram.sendVideo(chatId, media.url, {
+        result = await bot.telegram.sendVideo(chatId, resolvedUrl, {
           caption,
           parse_mode: 'Markdown',
         })
       } else {
-        result = await bot.telegram.sendDocument(chatId, media.url, {
+        result = await bot.telegram.sendDocument(chatId, resolvedUrl, {
           caption,
           parse_mode: 'Markdown',
         })
