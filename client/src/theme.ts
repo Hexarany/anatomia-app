@@ -21,20 +21,52 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     h1: {
-      fontSize: '2.5rem',
+      fontSize: '1.75rem',
       fontWeight: 600,
+      lineHeight: 1.2,
+      '@media (min-width:600px)': {
+        fontSize: '2.5rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '3rem',
+      },
     },
     h2: {
-      fontSize: '2rem',
+      fontSize: '1.5rem',
       fontWeight: 600,
+      lineHeight: 1.3,
+      '@media (min-width:600px)': {
+        fontSize: '2rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '2.5rem',
+      },
     },
     h3: {
-      fontSize: '1.75rem',
-      fontWeight: 500,
+      fontSize: '1.25rem',
+      fontWeight: 600,
+      '@media (min-width:600px)': {
+        fontSize: '1.5rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.75rem',
+      },
     },
     h4: {
-      fontSize: '1.5rem',
-      fontWeight: 500,
+      fontSize: '1.1rem',
+      fontWeight: 600,
+      '@media (min-width:600px)': {
+        fontSize: '1.25rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.5rem',
+      },
+    },
+    body1: {
+      fontSize: '0.875rem',
+      '@media (min-width:600px)': {
+        fontSize: '1rem',
+      },
     },
   },
   shape: {
