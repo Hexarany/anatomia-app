@@ -685,25 +685,37 @@ const UsersManager = () => {
       </TableContainer>
 
       {/* Диалог редактирования */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Редактировать пользователя</DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 2 }}>
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={false}
+        PaperProps={{
+          sx: {
+            maxHeight: { xs: '100vh', sm: 'calc(100vh - 64px)' },
+            m: { xs: 0, sm: 2 },
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: { xs: 1, sm: 2 } }}>Редактировать пользователя</DialogTitle>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+          <Box sx={{ pt: { xs: 1, sm: 2 }, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
             <TextField
               fullWidth
               label="Имя"
               value={editFormData.firstName}
               onChange={(e) => setEditFormData({ ...editFormData, firstName: e.target.value })}
-              sx={{ mb: 2 }}
+              size="small"
             />
             <TextField
               fullWidth
               label="Фамилия"
               value={editFormData.lastName}
               onChange={(e) => setEditFormData({ ...editFormData, lastName: e.target.value })}
-              sx={{ mb: 2 }}
+              size="small"
             />
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl fullWidth size="small">
               <InputLabel>Роль</InputLabel>
               <Select
                 value={editFormData.role}
@@ -720,7 +732,7 @@ const UsersManager = () => {
                 <MenuItem value="admin">Админ</MenuItem>
               </Select>
             </FormControl>
-            <FormControl fullWidth>
+            <FormControl fullWidth size="small">
               <InputLabel>Уровень доступа</InputLabel>
               <Select
                 value={editFormData.accessLevel}
@@ -737,7 +749,7 @@ const UsersManager = () => {
                 <MenuItem value="premium">Premium</MenuItem>
               </Select>
             </FormControl>
-            <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
+            <FormControl fullWidth size="small">
               <InputLabel>Статус подписки</InputLabel>
               <Select
                 value={editFormData.subscriptionStatus}
@@ -763,7 +775,7 @@ const UsersManager = () => {
               value={editFormData.subscriptionEndDate}
               onChange={(e) => setEditFormData({ ...editFormData, subscriptionEndDate: e.target.value })}
               InputLabelProps={{ shrink: true }}
-              sx={{ mb: 2 }}
+              size="small"
             />
             <TextField
               fullWidth
@@ -771,7 +783,7 @@ const UsersManager = () => {
               label="Сумма оплаты"
               value={editFormData.paymentAmount}
               onChange={(e) => setEditFormData({ ...editFormData, paymentAmount: e.target.value })}
-              sx={{ mb: 2 }}
+              size="small"
             />
             <TextField
               fullWidth
@@ -780,22 +792,35 @@ const UsersManager = () => {
               value={editFormData.paymentDate}
               onChange={(e) => setEditFormData({ ...editFormData, paymentDate: e.target.value })}
               InputLabelProps={{ shrink: true }}
+              size="small"
             />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Отмена</Button>
-          <Button onClick={handleSaveUser} variant="contained">
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, gap: 1 }}>
+          <Button onClick={() => setEditDialogOpen(false)} sx={{ minHeight: 40 }}>
+            Отмена
+          </Button>
+          <Button onClick={handleSaveUser} variant="contained" sx={{ minHeight: 40 }}>
             Сохранить
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Диалог удаления */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Подтвердите удаление</DialogTitle>
-        <DialogContent>
-          <Typography>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            m: { xs: 2, sm: 3 },
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: { xs: 1, sm: 2 } }}>Подтвердите удаление</DialogTitle>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
             Вы уверены, что хотите удалить пользователя{' '}
             <strong>
               {userToDelete?.firstName} {userToDelete?.lastName}
@@ -803,9 +828,11 @@ const UsersManager = () => {
             ? Это действие необратимо.
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Отмена</Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, gap: 1 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ minHeight: 40 }}>
+            Отмена
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained" sx={{ minHeight: 40 }}>
             Удалить
           </Button>
         </DialogActions>

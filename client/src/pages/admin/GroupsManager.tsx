@@ -384,18 +384,30 @@ const GroupsManager = () => {
       </TableContainer>
 
       {/* Dialog для создания/редактирования группы */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: { xs: '100vh', sm: 'calc(100vh - 64px)' },
+            m: { xs: 0, sm: 2 },
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: { xs: 1, sm: 2 } }}>
           {editingGroup ? 'Редактировать группу' : 'Создать группу'}
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 }, mt: { xs: 1, sm: 2 } }}>
             <TextField
               label="Название (RU)"
               value={formData.name.ru}
               onChange={(e) => setFormData({ ...formData, name: { ...formData.name, ru: e.target.value } })}
               fullWidth
               required
+              size="small"
             />
             <TextField
               label="Название (RO)"
@@ -403,6 +415,7 @@ const GroupsManager = () => {
               onChange={(e) => setFormData({ ...formData, name: { ...formData.name, ro: e.target.value } })}
               fullWidth
               required
+              size="small"
             />
             <TextField
               label="Описание (RU)"
@@ -417,6 +430,7 @@ const GroupsManager = () => {
               fullWidth
               multiline
               rows={2}
+              size="small"
             />
             <TextField
               label="Описание (RO)"
@@ -431,8 +445,9 @@ const GroupsManager = () => {
               fullWidth
               multiline
               rows={2}
+              size="small"
             />
-            <FormControl fullWidth required>
+            <FormControl fullWidth required size="small">
               <InputLabel>Преподаватель</InputLabel>
               <Select
                 value={formData.teacher}
@@ -454,6 +469,7 @@ const GroupsManager = () => {
               fullWidth
               required
               InputLabelProps={{ shrink: true }}
+              size="small"
             />
             <TextField
               label="Дата окончания (опционально)"
@@ -462,6 +478,7 @@ const GroupsManager = () => {
               onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              size="small"
             />
             <FormControlLabel
               control={
@@ -474,54 +491,69 @@ const GroupsManager = () => {
             />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Отмена</Button>
-          <Button onClick={handleSave} variant="contained">
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, gap: 1 }}>
+          <Button onClick={handleCloseDialog} sx={{ minHeight: 40 }}>Отмена</Button>
+          <Button onClick={handleSave} variant="contained" sx={{ minHeight: 40 }}>
             {editingGroup ? 'Сохранить' : 'Создать'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Dialog для управления студентами */}
-      <Dialog open={openStudentsDialog} onClose={handleCloseStudentsDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog
+        open={openStudentsDialog}
+        onClose={handleCloseStudentsDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: { xs: '100vh', sm: 'calc(100vh - 64px)' },
+            m: { xs: 0, sm: 2 },
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: { xs: 1, sm: 2 } }}>
           Управление студентами: {managingGroup?.name.ru}
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="h6" gutterBottom>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+          <Box sx={{ mt: { xs: 1, sm: 2 } }}>
+            <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
               Текущие студенты ({managingGroup?.students.length || 0})
             </Typography>
             {managingGroup && managingGroup.students.length > 0 ? (
-              <List>
+              <List sx={{ '& .MuiListItem-root': { px: { xs: 1, sm: 2 } } }}>
                 {managingGroup.students.map((student) => (
                   <ListItem key={student._id}>
                     <ListItemText
                       primary={getStudentName(student)}
                       secondary={student.email}
+                      primaryTypographyProps={{ sx: { fontSize: { xs: '0.875rem', sm: '1rem' } } }}
+                      secondaryTypographyProps={{ sx: { fontSize: { xs: '0.75rem', sm: '0.875rem' } } }}
                     />
                     <ListItemSecondaryAction>
                       <IconButton
                         edge="end"
                         onClick={() => handleRemoveStudent(managingGroup._id, student._id, getStudentName(student))}
+                        size="small"
+                        sx={{ p: { xs: 0.5, sm: 1 } }}
                       >
-                        <DeleteIcon color="error" />
+                        <DeleteIcon color="error" sx={{ fontSize: { xs: 20, sm: 24 } }} />
                       </IconButton>
                     </ListItemSecondaryAction>
                   </ListItem>
                 ))}
               </List>
             ) : (
-              <Typography color="text.secondary" sx={{ py: 2 }}>
+              <Typography color="text.secondary" sx={{ py: 2, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                 В группе пока нет студентов
               </Typography>
             )}
 
-            <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ mt: 3, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
               Добавить студентов
             </Typography>
             {getAvailableStudents().length > 0 ? (
-              <FormControl fullWidth>
+              <FormControl fullWidth size="small">
                 <InputLabel>Выберите студентов</InputLabel>
                 <Select
                   multiple
@@ -547,16 +579,16 @@ const GroupsManager = () => {
                 </Select>
               </FormControl>
             ) : (
-              <Typography color="text.secondary">
+              <Typography color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                 Все студенты уже добавлены в группу
               </Typography>
             )}
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseStudentsDialog}>Закрыть</Button>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, gap: 1 }}>
+          <Button onClick={handleCloseStudentsDialog} sx={{ minHeight: 40 }}>Закрыть</Button>
           {selectedStudentsToAdd.length > 0 && (
-            <Button onClick={handleAddStudents} variant="contained">
+            <Button onClick={handleAddStudents} variant="contained" sx={{ minHeight: 40 }}>
               Добавить ({selectedStudentsToAdd.length})
             </Button>
           )}
