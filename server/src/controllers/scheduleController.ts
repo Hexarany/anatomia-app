@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import Schedule from '../models/Schedule'
 import Group from '../models/Group'
+import User from '../models/User'
 
 /**
  * Получить расписание группы
@@ -34,6 +35,47 @@ export const getGroupSchedule = async (req: Request, res: Response) => {
     res.json(schedule)
   } catch (error) {
     console.error('Error fetching group schedule:', error)
+    res
+      .status(500)
+      .json({ error: { message: 'Ошибка при получении расписания' } })
+  }
+}
+
+/**
+ * Получить расписание текущего пользователя (все его группы)
+ */
+export const getMySchedule = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId
+    const userRole = (req as any).userRole
+
+    // Находим группы пользователя
+    const groupQuery: any = { isActive: true }
+    if (userRole !== 'admin') {
+      groupQuery.$or = [{ students: userId }, { teacher: userId }]
+    }
+
+    const groups = await Group.find(groupQuery).select('_id name')
+    if (groups.length === 0) {
+      return res.json([]) // Пустой массив если нет групп
+    }
+
+    const groupIds = groups.map((group) => group._id)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
+    // Получаем расписание всех групп пользователя
+    const schedule = await Schedule.find({
+      group: { $in: groupIds },
+      date: { $gte: sevenDaysAgo },
+    })
+      .populate('group', 'name')
+      .populate('topic', 'name description')
+      .sort({ date: -1 })
+      .limit(15)
+
+    res.json(schedule)
+  } catch (error) {
+    console.error('Error fetching user schedule:', error)
     res
       .status(500)
       .json({ error: { message: 'Ошибка при получении расписания' } })

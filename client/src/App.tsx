@@ -38,6 +38,7 @@ import NotificationsPage from './pages/NotificationsPage'
 import AssignmentsPage from './pages/AssignmentsPage'
 import MyGroupsPage from './pages/MyGroupsPage'
 import GradesPage from './pages/GradesPage'
+import SchedulePage from './pages/SchedulePage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -63,6 +64,7 @@ function App() {
             <Route path="/assignments" element={<AssignmentsPage />} />
             <Route path="/my-groups" element={<MyGroupsPage />} />
             <Route path="/grades" element={<GradesPage />} />
+            <Route path="/schedule" element={<SchedulePage />} />
             <Route path="/subscription" element={<SubscriptionPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/payment-callback" element={<PaymentCallbackPage />} />

@@ -2,6 +2,7 @@ import express from 'express'
 import {
   getGroupSchedule,
   getScheduleById,
+  getMySchedule,
   createSchedule,
   updateSchedule,
   deleteSchedule,
@@ -13,6 +14,12 @@ const router = express.Router()
 
 // Все роуты требуют авторизации
 router.use(authenticateToken)
+
+/**
+ * GET /api/schedule/my
+ * Получить расписание текущего пользователя (все его группы)
+ */
+router.get('/my', getMySchedule)
 
 /**
  * GET /api/schedule/group/:groupId

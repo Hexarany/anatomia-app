@@ -609,6 +609,16 @@ const Navbar = () => {
                       <MenuItem
                         onClick={() => {
                           handleCloseUserMenu()
+                          navigate('/schedule')
+                        }}
+                      >
+                        <Typography textAlign="center">
+                          {i18n.language === 'ru' ? '📅 Расписание' : '📅 Orar'}
+                        </Typography>
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() => {
+                          handleCloseUserMenu()
                           navigate('/grades')
                         }}
                       >
@@ -619,16 +629,28 @@ const Navbar = () => {
                     </>
                   )}
                   {(user?.role === 'admin' || user?.role === 'teacher') && (
-                    <MenuItem
-                      onClick={() => {
-                        handleCloseUserMenu()
-                        navigate('/admin?tab=10')
-                      }}
-                    >
-                      <Typography textAlign="center">
-                        {i18n.language === 'ru' ? '👥 Группы' : '👥 Grupuri'}
-                      </Typography>
-                    </MenuItem>
+                    <>
+                      <MenuItem
+                        onClick={() => {
+                          handleCloseUserMenu()
+                          navigate('/schedule')
+                        }}
+                      >
+                        <Typography textAlign="center">
+                          {i18n.language === 'ru' ? '📅 Расписание' : '📅 Orar'}
+                        </Typography>
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() => {
+                          handleCloseUserMenu()
+                          navigate('/admin?tab=10')
+                        }}
+                      >
+                        <Typography textAlign="center">
+                          {i18n.language === 'ru' ? '👥 Группы' : '👥 Grupuri'}
+                        </Typography>
+                      </MenuItem>
+                    </>
                   )}
                   <MenuItem
                     onClick={() => {

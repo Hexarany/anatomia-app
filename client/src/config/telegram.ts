@@ -1,4 +1,4 @@
-const DEFAULT_TELEGRAM_BOT_USERNAME = 'MateevMassageBot'
+const DEFAULT_TELEGRAM_BOT_USERNAME = 'mateevmassage_bot'
 
 const TELEGRAM_BOT_USERNAME =
   (import.meta.env.VITE_TELEGRAM_BOT_USERNAME as string | undefined) ||
