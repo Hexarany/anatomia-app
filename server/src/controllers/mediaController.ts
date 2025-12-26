@@ -4,6 +4,8 @@ import { v2 as cloudinary } from 'cloudinary'
 import { Readable } from 'stream'
 import { slugify } from 'transliteration'
 import Media from '../models/Media'
+import fs from 'fs'
+import path from 'path'
 
 // Используем multer для временного хранения в памяти
 const storage = multer.memoryStorage()
@@ -115,56 +117,86 @@ const uploadToCloudinary = (buffer: Buffer, filename: string, mimetype: string):
   })
 }
 
+// Функция для сохранения файла локально
+const saveFileLocally = async (buffer: Buffer, filename: string, mimetype: string): Promise<{ url: string; filename: string }> => {
+  const uploadsDir = process.env.UPLOAD_PATH || './uploads'
+
+  // Создаем директорию если не существует
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true })
+  }
+
+  // Генерируем уникальное имя
+  const basename = filename.substring(0, filename.lastIndexOf('.')) || filename
+  const extension = filename.substring(filename.lastIndexOf('.')) || ''
+  const transliteratedName = slugify(basename, {
+    lowercase: true,
+    separator: '-'
+  })
+  const finalName = transliteratedName && transliteratedName.length > 2
+    ? transliteratedName
+    : 'file'
+  const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+  const uniqueFilename = `${finalName}-${uniqueSuffix}${extension}`
+
+  const filePath = path.join(uploadsDir, uniqueFilename)
+
+  // Сохраняем файл
+  fs.writeFileSync(filePath, buffer)
+
+  // Генерируем URL
+  const fileUrl = `/uploads/${uniqueFilename}`
+
+  console.log('[Upload] File saved locally:', filePath)
+
+  return {
+    url: fileUrl,
+    filename: uniqueFilename
+  }
+}
+
 export const uploadMedia = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: { message: 'Файл не был предоставлен' } })
     }
 
-    // Загружаем в Cloudinary
-    const result = await uploadToCloudinary(
+    // Все файлы сохраняем локально
+    console.log('[Upload] Saving file locally:', req.file.originalname)
+    const localResult = await saveFileLocally(
       req.file.buffer,
       req.file.originalname,
       req.file.mimetype
     )
-
-    // Generate public URL for Cloudinary files
-    // For raw files, use unsigned delivery to make them publicly accessible
-    let publicUrl = result.secure_url
-    if (result.resource_type === 'raw') {
-      // Use Cloudinary's public URL format without signature
-      const publicId = result.public_id
-      publicUrl = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/${publicId}`
-      console.log('[Upload] Generated public URL for raw file:', publicUrl)
-    }
+    const fileUrl = localResult.url
+    const storedFilename = localResult.filename
 
     // Сохраняем информацию в базу данных
     const media = new Media({
-      filename: result.public_id,
+      filename: storedFilename,
       originalName: req.file.originalname,
       mimetype: req.file.mimetype,
       size: req.file.size,
-      url: publicUrl,
+      url: fileUrl,
       uploadedBy: (req as any).userId,
-      cloudinaryPublicId: result.public_id,
     })
 
     await media.save()
 
     const fileInfo = {
-      url: publicUrl,
-      filename: result.public_id,
+      url: fileUrl,
+      filename: storedFilename,
       originalName: req.file.originalname,
       mimetype: req.file.mimetype,
       size: req.file.size,
-      message: 'Файл успешно загружен в Cloudinary',
+      message: 'Файл успешно загружен на сервер',
     }
 
     res.status(200).json(fileInfo)
   } catch (error: any) {
-    console.error('Error uploading file to Cloudinary:', error)
+    console.error('Error uploading file:', error)
 
-    // Проверяем, является ли ошибка ограничением размера файла Cloudinary
+    // Проверяем, является ли ошибка ограничением размера файла
     if (error.message && error.message.includes('File size too large')) {
       const maxSizeMB = 10
       return res.status(400).json({
@@ -188,49 +220,37 @@ export const deleteMedia = async (req: Request, res: Response) => {
       return res.status(404).json({ error: { message: 'Файл не найден' } })
     }
 
-    // Определяем тип ресурса для удаления
-    const mimetype = media.mimetype || ''
-    const originalName = media.originalName || ''
-    const originalNameLower = originalName.toLowerCase()
-    const cloudinaryId = media.cloudinaryPublicId || media.filename || ''
-    const isRawId = cloudinaryId.includes('/raws/')
-    const isVideoId = cloudinaryId.includes('/videos/')
+    // Удаляем локальный файл если URL начинается с /uploads
+    if (media.url && media.url.startsWith('/uploads/')) {
+      const uploadsDir = process.env.UPLOAD_PATH || './uploads'
+      const filename = media.url.replace('/uploads/', '')
+      const filePath = path.join(uploadsDir, filename)
 
-    let resourceType: 'image' | 'video' | 'raw' = 'image'
-    if (isVideoId || mimetype.startsWith('video/')) {
-      resourceType = 'video'
-    } else if (
-      isRawId ||
-      mimetype === 'application/octet-stream' ||
-      mimetype === 'model/gltf-binary' ||
-      mimetype === 'application/pdf' ||
-      mimetype.includes('document') ||
-      mimetype.includes('spreadsheet') ||
-      mimetype.includes('presentation') ||
-      mimetype === 'text/plain' ||
-      mimetype.includes('zip') ||
-      mimetype.includes('rar') ||
-      originalNameLower.endsWith('.glb') ||
-      originalNameLower.endsWith('.pdf') ||
-      originalNameLower.endsWith('.doc') ||
-      originalNameLower.endsWith('.docx') ||
-      originalNameLower.endsWith('.xls') ||
-      originalNameLower.endsWith('.xlsx') ||
-      originalNameLower.endsWith('.ppt') ||
-      originalNameLower.endsWith('.pptx') ||
-      originalNameLower.endsWith('.txt') ||
-      originalNameLower.endsWith('.zip') ||
-      originalNameLower.endsWith('.rar')
-    ) {
-      resourceType = 'raw'
+      try {
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath)
+          console.log('[Delete] Local file deleted:', filePath)
+        }
+      } catch (fileError) {
+        console.warn('Local file delete failed:', fileError)
+      }
     }
 
-    // Delete from Cloudinary
-    if (cloudinaryId) {
+    // Удаляем из Cloudinary если это старый файл
+    if (media.cloudinaryPublicId) {
       try {
-        await cloudinary.uploader.destroy(cloudinaryId, {
+        const mimetype = media.mimetype || ''
+        let resourceType: 'image' | 'video' | 'raw' = 'image'
+        if (mimetype.startsWith('video/')) {
+          resourceType = 'video'
+        } else if (!mimetype.startsWith('image/')) {
+          resourceType = 'raw'
+        }
+
+        await cloudinary.uploader.destroy(media.cloudinaryPublicId, {
           resource_type: resourceType
         })
+        console.log('[Delete] Cloudinary file deleted:', media.cloudinaryPublicId)
       } catch (cloudinaryError) {
         console.warn('Cloudinary delete failed:', cloudinaryError)
       }
@@ -241,7 +261,7 @@ export const deleteMedia = async (req: Request, res: Response) => {
 
     res.json({ message: `Файл ${media.originalName} успешно удален` })
   } catch (error) {
-    console.error('Error deleting file from Cloudinary:', error)
+    console.error('Error deleting file:', error)
     res.status(500).json({ error: { message: 'Ошибка при удалении файла' } })
   }
 }
