@@ -82,11 +82,11 @@ const PricingPage = () => {
       },
     },
     {
-      id: 'basic',
+      id: 'basic-monthly',
       name: { ru: 'Basic', ro: 'De bază' },
-      price: 20,
+      price: 9.99,
       currency: 'USD',
-      billing: { ru: '3 месяца', ro: '3 luni' },
+      billing: { ru: 'месяц', ro: 'lună' },
       features: {
         ru: [
           '4 протокола массажа: классический, баночный, антицеллюлитный, медовый',
@@ -103,28 +103,82 @@ const PricingPage = () => {
       },
     },
     {
-      id: 'premium',
-      name: { ru: 'Premium', ro: 'Premium' },
-      price: 50,
-      upgradeFromBasic: 30,
+      id: 'basic-quarterly',
+      name: { ru: 'Basic', ro: 'De bază' },
+      price: 24.99,
       currency: 'USD',
-      billing: { ru: 'год', ro: 'an' },
+      billing: { ru: '3 месяца', ro: '3 luni' },
       features: {
         ru: [
-          'Всё из Basic +',
-          'Все оставшиеся протоколы массажа',
+          'Всё из месячного Basic +',
+          'Экономия $5 (17%)',
+          '4 протокола массажа',
+          'Анатомические разделы',
+          'Гигиена',
+          'Сопровождение в Telegram',
+        ],
+        ro: [
+          'Tot din Basic lunar +',
+          'Economie $5 (17%)',
+          '4 protocoale de masaj',
+          'Secțiuni anatomice',
+          'Igienă',
+          'Suport în Telegram',
+        ],
+      },
+    },
+    {
+      id: 'premium-monthly',
+      name: { ru: 'Premium', ro: 'Premium' },
+      price: 29.99,
+      currency: 'USD',
+      billing: { ru: 'месяц', ro: 'lună' },
+      features: {
+        ru: [
+          'Все протоколы массажа',
           'Триггерные точки',
           'Тесты и викторины',
           '3D модели анатомии',
           'Полный доступ ко всему контенту',
+          'Приоритетная поддержка',
         ],
         ro: [
-          'Tot din Basic +',
-          'Toate protocoalele rămase de masaj',
+          'Toate protocoalele de masaj',
           'Puncte trigger',
           'Teste și chestionare',
           'Modele 3D de anatomie',
           'Acces complet la tot conținutul',
+          'Suport prioritar',
+        ],
+      },
+    },
+    {
+      id: 'premium-yearly',
+      name: { ru: 'Premium', ro: 'Premium' },
+      price: 99.99,
+      upgradeFromBasic: 75,
+      currency: 'USD',
+      billing: { ru: 'год', ro: 'an' },
+      features: {
+        ru: [
+          'Всё из месячного Premium +',
+          'Экономия $260 (72%)',
+          'Все протоколы массажа',
+          'Триггерные точки',
+          'Тесты и викторины',
+          '3D модели анатомии',
+          'Сертификат об окончании',
+          'Приоритетная поддержка',
+        ],
+        ro: [
+          'Tot din Premium lunar +',
+          'Economie $260 (72%)',
+          'Toate protocoalele de masaj',
+          'Puncte trigger',
+          'Teste și chestionare',
+          'Modele 3D de anatomie',
+          'Certificat de absolvire',
+          'Suport prioritar',
         ],
       },
     },
@@ -209,7 +263,7 @@ const PricingPage = () => {
   const calculateDiscountedPrice = (plan: TierPlan) => {
     if (!appliedPromo) return null
 
-    const basePrice = plan.id === 'premium' && user?.accessLevel === 'basic'
+    const basePrice = plan.id.startsWith('premium-') && user?.accessLevel === 'basic'
       ? (plan.upgradeFromBasic || plan.price)
       : plan.price
 
@@ -222,28 +276,50 @@ const PricingPage = () => {
     return { basePrice, discount, finalPrice }
   }
 
-  const getCurrentTierIndex = () => {
+  // Определяем tier level для плана
+  const getPlanTierLevel = (planId: string): number => {
+    if (planId === 'free') return 0
+    if (planId.startsWith('basic-')) return 1
+    if (planId.startsWith('premium-')) return 2
+    return 0
+  }
+
+  // Получаем текущий tier level пользователя
+  const getCurrentTierLevel = (): number => {
     if (!user) return -1
     const tierMap: { [key: string]: number } = { free: 0, basic: 1, premium: 2 }
     return tierMap[user.accessLevel] || 0
   }
 
-  const currentTierIndex = getCurrentTierIndex()
+  const currentTierLevel = getCurrentTierLevel()
 
-  const canUpgrade = (planIndex: number) => {
-    return planIndex > currentTierIndex
+  // Можно ли купить этот план
+  const canPurchase = (planId: string): boolean => {
+    const planTier = getPlanTierLevel(planId)
+    return planTier >= currentTierLevel
   }
 
-  const isCurrentTier = (planIndex: number) => {
-    return planIndex === currentTierIndex
+  // Это текущий tier (но возможно другой billing период)
+  const isSameTier = (planId: string): boolean => {
+    const planTier = getPlanTierLevel(planId)
+    return planTier === currentTierLevel && currentTierLevel > 0
   }
 
-  const getButtonText = (planIndex: number, planId: string) => {
+  const getButtonText = (planId: string) => {
     if (!isAuthenticated) return 'Войти'
-    if (isCurrentTier(planIndex)) return 'Текущий план'
-    if (planIndex < currentTierIndex) return 'У вас выше'
-    if (planId === 'premium' && user?.accessLevel === 'basic') {
-      return 'Апгрейд за $30'
+    if (planId === 'free') return 'Текущий план'
+
+    const planTier = getPlanTierLevel(planId)
+
+    if (planTier < currentTierLevel) return 'У вас выше'
+    if (isSameTier(planId)) return 'Продлить'
+    if (planTier > currentTierLevel) {
+      // Upgrade
+      if (planId.startsWith('premium-') && user?.accessLevel === 'basic') {
+        const plan = plans.find(p => p.id === planId)
+        return `Апгрейд за $${plan?.upgradeFromBasic || plan?.price}`
+      }
+      return 'Купить'
     }
     return 'Купить'
   }
@@ -256,10 +332,8 @@ const PricingPage = () => {
   useEffect(() => {
     if (!isInTelegram || !isAuthenticated) return
 
-    if (selectedTier && selectedPlan && canUpgrade(selectedPlanIndex)) {
-      const buttonText = selectedTier === 'premium' && user?.accessLevel === 'basic'
-        ? 'Апгрейд за $30'
-        : `Купить ${selectedPlan.name.ru}`
+    if (selectedTier && selectedPlan && canPurchase(selectedTier)) {
+      const buttonText = getButtonText(selectedTier)
 
       setMainButton({
         text: buttonText,
@@ -272,7 +346,7 @@ const PricingPage = () => {
     }
 
     return () => hideMainButton()
-  }, [isInTelegram, isAuthenticated, selectedTier, loading, selectedPlan, selectedPlanIndex, user?.accessLevel, setMainButton, hideMainButton])
+  }, [isInTelegram, isAuthenticated, selectedTier, loading, selectedPlan, user?.accessLevel, setMainButton, hideMainButton])
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -363,19 +437,20 @@ const PricingPage = () => {
       )}
 
       <Grid container spacing={4} justifyContent="center">
-        {plans.map((plan, index) => {
-          const isPremium = plan.id === 'premium'
-          const isPopular = plan.id === 'basic'
-          const disabled =
-            !canUpgrade(index) || isCurrentTier(index) || loading !== null
+        {plans.map((plan) => {
+          const isPremium = plan.id.startsWith('premium-')
+          const isPopular = plan.id === 'basic-quarterly' // Лучшее соотношение для basic
+          const isBestValue = plan.id === 'premium-yearly' // Лучшее соотношение для premium
+          const purchasable = canPurchase(plan.id)
+          const disabled = !purchasable || loading !== null
           const discountInfo = calculateDiscountedPrice(plan)
           const billingLabel = plan.billing?.ru
 
           return (
-            <Grid item xs={12} md={4} key={plan.id}>
+            <Grid item xs={12} md={6} lg={4} key={plan.id}>
               <Card
-                elevation={isPremium ? 8 : 2}
-                onClick={() => isInTelegram && canUpgrade(index) && !isCurrentTier(index) && setSelectedTier(plan.id)}
+                elevation={isBestValue ? 8 : 2}
+                onClick={() => isInTelegram && purchasable && setSelectedTier(plan.id)}
                 sx={{
                   height: '100%',
                   display: 'flex',
@@ -383,11 +458,11 @@ const PricingPage = () => {
                   position: 'relative',
                   border: selectedTier === plan.id
                     ? '3px solid'
-                    : isPremium ? '2px solid' : 'none',
+                    : isBestValue ? '2px solid' : 'none',
                   borderColor: selectedTier === plan.id ? 'success.main' : 'primary.main',
-                  transform: isPremium ? 'scale(1.05)' : 'none',
-                  cursor: isInTelegram && canUpgrade(index) && !isCurrentTier(index) ? 'pointer' : 'default',
-                  '&:hover': isInTelegram && canUpgrade(index) && !isCurrentTier(index) ? {
+                  transform: isBestValue ? 'scale(1.05)' : 'none',
+                  cursor: isInTelegram && purchasable ? 'pointer' : 'default',
+                  '&:hover': isInTelegram && purchasable ? {
                     boxShadow: 4
                   } : {}
                 }}
@@ -404,7 +479,7 @@ const PricingPage = () => {
                     }}
                   />
                 )}
-                {isPremium && (
+                {isBestValue && (
                   <Box
                     sx={{
                       bgcolor: 'primary.main',
@@ -487,7 +562,7 @@ const PricingPage = () => {
                 <CardActions sx={{ p: 2, pt: 0 }}>
                   <Button
                     fullWidth
-                    variant={isPremium ? 'contained' : isPopular ? 'outlined' : 'text'}
+                    variant={isBestValue ? 'contained' : isPopular ? 'outlined' : 'text'}
                     size="large"
                     onClick={() => handlePurchase(plan.id)}
                     disabled={disabled}
@@ -496,7 +571,7 @@ const PricingPage = () => {
                     {loading === plan.id ? (
                       <CircularProgress size={24} />
                     ) : (
-                      getButtonText(index, plan.id)
+                      getButtonText(plan.id)
                     )}
                   </Button>
                 </CardActions>
@@ -508,10 +583,10 @@ const PricingPage = () => {
 
       <Box sx={{ mt: 6, textAlign: 'center' }}>
         <Typography variant="body2" color="text.secondary">
-          Все платежи обрабатываются через PayPal
+          Все платежи обрабатываются безопасно через PayPal или Stripe
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Единоразовая оплата • Без подписки • Пожизненный доступ
+          Единоразовая оплата • Доступ на выбранный период • Без автопродления
         </Typography>
       </Box>
     </Container>

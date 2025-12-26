@@ -21,6 +21,9 @@ export interface IUser extends Document {
   role: 'student' | 'teacher' | 'admin'
   // NEW: Tier-based access level
   accessLevel: 'free' | 'basic' | 'premium'
+  // NEW: Subscription expiration tracking
+  subscriptionEndsAt?: Date // When paid subscription expires
+  trialEndsAt?: Date // When trial period expires
   // NEW: Payment tracking
   paymentAmount?: number
   paymentDate?: Date
@@ -113,6 +116,13 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ['free', 'basic', 'premium'],
       default: 'free',
+    },
+    // NEW: Subscription expiration tracking
+    subscriptionEndsAt: {
+      type: Date,
+    },
+    trialEndsAt: {
+      type: Date,
     },
     // NEW: Payment tracking
     paymentAmount: {
@@ -255,10 +265,22 @@ userSchema.methods.hasAccessToContent = function (tierRequired: 'free' | 'basic'
     return true
   }
 
+  const now = new Date()
+  let effectiveAccessLevel = this.accessLevel || 'free'
+
+  // Check if subscription has expired
+  if (this.subscriptionEndsAt && this.subscriptionEndsAt < now) {
+    effectiveAccessLevel = 'free' // Subscription expired, downgrade to free
+  }
+
+  // Check if trial has expired (and no paid subscription)
+  if (this.trialEndsAt && this.trialEndsAt < now && (!this.subscriptionEndsAt || this.subscriptionEndsAt < now)) {
+    effectiveAccessLevel = 'free' // Trial expired, downgrade to free
+  }
+
   // Define tier hierarchy
   const tierHierarchy: { [key: string]: number } = { free: 0, basic: 1, premium: 2 }
-  const userAccessLevel = this.accessLevel || 'free'
-  const userTierLevel = tierHierarchy[userAccessLevel]
+  const userTierLevel = tierHierarchy[effectiveAccessLevel]
   const requiredTierLevel = tierHierarchy[tierRequired]
 
   return userTierLevel >= requiredTierLevel
