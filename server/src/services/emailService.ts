@@ -250,8 +250,8 @@ class EmailService {
 
       <p style="margin-top: 20px; color: #666; font-size: 14px;">
         ${isRussian
-          ? 'Вы также можете сдать задание через Telegram бот @AnatomiaAppBot командой /submit'
-          : 'De asemenea, puteți trimite tema prin botul Telegram @AnatomiaAppBot folosind comanda /submit'}
+          ? 'Вы также можете сдать задание через Telegram бот @MateevMassageBot командой /submit'
+          : 'De asemenea, puteți trimite tema prin botul Telegram @MateevMassageBot folosind comanda /submit'}
       </p>
     </div>
     <div class="footer">
@@ -513,7 +513,7 @@ class EmailService {
         <a href="${process.env.CLIENT_URL}" class="button">
           ${isRussian ? '🚀 Начать обучение' : '🚀 Începe învățarea'}
         </a>
-        <a href="https://t.me/AnatomiaAppBot" class="button" style="background: #0088cc;">
+        <a href="https://t.me/MateevMassageBot" class="button" style="background: #0088cc;">
           ${isRussian ? '💬 Telegram бот' : '💬 Bot Telegram'}
         </a>
       </div>
