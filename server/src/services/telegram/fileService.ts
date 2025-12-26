@@ -4,6 +4,9 @@ import Group from '../../models/Group'
 import GroupFile from '../../models/GroupFile'
 import Media from '../../models/Media'
 import { escapeMarkdown, resolveTelegramLang, t } from './i18n'
+import { Input } from 'telegraf'
+import path from 'path'
+import fs from 'fs'
 
 const getUserLang = (user?: any) => resolveTelegramLang(user?.telegramLanguage)
 
@@ -99,6 +102,38 @@ const buildCaption = (
   return lines.join('\n')
 }
 
+const prepareFileForTelegram = (url: string): { source: any; isLocalFile: boolean } => {
+  // Check if it's a local file path
+  if (url.startsWith('/uploads/')) {
+    const uploadsDir = process.env.UPLOAD_PATH || './uploads'
+    const filename = url.replace('/uploads/', '')
+    const filePath = path.join(uploadsDir, filename)
+
+    // Check if file exists
+    if (fs.existsSync(filePath)) {
+      console.log('[Telegram] Using local file:', filePath)
+      return {
+        source: Input.fromLocalFile(filePath),
+        isLocalFile: true,
+      }
+    } else {
+      console.warn('[Telegram] Local file not found:', filePath)
+      // Fall back to URL
+      return {
+        source: resolveMediaUrl(url),
+        isLocalFile: false,
+      }
+    }
+  }
+
+  // For external URLs (including old Cloudinary URLs), use the URL
+  console.log('[Telegram] Using URL:', url)
+  return {
+    source: resolveMediaUrl(url),
+    isLocalFile: false,
+  }
+}
+
 export class TelegramFileService {
   static async sendFileToUser(
     userId: string,
@@ -108,7 +143,7 @@ export class TelegramFileService {
     filename?: string
   ): Promise<{ success: boolean; error?: string; messageId?: number }> {
     try {
-      const resolvedUrl = resolveMediaUrl(fileUrl)
+      const { source } = prepareFileForTelegram(fileUrl)
       const user = await User.findById(userId)
 
       if (!user?.telegramId) {
@@ -118,19 +153,19 @@ export class TelegramFileService {
         }
       }
 
-      console.log('[Telegram] Sending file to user:', resolvedUrl)
+      console.log('[Telegram] Sending file to user')
 
       let result
       if (mimetype?.startsWith('image/')) {
-        result = await bot.telegram.sendPhoto(user.telegramId, resolvedUrl, {
+        result = await bot.telegram.sendPhoto(user.telegramId, source, {
           caption,
         })
       } else if (mimetype?.startsWith('video/')) {
-        result = await bot.telegram.sendVideo(user.telegramId, resolvedUrl, {
+        result = await bot.telegram.sendVideo(user.telegramId, source, {
           caption,
         })
       } else {
-        result = await bot.telegram.sendDocument(user.telegramId, resolvedUrl, {
+        result = await bot.telegram.sendDocument(user.telegramId, source, {
           caption,
         })
       }
@@ -298,22 +333,22 @@ export class TelegramFileService {
       }
 
       const media = groupFile.media as any
-      const resolvedUrl = resolveMediaUrl(media.url)
+      const { source } = prepareFileForTelegram(media.url)
       const caption = buildCaption('ru', groupFile.title, groupFile.description, media)
 
-      console.log('[Telegram] Sending file to group:', resolvedUrl)
+      console.log('[Telegram] Sending file to group')
 
       let result
       if (media.mimetype?.startsWith('image/')) {
-        result = await bot.telegram.sendPhoto(chatId, resolvedUrl, {
+        result = await bot.telegram.sendPhoto(chatId, source, {
           caption,
         })
       } else if (media.mimetype?.startsWith('video/')) {
-        result = await bot.telegram.sendVideo(chatId, resolvedUrl, {
+        result = await bot.telegram.sendVideo(chatId, source, {
           caption,
         })
       } else {
-        result = await bot.telegram.sendDocument(chatId, resolvedUrl, {
+        result = await bot.telegram.sendDocument(chatId, source, {
           caption,
         })
       }
