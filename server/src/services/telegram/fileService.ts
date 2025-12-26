@@ -228,23 +228,29 @@ export class TelegramFileService {
           caption,
         })
       } else {
-        // Try sending document by URL first (Telegram will download it)
-        try {
-          console.log('[Telegram] Trying to send document by URL to user:', resolvedUrl)
-          result = await bot.telegram.sendDocument(user.telegramId, resolvedUrl, {
-            caption,
-          })
-          console.log('[Telegram] Document sent successfully by URL to user')
-        } catch (urlError: any) {
-          console.log('[Telegram] Sending by URL failed, trying buffer download:', urlError.message)
-          // Fallback to downloading and sending as buffer
-          const fileBuffer = await downloadFileBuffer(resolvedUrl, signedUrls)
-          result = await bot.telegram.sendDocument(user.telegramId, {
-            source: fileBuffer,
-            filename: resolvedFilename,
-          }, {
-            caption,
-          })
+        // For documents, try multiple URLs until one works
+        console.log('[Telegram] Attempting to send document to user')
+        const allUrls = [resolvedUrl, ...signedUrls]
+        let lastError: any
+        let sentSuccessfully = false
+
+        for (const tryUrl of allUrls) {
+          try {
+            console.log('[Telegram] Trying URL for user:', tryUrl.substring(0, 100) + '...')
+            result = await bot.telegram.sendDocument(user.telegramId, tryUrl, {
+              caption,
+            })
+            console.log('[Telegram] Document sent successfully to user!')
+            sentSuccessfully = true
+            break
+          } catch (urlError: any) {
+            console.log('[Telegram] URL failed for user:', urlError.message)
+            lastError = urlError
+          }
+        }
+
+        if (!sentSuccessfully) {
+          throw new Error(`Failed to send document to user after trying ${allUrls.length} URLs. Last error: ${lastError?.message}`)
         }
       }
 
@@ -431,23 +437,33 @@ export class TelegramFileService {
           caption,
         })
       } else {
-        // Try sending document by URL first (Telegram will download it)
-        try {
-          console.log('[Telegram] Trying to send document by URL:', resolvedUrl)
-          result = await bot.telegram.sendDocument(chatId, resolvedUrl, {
-            caption,
-          })
-          console.log('[Telegram] Document sent successfully by URL')
-        } catch (urlError: any) {
-          console.log('[Telegram] Sending by URL failed, trying buffer download:', urlError.message)
-          // Fallback to downloading and sending as buffer
-          const fileBuffer = await downloadFileBuffer(resolvedUrl, signedUrls)
-          result = await bot.telegram.sendDocument(chatId, {
-            source: fileBuffer,
-            filename: resolvedFilename,
-          }, {
-            caption,
-          })
+        // For documents, try multiple approaches
+        console.log('[Telegram] Attempting to send document')
+        console.log('[Telegram] Resolved URL:', resolvedUrl)
+        console.log('[Telegram] Signed URLs:', signedUrls.length)
+
+        // Try all URLs (main + signed) until one works
+        const allUrls = [resolvedUrl, ...signedUrls]
+        let lastError: any
+        let sentSuccessfully = false
+
+        for (const tryUrl of allUrls) {
+          try {
+            console.log('[Telegram] Trying URL:', tryUrl.substring(0, 100) + '...')
+            result = await bot.telegram.sendDocument(chatId, tryUrl, {
+              caption,
+            })
+            console.log('[Telegram] Document sent successfully!')
+            sentSuccessfully = true
+            break
+          } catch (urlError: any) {
+            console.log('[Telegram] URL failed:', urlError.message)
+            lastError = urlError
+          }
+        }
+
+        if (!sentSuccessfully) {
+          throw new Error(`Failed to send document after trying ${allUrls.length} URLs. Last error: ${lastError?.message}`)
         }
       }
 

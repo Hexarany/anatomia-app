@@ -128,13 +128,23 @@ export const uploadMedia = async (req: Request, res: Response) => {
       req.file.mimetype
     )
 
+    // Generate public URL for Cloudinary files
+    // For raw files, use unsigned delivery to make them publicly accessible
+    let publicUrl = result.secure_url
+    if (result.resource_type === 'raw') {
+      // Use Cloudinary's public URL format without signature
+      const publicId = result.public_id
+      publicUrl = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/${publicId}`
+      console.log('[Upload] Generated public URL for raw file:', publicUrl)
+    }
+
     // Сохраняем информацию в базу данных
     const media = new Media({
       filename: result.public_id,
       originalName: req.file.originalname,
       mimetype: req.file.mimetype,
       size: req.file.size,
-      url: result.secure_url,
+      url: publicUrl,
       uploadedBy: (req as any).userId,
       cloudinaryPublicId: result.public_id,
     })
@@ -142,7 +152,7 @@ export const uploadMedia = async (req: Request, res: Response) => {
     await media.save()
 
     const fileInfo = {
-      url: result.secure_url,
+      url: publicUrl,
       filename: result.public_id,
       originalName: req.file.originalname,
       mimetype: req.file.mimetype,
