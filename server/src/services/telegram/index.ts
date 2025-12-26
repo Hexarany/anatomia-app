@@ -1,4 +1,5 @@
 import bot from './bot'
+import { Context } from 'telegraf'
 import { startCommand } from './commands/start'
 import { quizCommand } from './commands/quiz'
 import { anatomyCommand } from './commands/anatomy'
@@ -31,8 +32,19 @@ const TELEGRAM_WEBHOOK_PATH = process.env.TELEGRAM_WEBHOOK_PATH || '/api/telegra
 export const telegramWebhookPath = TELEGRAM_WEBHOOK_PATH
 export const telegramWebhookCallback = bot.webhookCallback(telegramWebhookPath)
 
-// Handle pending homework submissions and caption-based commands
-bot.on('message', pendingSubmissionMiddleware)
+// Middleware to filter out group messages (bot should only respond to commands in groups)
+const privateMessageFilter = async (ctx: Context, next: () => Promise<void>) => {
+  // Allow only private chats for message processing
+  // In groups, bot will only respond to commands (handled separately)
+  if (ctx.chat?.type === 'private') {
+    return next()
+  }
+  // In groups/supergroups/channels - skip message processing
+  // Bot will only respond to commands and programmatic messages from admin panel
+}
+
+// Handle pending homework submissions and caption-based commands (ONLY in private chats)
+bot.on('message', privateMessageFilter, pendingSubmissionMiddleware)
 
 // Register commands
 bot.command('start', startCommand)
