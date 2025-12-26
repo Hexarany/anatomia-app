@@ -123,8 +123,8 @@ export default function SchedulePage() {
           <>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               {lang === 'ru'
-                ? 'Отображаются занятия за последние 7 дней и предстоящие (до 15 занятий)'
-                : 'Se afișează lecțiile din ultimele 7 zile și viitoare (până la 15 lecții)'}
+                ? 'Показаны последние 3 прошедших занятия и все предстоящие'
+                : 'Se afișează ultimele 3 lecții trecute și toate lecțiile viitoare'}
             </Typography>
 
             <List>

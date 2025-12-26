@@ -61,17 +61,29 @@ export const getMySchedule = async (req: Request, res: Response) => {
     }
 
     const groupIds = groups.map((group) => group._id)
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const now = new Date()
 
-    // Получаем расписание всех групп пользователя
-    const schedule = await Schedule.find({
+    // Получаем предстоящие занятия
+    const upcomingClasses = await Schedule.find({
       group: { $in: groupIds },
-      date: { $gte: sevenDaysAgo },
+      date: { $gte: now },
+    })
+      .populate('group', 'name')
+      .populate('topic', 'name description')
+      .sort({ date: 1 })
+
+    // Получаем последние 3 прошедших занятия
+    const pastClasses = await Schedule.find({
+      group: { $in: groupIds },
+      date: { $lt: now },
     })
       .populate('group', 'name')
       .populate('topic', 'name description')
       .sort({ date: -1 })
-      .limit(15)
+      .limit(3)
+
+    // Объединяем и сортируем по дате
+    const schedule = [...pastClasses.reverse(), ...upcomingClasses]
 
     res.json(schedule)
   } catch (error) {
