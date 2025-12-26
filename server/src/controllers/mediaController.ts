@@ -1,7 +1,5 @@
 import { Request, Response } from 'express'
 import multer from 'multer'
-import { v2 as cloudinary } from 'cloudinary'
-import { Readable } from 'stream'
 import { slugify } from 'transliteration'
 import Media from '../models/Media'
 import fs from 'fs'
@@ -46,76 +44,6 @@ export const upload = multer({
     }
   }
 })
-
-// Функция для загрузки в Cloudinary
-const uploadToCloudinary = (buffer: Buffer, filename: string, mimetype: string): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    // Определяем тип ресурса
-    let resourceType: 'image' | 'video' | 'raw' = 'image'
-    if (mimetype.startsWith('video/')) {
-      resourceType = 'video'
-    } else if (
-      mimetype === 'model/gltf-binary' ||
-      mimetype === 'application/pdf' ||
-      mimetype === 'application/msword' ||
-      mimetype.includes('document') ||
-      mimetype.includes('spreadsheet') ||
-      mimetype.includes('presentation') ||
-      mimetype === 'text/plain' ||
-      mimetype.includes('zip') ||
-      mimetype.includes('rar') ||
-      filename.endsWith('.glb') ||
-      filename.endsWith('.pdf') ||
-      filename.endsWith('.doc') ||
-      filename.endsWith('.docx') ||
-      filename.endsWith('.xls') ||
-      filename.endsWith('.xlsx') ||
-      filename.endsWith('.ppt') ||
-      filename.endsWith('.pptx') ||
-      filename.endsWith('.txt') ||
-      filename.endsWith('.zip') ||
-      filename.endsWith('.rar')
-    ) {
-      resourceType = 'raw'
-    }
-
-    // Генерируем уникальное имя
-    const basename = filename.substring(0, filename.lastIndexOf('.')) || filename
-    const extension = filename.substring(filename.lastIndexOf('.')) || ''
-    const transliteratedName = slugify(basename, {
-      lowercase: true,
-      separator: '-'
-    })
-    const finalName = transliteratedName && transliteratedName.length > 2
-      ? transliteratedName
-      : 'file'
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    // For raw files (like .glb), preserve the file extension in public_id
-    const publicId = resourceType === 'raw'
-      ? `anatomia/${resourceType}s/${finalName}-${uniqueSuffix}${extension}`
-      : `anatomia/${resourceType}s/${finalName}-${uniqueSuffix}`
-
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        resource_type: resourceType,
-        public_id: publicId,
-        overwrite: true,
-        type: 'upload',
-        access_mode: 'public',
-      },
-      (error, result) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(result)
-        }
-      }
-    )
-
-    const readableStream = Readable.from(buffer)
-    readableStream.pipe(uploadStream)
-  })
-}
 
 // Функция для сохранения файла локально
 const saveFileLocally = async (buffer: Buffer, filename: string, mimetype: string): Promise<{ url: string; filename: string }> => {
@@ -220,7 +148,7 @@ export const deleteMedia = async (req: Request, res: Response) => {
       return res.status(404).json({ error: { message: 'Файл не найден' } })
     }
 
-    // Удаляем локальный файл если URL начинается с /uploads
+    // Удаляем локальный файл
     if (media.url && media.url.startsWith('/uploads/')) {
       const uploadsDir = process.env.UPLOAD_PATH || './uploads'
       const filename = media.url.replace('/uploads/', '')
@@ -233,26 +161,6 @@ export const deleteMedia = async (req: Request, res: Response) => {
         }
       } catch (fileError) {
         console.warn('Local file delete failed:', fileError)
-      }
-    }
-
-    // Удаляем из Cloudinary если это старый файл
-    if (media.cloudinaryPublicId) {
-      try {
-        const mimetype = media.mimetype || ''
-        let resourceType: 'image' | 'video' | 'raw' = 'image'
-        if (mimetype.startsWith('video/')) {
-          resourceType = 'video'
-        } else if (!mimetype.startsWith('image/')) {
-          resourceType = 'raw'
-        }
-
-        await cloudinary.uploader.destroy(media.cloudinaryPublicId, {
-          resource_type: resourceType
-        })
-        console.log('[Delete] Cloudinary file deleted:', media.cloudinaryPublicId)
-      } catch (cloudinaryError) {
-        console.warn('Cloudinary delete failed:', cloudinaryError)
       }
     }
 

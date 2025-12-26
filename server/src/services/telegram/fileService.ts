@@ -3,7 +3,6 @@ import User from '../../models/User'
 import Group from '../../models/Group'
 import GroupFile from '../../models/GroupFile'
 import Media from '../../models/Media'
-import cloudinary from '../../config/cloudinary'
 import { escapeMarkdown, resolveTelegramLang, t } from './i18n'
 
 const getUserLang = (user?: any) => resolveTelegramLang(user?.telegramLanguage)
@@ -75,97 +74,6 @@ const getFileExtension = (value?: string) => {
   return cleaned.slice(lastDot + 1)
 }
 
-const getCloudinaryPublicIdFromUrl = (url?: string) => {
-  if (!url) return null
-  try {
-    const parsed = new URL(url)
-    const parts = parsed.pathname.split('/').filter(Boolean)
-    if (parts.length < 4) return null
-    const resourceType = parts[1]
-    if (!['image', 'video', 'raw'].includes(resourceType)) return null
-    const typeIndex = 2
-    let start = typeIndex + 1
-    if (parts[start] && parts[start].startsWith('v') && /^\d+$/.test(parts[start].slice(1))) {
-      start += 1
-    }
-    const publicId = parts.slice(start).join('/')
-    return publicId || null
-  } catch {
-    return null
-  }
-}
-
-const getCloudinaryResourceType = (mimetype?: string) => {
-  if (mimetype?.startsWith('image/')) return 'image'
-  if (mimetype?.startsWith('video/')) return 'video'
-  return 'raw'
-}
-
-const getCloudinarySignedUrls = (
-  publicId?: string,
-  sourceUrl?: string,
-  filename?: string,
-  mimetype?: string
-) => {
-  const resolvedPublicId = publicId || getCloudinaryPublicIdFromUrl(sourceUrl)
-  if (!resolvedPublicId) return []
-  const resourceType = getCloudinaryResourceType(mimetype)
-  const deliveryTypes = ['upload', 'authenticated', 'private'] as const
-  const urls = deliveryTypes.map((type) =>
-    cloudinary.url(resolvedPublicId, {
-      resource_type: resourceType,
-      type,
-      secure: true,
-      sign_url: true,
-    })
-  )
-  const extension =
-    getFileExtension(filename) || getFileExtension(resolvedPublicId) || getFileExtension(sourceUrl)
-  const utils: any = (cloudinary as any).utils
-  if (extension && typeof utils?.private_download_url === 'function') {
-    const baseId = resolvedPublicId.replace(new RegExp(`\\.${extension}$`), '')
-    urls.push(
-      utils.private_download_url(baseId, extension, {
-        resource_type: resourceType,
-        type: 'upload',
-        secure: true,
-      })
-    )
-  }
-  return urls.filter((candidate, index, array) => array.indexOf(candidate) === index)
-}
-
-const downloadFileBuffer = async (url: string, fallbackUrls: string[] = []) => {
-  const tryFetch = async (target: string) => {
-    console.log('[Telegram] Trying to download file from:', target)
-    const response = await fetch(target)
-    if (!response.ok) {
-      console.log('[Telegram] Download failed:', response.status, response.statusText)
-      throw new Error(`Failed to download file: ${response.status} ${response.statusText}`)
-    }
-    const arrayBuffer = await response.arrayBuffer()
-    console.log('[Telegram] File downloaded successfully, size:', arrayBuffer.byteLength)
-    return Buffer.from(arrayBuffer)
-  }
-
-  const candidates = [url, ...fallbackUrls].filter((candidate, index, array) => {
-    return candidate && array.indexOf(candidate) === index
-  })
-
-  console.log('[Telegram] Attempting to download file from', candidates.length, 'URLs')
-
-  let lastError: any
-  for (const candidate of candidates) {
-    try {
-      return await tryFetch(candidate)
-    } catch (error) {
-      lastError = error
-    }
-  }
-
-  throw lastError
-}
-
 const buildCaption = (
   lang: 'ru' | 'ro',
   title?: string,
@@ -197,18 +105,10 @@ export class TelegramFileService {
     fileUrl: string,
     caption?: string,
     mimetype?: string,
-    filename?: string,
-    cloudinaryPublicId?: string
+    filename?: string
   ): Promise<{ success: boolean; error?: string; messageId?: number }> {
     try {
       const resolvedUrl = resolveMediaUrl(fileUrl)
-      const resolvedFilename = filename || getFilenameFromUrl(resolvedUrl, 'document')
-      const signedUrls = getCloudinarySignedUrls(
-        cloudinaryPublicId,
-        resolvedUrl,
-        resolvedFilename,
-        mimetype
-      )
       const user = await User.findById(userId)
 
       if (!user?.telegramId) {
@@ -217,6 +117,8 @@ export class TelegramFileService {
           error: 'У пользователя не привязан Telegram аккаунт',
         }
       }
+
+      console.log('[Telegram] Sending file to user:', resolvedUrl)
 
       let result
       if (mimetype?.startsWith('image/')) {
@@ -228,35 +130,12 @@ export class TelegramFileService {
           caption,
         })
       } else {
-        // For documents, try multiple URLs until one works
-        console.log('[Telegram] Attempting to send document to user')
-        const allUrls = [resolvedUrl, ...signedUrls]
-        let lastError: any
-        let sentSuccessfully = false
-
-        for (const tryUrl of allUrls) {
-          try {
-            console.log('[Telegram] Trying URL for user:', tryUrl.substring(0, 100) + '...')
-            result = await bot.telegram.sendDocument(user.telegramId, tryUrl, {
-              caption,
-            })
-            console.log('[Telegram] Document sent successfully to user!')
-            sentSuccessfully = true
-            break
-          } catch (urlError: any) {
-            console.log('[Telegram] URL failed for user:', urlError.message)
-            lastError = urlError
-          }
-        }
-
-        if (!sentSuccessfully) {
-          throw new Error(`Failed to send document to user after trying ${allUrls.length} URLs. Last error: ${lastError?.message}`)
-        }
+        result = await bot.telegram.sendDocument(user.telegramId, resolvedUrl, {
+          caption,
+        })
       }
 
-      if (!result || typeof result.message_id !== 'number') {
-        throw new Error('Telegram send did not return message id')
-      }
+      console.log('[Telegram] File sent successfully to user!')
 
       return {
         success: true,
@@ -380,8 +259,7 @@ export class TelegramFileService {
             media.url,
             caption,
             media.mimetype,
-            media.originalName,
-            media.cloudinaryPublicId
+            media.originalName
           )
 
           groupFile.deliveryStatus[i].delivered = result.success
@@ -422,14 +300,9 @@ export class TelegramFileService {
 
       const media = groupFile.media as any
       const resolvedUrl = resolveMediaUrl(media.url)
-      const resolvedFilename = media.originalName || getFilenameFromUrl(resolvedUrl, 'document')
-      const signedUrls = getCloudinarySignedUrls(
-        media.cloudinaryPublicId,
-        resolvedUrl,
-        resolvedFilename,
-        media.mimetype
-      )
       const caption = buildCaption('ru', groupFile.title, groupFile.description, media)
+
+      console.log('[Telegram] Sending file to group:', resolvedUrl)
 
       let result
       if (media.mimetype?.startsWith('image/')) {
@@ -441,39 +314,12 @@ export class TelegramFileService {
           caption,
         })
       } else {
-        // For documents, try multiple approaches
-        console.log('[Telegram] Attempting to send document')
-        console.log('[Telegram] Resolved URL:', resolvedUrl)
-        console.log('[Telegram] Signed URLs:', signedUrls.length)
-
-        // Try all URLs (main + signed) until one works
-        const allUrls = [resolvedUrl, ...signedUrls]
-        let lastError: any
-        let sentSuccessfully = false
-
-        for (const tryUrl of allUrls) {
-          try {
-            console.log('[Telegram] Trying URL:', tryUrl.substring(0, 100) + '...')
-            result = await bot.telegram.sendDocument(chatId, tryUrl, {
-              caption,
-            })
-            console.log('[Telegram] Document sent successfully!')
-            sentSuccessfully = true
-            break
-          } catch (urlError: any) {
-            console.log('[Telegram] URL failed:', urlError.message)
-            lastError = urlError
-          }
-        }
-
-        if (!sentSuccessfully) {
-          throw new Error(`Failed to send document after trying ${allUrls.length} URLs. Last error: ${lastError?.message}`)
-        }
+        result = await bot.telegram.sendDocument(chatId, resolvedUrl, {
+          caption,
+        })
       }
 
-      if (!result || typeof result.message_id !== 'number') {
-        throw new Error('Telegram send did not return message id')
-      }
+      console.log('[Telegram] File sent successfully to group!')
 
       groupFile.sentToTelegramGroup = true
       groupFile.telegramMessageId = result.message_id
