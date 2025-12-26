@@ -314,55 +314,80 @@ const MassageProtocolsManager = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer
+        component={Paper}
+        sx={{
+          overflowX: 'auto',
+          maxWidth: '100%',
+          '& .MuiTable-root': {
+            minWidth: { xs: 500, sm: 700, md: 'auto' },
+          },
+          '& .MuiTableCell-root': {
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            padding: { xs: '6px 8px', sm: '12px 16px' },
+          },
+          '& .MuiTableCell-head': {
+            fontWeight: 600,
+            backgroundColor: 'action.hover',
+          }
+        }}
+      >
+        <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Порядок</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Порядок</TableCell>
               <TableCell>Название (RU)</TableCell>
-              <TableCell>Тип</TableCell>
-              <TableCell>Длительность</TableCell>
-              <TableCell>Сложность</TableCell>
-              <TableCell>Медиа</TableCell>
-              <TableCell>Действия</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Тип</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Длительность</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Сложность</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Медиа</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {protocols.map((protocol) => (
-              <TableRow key={protocol._id}>
-                <TableCell>{protocol.order}</TableCell>
+              <TableRow key={protocol._id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{protocol.order}</TableCell>
                 <TableCell>{protocol.name.ru}</TableCell>
-                <TableCell>{protocol.type}</TableCell>
-                <TableCell>{protocol.duration} мин</TableCell>
-                <TableCell>{protocol.difficulty}</TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{protocol.type}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{protocol.duration} мин</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{protocol.difficulty}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     {protocol.images && protocol.images.length > 0 && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <ImageIcon fontSize="small" color="primary" />
-                        <Typography variant="caption">{protocol.images.length}</Typography>
+                        <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
+                          {protocol.images.length}
+                        </Typography>
                       </Box>
                     )}
                     {protocol.videos && protocol.videos.length > 0 && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <VideoLibraryIcon fontSize="small" color="secondary" />
-                        <Typography variant="caption">{protocol.videos.length}</Typography>
+                        <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
+                          {protocol.videos.length}
+                        </Typography>
                       </Box>
                     )}
                   </Box>
                 </TableCell>
-                <TableCell>
+                <TableCell align="right">
                   <IconButton
                     onClick={() => handleOpenDialog(protocol)}
                     color="primary"
+                    size="small"
+                    sx={{ p: { xs: 0.5, sm: 1 } }}
                   >
-                    <EditIcon />
+                    <EditIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                   </IconButton>
                   <IconButton
                     onClick={() => handleDelete(protocol._id)}
                     color="error"
+                    size="small"
+                    sx={{ p: { xs: 0.5, sm: 1 } }}
                   >
-                    <DeleteIcon />
+                    <DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                   </IconButton>
                 </TableCell>
               </TableRow>

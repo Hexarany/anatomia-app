@@ -146,23 +146,54 @@ const AnatomyModels3DManager = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer
+        component={Paper}
+        sx={{
+          overflowX: 'auto',
+          maxWidth: '100%',
+          '& .MuiTable-root': {
+            minWidth: { xs: 400, sm: 500, md: 'auto' },
+          },
+          '& .MuiTableCell-root': {
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            padding: { xs: '6px 8px', sm: '12px 16px' },
+          },
+          '& .MuiTableCell-head': {
+            fontWeight: 600,
+            backgroundColor: 'action.hover',
+          }
+        }}
+      >
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>Название (RU)</TableCell>
-              <TableCell>Категория</TableCell>
-              <TableCell>Действия</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Категория</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {models.map((model) => (
-              <TableRow key={model._id}>
+              <TableRow key={model._id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                 <TableCell>{model.name.ru}</TableCell>
-                <TableCell>{categories.find(c => c.value === model.category)?.label}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleOpen(model)} color="primary"><EditIcon /></IconButton>
-                  <IconButton onClick={() => handleDelete(model._id)} color="error"><DeleteIcon /></IconButton>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{categories.find(c => c.value === model.category)?.label}</TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    onClick={() => handleOpen(model)}
+                    color="primary"
+                    size="small"
+                    sx={{ p: { xs: 0.5, sm: 1 } }}
+                  >
+                    <EditIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => handleDelete(model._id)}
+                    color="error"
+                    size="small"
+                    sx={{ p: { xs: 0.5, sm: 1 } }}
+                  >
+                    <DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

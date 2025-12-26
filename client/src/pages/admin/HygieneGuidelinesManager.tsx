@@ -143,28 +143,55 @@ const HygieneGuidelinesManager = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer
+        component={Paper}
+        sx={{
+          overflowX: 'auto',
+          maxWidth: '100%',
+          '& .MuiTable-root': {
+            minWidth: { xs: 400, sm: 500, md: 'auto' },
+          },
+          '& .MuiTableCell-root': {
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            padding: { xs: '6px 8px', sm: '12px 16px' },
+          },
+          '& .MuiTableCell-head': {
+            fontWeight: 600,
+            backgroundColor: 'action.hover',
+          }
+        }}
+      >
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>Название (RU)</TableCell>
-              <TableCell>Категория</TableCell>
-              <TableCell>Порядок</TableCell>
-              <TableCell>Действия</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Категория</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Порядок</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {guidelines.map((guideline) => (
-              <TableRow key={guideline._id}>
+              <TableRow key={guideline._id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                 <TableCell>{guideline.title.ru}</TableCell>
-                <TableCell>{categories.find(c => c.value === guideline.category)?.labelRu}</TableCell>
-                <TableCell>{guideline.order}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleOpenDialog(guideline)} color="primary">
-                    <EditIcon />
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{categories.find(c => c.value === guideline.category)?.labelRu}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{guideline.order}</TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    onClick={() => handleOpenDialog(guideline)}
+                    color="primary"
+                    size="small"
+                    sx={{ p: { xs: 0.5, sm: 1 } }}
+                  >
+                    <EditIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                   </IconButton>
-                  <IconButton onClick={() => handleDelete(guideline._id)} color="error">
-                    <DeleteIcon />
+                  <IconButton
+                    onClick={() => handleDelete(guideline._id)}
+                    color="error"
+                    size="small"
+                    sx={{ p: { xs: 0.5, sm: 1 } }}
+                  >
+                    <DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                   </IconButton>
                 </TableCell>
               </TableRow>

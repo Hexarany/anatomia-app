@@ -234,51 +234,102 @@ const ResourcesManager = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer
+        component={Paper}
+        sx={{
+          overflowX: 'auto',
+          maxWidth: '100%',
+          '& .MuiTable-root': {
+            minWidth: { xs: 500, sm: 700, md: 'auto' },
+          },
+          '& .MuiTableCell-root': {
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            padding: { xs: '6px 8px', sm: '12px 16px' },
+          },
+          '& .MuiTableCell-head': {
+            fontWeight: 600,
+            backgroundColor: 'action.hover',
+          }
+        }}
+      >
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>Название</TableCell>
-              <TableCell>Тип</TableCell>
-              <TableCell>Категория</TableCell>
-              <TableCell>Доступ</TableCell>
-              <TableCell>Загрузок</TableCell>
-              <TableCell>Статус</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Тип</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Категория</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Доступ</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Загрузок</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Статус</TableCell>
               <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {resources.map((resource) => (
-              <TableRow key={resource._id}>
+              <TableRow key={resource._id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                 <TableCell>
-                  {resource.title.ru}
-                  {resource.author && <><br /><small>({resource.author})</small></>}
+                  <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    {resource.title.ru}
+                  </Typography>
+                  {resource.author && (
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
+                      ({resource.author})
+                    </Typography>
+                  )}
                 </TableCell>
-                <TableCell>
-                  <Chip label={resource.type.toUpperCase()} size="small" />
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                  <Chip
+                    label={resource.type.toUpperCase()}
+                    size="small"
+                    sx={{
+                      fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                      height: { xs: 20, sm: 24 },
+                      '& .MuiChip-label': { px: { xs: 0.5, sm: 1 } }
+                    }}
+                  />
                 </TableCell>
-                <TableCell>{resource.category}</TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{resource.category}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                   <Chip
                     label={resource.accessLevel}
                     size="small"
                     color={resource.accessLevel === 'free' ? 'success' : resource.accessLevel === 'basic' ? 'info' : 'warning'}
+                    sx={{
+                      fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                      height: { xs: 20, sm: 24 },
+                      '& .MuiChip-label': { px: { xs: 0.5, sm: 1 } }
+                    }}
                   />
                 </TableCell>
-                <TableCell>{resource.downloads}</TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{resource.downloads}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   <Chip
                     label={resource.isPublished ? 'Опубликован' : 'Черновик'}
                     size="small"
                     color={resource.isPublished ? 'success' : 'default'}
+                    sx={{
+                      fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                      height: { xs: 20, sm: 24 },
+                      '& .MuiChip-label': { px: { xs: 0.5, sm: 1 } }
+                    }}
                   />
                 </TableCell>
                 <TableCell align="right">
-                  <IconButton size="small" onClick={() => handleOpenDialog(resource)} color="primary">
-                    <EditIcon />
+                  <IconButton
+                    size="small"
+                    onClick={() => handleOpenDialog(resource)}
+                    color="primary"
+                    sx={{ p: { xs: 0.5, sm: 1 } }}
+                  >
+                    <EditIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                   </IconButton>
-                  <IconButton size="small" onClick={() => handleDelete(resource._id)} color="error">
-                    <DeleteIcon />
+                  <IconButton
+                    size="small"
+                    onClick={() => handleDelete(resource._id)}
+                    color="error"
+                    sx={{ p: { xs: 0.5, sm: 1 } }}
+                  >
+                    <DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                   </IconButton>
                 </TableCell>
               </TableRow>

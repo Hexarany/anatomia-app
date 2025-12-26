@@ -353,22 +353,41 @@ const GroupFilesManager = () => {
           <Alert severity="info">Выберите группу для просмотра истории</Alert>
         )}
         {selectedGroup && (
-          <TableContainer component={Paper}>
-            <Table>
+          <TableContainer
+            component={Paper}
+            sx={{
+              overflowX: 'auto',
+              maxWidth: '100%',
+              '& .MuiTable-root': {
+                minWidth: { xs: 500, sm: 700, md: 'auto' },
+              },
+              '& .MuiTableCell-root': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                padding: { xs: '6px 8px', sm: '12px 16px' },
+              },
+              '& .MuiTableCell-head': {
+                fontWeight: 600,
+                backgroundColor: 'action.hover',
+              }
+            }}
+          >
+            <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Файл</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Файл</TableCell>
                   <TableCell>Название</TableCell>
-                  <TableCell>Дата</TableCell>
-                  <TableCell>Доставлено</TableCell>
-                  <TableCell>Действия</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Дата</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Доставлено</TableCell>
+                  <TableCell align="right">Действия</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {groupFiles.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} align="center">
-                      Файлов пока нет
+                      <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                        Файлов пока нет
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 )}
@@ -380,16 +399,18 @@ const GroupFilesManager = () => {
                   const failedCount = total - delivered
 
                   return (
-                    <TableRow key={file._id}>
-                      <TableCell>{file.media?.originalName}</TableCell>
+                    <TableRow key={file._id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{file.media?.originalName}</TableCell>
                       <TableCell>{file.title || '-'}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                         {new Date(file.createdAt).toLocaleString('ru-RU')}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          <Typography variant="body2">Students: {delivered}/{total}</Typography>
-                          <Typography variant="body2">
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                            Students: {delivered}/{total}
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                             Group: {file.sentToTelegramGroup ? 'sent' : 'not sent'}
                           </Typography>
                           {failedCount > 0 && (
@@ -397,29 +418,40 @@ const GroupFilesManager = () => {
                               label={`${failedCount} student errors`}
                               color={file.sentToTelegramGroup ? 'warning' : 'error'}
                               size="small"
+                              sx={{
+                                fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                height: { xs: 20, sm: 24 },
+                                '& .MuiChip-label': { px: { xs: 0.5, sm: 1 } }
+                              }}
                             />
                           )}
                         </Box>
                       </TableCell>
-                      <TableCell>
-                        <IconButton onClick={() => handleViewDetails(file)} size="small">
-                          <VisibilityIcon />
+                      <TableCell align="right">
+                        <IconButton
+                          onClick={() => handleViewDetails(file)}
+                          size="small"
+                          sx={{ p: { xs: 0.5, sm: 1 } }}
+                        >
+                          <VisibilityIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                         </IconButton>
                         {failedCount > 0 && (
                           <IconButton
                             onClick={() => handleRetry(file._id)}
                             size="small"
                             color="primary"
+                            sx={{ p: { xs: 0.5, sm: 1 } }}
                           >
-                            <RefreshIcon />
+                            <RefreshIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                           </IconButton>
                         )}
                         <IconButton
                           onClick={() => handleDelete(file._id)}
                           size="small"
                           color="error"
+                          sx={{ p: { xs: 0.5, sm: 1 } }}
                         >
-                          <DeleteIcon />
+                          <DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                         </IconButton>
                       </TableCell>
                     </TableRow>

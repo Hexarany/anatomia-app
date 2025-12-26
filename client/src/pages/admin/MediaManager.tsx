@@ -186,7 +186,14 @@ const MediaManager = () => {
         Загруженные файлы
       </Typography>
       <Paper>
-        <List>
+        <List
+          sx={{
+            '& .MuiListItem-root': {
+              px: { xs: 1, sm: 2 },
+              py: { xs: 1, sm: 1.5 },
+            }
+          }}
+        >
           {isLoading ? (
             <ListItem>
               <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', p: 2 }}>
@@ -195,7 +202,12 @@ const MediaManager = () => {
             </ListItem>
           ) : files.length === 0 ? (
             <ListItem>
-              <ListItemText secondary="Нет загруженных файлов." />
+              <ListItemText
+                secondary="Нет загруженных файлов."
+                secondaryTypographyProps={{
+                  sx: { fontSize: { xs: '0.75rem', sm: '0.875rem' } }
+                }}
+              />
             </ListItem>
           ) : (
             files.map((file, index) => (
@@ -204,17 +216,38 @@ const MediaManager = () => {
                   <ListItemText
                     primary={file.originalName || file.filename}
                     secondary={`Тип: ${file.mimetype} | Размер: ${formatFileSize(file.size)} | URL: ${file.url}`}
+                    primaryTypographyProps={{
+                      sx: {
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
+                        fontWeight: 500,
+                      }
+                    }}
+                    secondaryTypographyProps={{
+                      sx: {
+                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: { xs: 'nowrap', md: 'normal' },
+                      }
+                    }}
                   />
                   <ListItemSecondaryAction>
                     <IconButton
                       aria-label="copy"
                       onClick={() => handleCopyUrl(file.url)}
-                      sx={{ mr: 1 }}
+                      size="small"
+                      sx={{ mr: { xs: 0.5, sm: 1 }, p: { xs: 0.5, sm: 1 } }}
                     >
-                      <ContentCopyIcon color="primary" />
+                      <ContentCopyIcon color="primary" sx={{ fontSize: { xs: 18, sm: 20 } }} />
                     </IconButton>
-                    <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(file._id, file.originalName || file.filename)}>
-                      <DeleteIcon color="error" />
+                    <IconButton
+                      edge="end"
+                      aria-label="delete"
+                      onClick={() => handleDeleteFile(file._id, file.originalName || file.filename)}
+                      size="small"
+                      sx={{ p: { xs: 0.5, sm: 1 } }}
+                    >
+                      <DeleteIcon color="error" sx={{ fontSize: { xs: 18, sm: 20 } }} />
                     </IconButton>
                   </ListItemSecondaryAction>
                 </ListItem>

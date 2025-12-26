@@ -195,32 +195,59 @@ const TriggerPointsManager = () => {
           <CircularProgress />
         </Box>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer
+          component={Paper}
+          sx={{
+            overflowX: 'auto',
+            maxWidth: '100%',
+            '& .MuiTable-root': {
+              minWidth: { xs: 500, sm: 700, md: 'auto' },
+            },
+            '& .MuiTableCell-root': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              padding: { xs: '6px 8px', sm: '12px 16px' },
+            },
+            '& .MuiTableCell-head': {
+              fontWeight: 600,
+              backgroundColor: 'action.hover',
+            }
+          }}
+        >
+          <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Порядок</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Порядок</TableCell>
                 <TableCell>Название (RU)</TableCell>
-                <TableCell>Мышца</TableCell>
-                <TableCell>Категория</TableCell>
-                <TableCell>Сложность</TableCell>
-                <TableCell>Действия</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Мышца</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Категория</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Сложность</TableCell>
+                <TableCell align="right">Действия</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {points.map((point) => (
-                <TableRow key={point._id}>
-                  <TableCell>{point.order}</TableCell>
+                <TableRow key={point._id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{point.order}</TableCell>
                   <TableCell>{point.name.ru}</TableCell>
-                  <TableCell>{point.muscle}</TableCell>
-                  <TableCell>{categories.find(c => c.value === point.category)?.label}</TableCell>
-                  <TableCell>{point.difficulty}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleOpenDialog(point)} color="primary">
-                      <EditIcon />
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{point.muscle}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{categories.find(c => c.value === point.category)?.label}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{point.difficulty}</TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      onClick={() => handleOpenDialog(point)}
+                      color="primary"
+                      size="small"
+                      sx={{ p: { xs: 0.5, sm: 1 } }}
+                    >
+                      <EditIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                     </IconButton>
-                    <IconButton onClick={() => handleDelete(point._id)} color="error">
-                      <DeleteIcon />
+                    <IconButton
+                      onClick={() => handleDelete(point._id)}
+                      color="error"
+                      size="small"
+                      sx={{ p: { xs: 0.5, sm: 1 } }}
+                    >
+                      <DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -228,7 +255,7 @@ const TriggerPointsManager = () => {
               {points.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} align="center">
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 3, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                       Нет триггерных точек. Добавьте первую точку используя кнопку выше.
                     </Typography>
                   </TableCell>

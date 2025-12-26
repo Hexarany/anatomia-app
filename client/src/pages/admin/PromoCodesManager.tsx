@@ -279,62 +279,83 @@ const PromoCodesManager = () => {
         </Grid>
       </Grid>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer
+        component={Paper}
+        sx={{
+          overflowX: 'auto',
+          maxWidth: '100%',
+          '& .MuiTable-root': {
+            minWidth: { xs: 500, sm: 700, md: 'auto' },
+          },
+          '& .MuiTableCell-root': {
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            padding: { xs: '6px 8px', sm: '12px 16px' },
+          },
+          '& .MuiTableCell-head': {
+            fontWeight: 600,
+            backgroundColor: 'action.hover',
+          }
+        }}
+      >
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>Код</TableCell>
-              <TableCell>Скидка</TableCell>
-              <TableCell>Использование</TableCell>
-              <TableCell>Действителен до</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Скидка</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Использование</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Действителен до</TableCell>
               <TableCell>Статус</TableCell>
-              <TableCell>Действия</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loading ? (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  Загрузка...
+                  <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Загрузка...
+                  </Typography>
                 </TableCell>
               </TableRow>
             ) : promoCodes.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  Нет промокодов
+                  <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Нет промокодов
+                  </Typography>
                 </TableCell>
               </TableRow>
             ) : (
               promoCodes.map((code) => (
-                <TableRow key={code._id}>
+                <TableRow key={code._id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                   <TableCell>
                     <Box>
-                      <Typography variant="body1" fontWeight="bold">
+                      <Typography variant="body1" fontWeight="bold" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                         {code.code}
                       </Typography>
                       {code.metadata?.description && (
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                           {code.metadata.description}
                         </Typography>
                       )}
                     </Box>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                     {code.discountType === 'percentage'
                       ? `${code.discountValue}%`
                       : `$${code.discountValue}`}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                     <Box>
-                      <Typography variant="body2">
+                      <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                         {code.currentUses} / {code.maxUses}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                         {usagePercentage(code.currentUses, code.maxUses)}%
                       </Typography>
                     </Box>
                   </TableCell>
-                  <TableCell>{formatDate(code.validUntil)}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{formatDate(code.validUntil)}</TableCell>
                   <TableCell>
                     <Chip
                       label={
@@ -352,14 +373,27 @@ const PromoCodesManager = () => {
                           : 'default'
                       }
                       size="small"
+                      sx={{
+                        fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                        height: { xs: 20, sm: 24 },
+                        '& .MuiChip-label': { px: { xs: 0.5, sm: 1 } }
+                      }}
                     />
                   </TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleOpenDialog(code)} size="small">
-                      <EditIcon />
+                  <TableCell align="right">
+                    <IconButton
+                      onClick={() => handleOpenDialog(code)}
+                      size="small"
+                      sx={{ p: { xs: 0.5, sm: 1 } }}
+                    >
+                      <EditIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                     </IconButton>
-                    <IconButton onClick={() => handleDelete(code._id, code.code)} size="small">
-                      <DeleteIcon />
+                    <IconButton
+                      onClick={() => handleDelete(code._id, code.code)}
+                      size="small"
+                      sx={{ p: { xs: 0.5, sm: 1 } }}
+                    >
+                      <DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                     </IconButton>
                   </TableCell>
                 </TableRow>
