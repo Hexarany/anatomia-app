@@ -368,25 +368,48 @@ const QuizzesManager = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
-        <DialogTitle>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: { xs: '100vh', sm: 'calc(100vh - 64px)' },
+            m: { xs: 0, sm: 2 },
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: { xs: 1, sm: 2 } }}>
           {editingQuiz ? 'Редактировать викторину' : 'Новая викторина'}
         </DialogTitle>
-        <DialogContent dividers>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-            <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}>
+        <DialogContent dividers sx={{ px: { xs: 2, sm: 3 } }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: { xs: 1, sm: 2 } }}>
+            <Tabs
+              value={activeTab}
+              onChange={(_, v) => setActiveTab(v)}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{
+                '& .MuiTab-root': {
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  minWidth: { xs: 80, sm: 120 },
+                  px: { xs: 1, sm: 2 },
+                }
+              }}
+            >
               <Tab label="Основное" />
               <Tab label="Вопросы (RU)" />
               <Tab label="Вопросы (RO)" />
             </Tabs>
           </Box>
-          
+
           {/* Основная информация */}
           {activeTab === 0 && (
-              <Box sx={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: 2 
+              <Box sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: { xs: 1.5, sm: 2 }
               }}>
                 <TextField
                   label="Название (RU)"
@@ -395,6 +418,7 @@ const QuizzesManager = () => {
                     setFormData({ ...formData, title: { ...formData.title, ru: e.target.value } })
                   }
                   fullWidth
+                  size="small"
                 />
                 <TextField
                   label="Название (RO)"
@@ -403,6 +427,7 @@ const QuizzesManager = () => {
                     setFormData({ ...formData, title: { ...formData.title, ro: e.target.value } })
                   }
                   fullWidth
+                  size="small"
                 />
                 <TextField
                   label="Описание (RU)"
@@ -413,6 +438,7 @@ const QuizzesManager = () => {
                   multiline
                   rows={2}
                   fullWidth
+                  size="small"
                 />
                 <TextField
                   label="Описание (RO)"
@@ -423,6 +449,7 @@ const QuizzesManager = () => {
                   multiline
                   rows={2}
                   fullWidth
+                  size="small"
                 />
                  <TextField
                   select
@@ -430,6 +457,7 @@ const QuizzesManager = () => {
                   value={formData.topicId}
                   onChange={(e) => handleTopicChange(e.target.value)}
                   fullWidth
+                  size="small"
                 >
                   {topics.map((topic) => (
                     <MenuItem key={topic._id} value={topic._id}>
@@ -437,7 +465,7 @@ const QuizzesManager = () => {
                     </MenuItem>
                   ))}
                 </TextField>
-                <Alert severity="info" sx={{ mt: 1 }}>
+                <Alert severity="info" sx={{ mt: { xs: 0.5, sm: 1 } }}>
                     Викторина будет автоматически привязана к категории выбранной темы.
                 </Alert>
               </Box>
@@ -463,7 +491,8 @@ const QuizzesManager = () => {
                           fullWidth
                           multiline
                           rows={2}
-                          sx={{ mb: 2 }}
+                          size="small"
+                          sx={{ mb: { xs: 1.5, sm: 2 } }}
                       />
                       
                       {/* Поле пояснения */}
@@ -526,9 +555,9 @@ const QuizzesManager = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Отмена</Button>
-          <Button onClick={handleSave} variant="contained">
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, gap: 1 }}>
+          <Button onClick={handleCloseDialog} sx={{ minHeight: 40 }}>Отмена</Button>
+          <Button onClick={handleSave} variant="contained" sx={{ minHeight: 40 }}>
             Сохранить викторину
           </Button>
         </DialogActions>

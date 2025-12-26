@@ -466,12 +466,23 @@ const ScheduleManager = () => {
       )}
 
       {/* Диалог создания/редактирования занятия */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: { xs: '100vh', sm: 'calc(100vh - 64px)' },
+            m: { xs: 0, sm: 2 },
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: { xs: 1, sm: 2 } }}>
           {editingLesson ? 'Редактировать занятие' : 'Новое занятие'}
         </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+          <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mt: { xs: 0.5, sm: 1 } }}>
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
@@ -481,6 +492,7 @@ const ScheduleManager = () => {
                 onChange={(e) =>
                   setLessonForm({ ...lessonForm, lessonNumber: parseInt(e.target.value) })
                 }
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={4}>
@@ -491,6 +503,7 @@ const ScheduleManager = () => {
                 value={lessonForm.date}
                 onChange={(e) => setLessonForm({ ...lessonForm, date: e.target.value })}
                 InputLabelProps={{ shrink: true }}
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={4}>
@@ -501,6 +514,7 @@ const ScheduleManager = () => {
                 value={lessonForm.time}
                 onChange={(e) => setLessonForm({ ...lessonForm, time: e.target.value })}
                 InputLabelProps={{ shrink: true }}
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -512,10 +526,11 @@ const ScheduleManager = () => {
                 onChange={(e) =>
                   setLessonForm({ ...lessonForm, duration: parseInt(e.target.value) })
                 }
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
+              <FormControl fullWidth size="small">
                 <InputLabel>Статус</InputLabel>
                 <Select
                   value={lessonForm.status}
@@ -536,6 +551,7 @@ const ScheduleManager = () => {
                 label="Название (RU)"
                 value={lessonForm.titleRu}
                 onChange={(e) => setLessonForm({ ...lessonForm, titleRu: e.target.value })}
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -544,6 +560,7 @@ const ScheduleManager = () => {
                 label="Название (RO)"
                 value={lessonForm.titleRo}
                 onChange={(e) => setLessonForm({ ...lessonForm, titleRo: e.target.value })}
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -585,6 +602,7 @@ const ScheduleManager = () => {
                 onChange={(e) =>
                   setLessonForm({ ...lessonForm, descriptionRu: e.target.value })
                 }
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -597,6 +615,7 @@ const ScheduleManager = () => {
                 onChange={(e) =>
                   setLessonForm({ ...lessonForm, descriptionRo: e.target.value })
                 }
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -607,6 +626,7 @@ const ScheduleManager = () => {
                 label="Домашнее задание (RU)"
                 value={lessonForm.homeworkRu}
                 onChange={(e) => setLessonForm({ ...lessonForm, homeworkRu: e.target.value })}
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -617,13 +637,14 @@ const ScheduleManager = () => {
                 label="Домашнее задание (RO)"
                 value={lessonForm.homeworkRo}
                 onChange={(e) => setLessonForm({ ...lessonForm, homeworkRo: e.target.value })}
+                size="small"
               />
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Отмена</Button>
-          <Button onClick={handleSaveLesson} variant="contained">
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, gap: 1 }}>
+          <Button onClick={() => setOpenDialog(false)} sx={{ minHeight: 40 }}>Отмена</Button>
+          <Button onClick={handleSaveLesson} variant="contained" sx={{ minHeight: 40 }}>
             Сохранить
           </Button>
         </DialogActions>
@@ -638,10 +659,10 @@ const ScheduleManager = () => {
       >
         <DialogTitle>Генерация расписания курса</DialogTitle>
         <DialogContent>
-          <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
+          <Alert severity="warning" sx={{ mt: { xs: 1, sm: 2 }, mb: { xs: 1, sm: 2 } }}>
             Это удалит существующее расписание и создаст новое!
           </Alert>
-          <Grid container spacing={2}>
+          <Grid container spacing={{ xs: 1.5, sm: 2 }}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -652,11 +673,13 @@ const ScheduleManager = () => {
                   setGenerateForm({ ...generateForm, startDate: e.target.value })
                 }
                 InputLabelProps={{ shrink: true }}
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
+                size="small"
                 type="number"
                 label="Количество занятий"
                 value={generateForm.lessonsCount}
@@ -680,6 +703,7 @@ const ScheduleManager = () => {
                     lessonDuration: parseInt(e.target.value),
                   })
                 }
+                size="small"
               />
             </Grid>
             <Grid item xs={12}>
@@ -692,6 +716,7 @@ const ScheduleManager = () => {
                   setGenerateForm({ ...generateForm, startTime: e.target.value })
                 }
                 InputLabelProps={{ shrink: true }}
+                size="small"
               />
             </Grid>
             <Grid item xs={12}>
@@ -721,9 +746,9 @@ const ScheduleManager = () => {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenGenerateDialog(false)}>Отмена</Button>
-          <Button onClick={handleGenerateSchedule} variant="contained" color="primary">
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, gap: 1 }}>
+          <Button onClick={() => setOpenGenerateDialog(false)} sx={{ minHeight: 40 }}>Отмена</Button>
+          <Button onClick={handleGenerateSchedule} variant="contained" color="primary" sx={{ minHeight: 40 }}>
             Сгенерировать
           </Button>
         </DialogActions>

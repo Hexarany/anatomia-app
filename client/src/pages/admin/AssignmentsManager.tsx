@@ -525,15 +525,26 @@ const AssignmentsManager = () => {
       )}
 
       {/* Диалог создания/редактирования задания */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: { xs: '100vh', sm: 'calc(100vh - 64px)' },
+            m: { xs: 0, sm: 2 },
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: { xs: 1, sm: 2 } }}>
           {editingAssignment ? 'Редактировать задание' : 'Создать задание'}
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 2 }}>
-            <Grid container spacing={2}>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+          <Box sx={{ pt: { xs: 1, sm: 2 } }}>
+            <Grid container spacing={{ xs: 1.5, sm: 2 }}>
               <Grid item xs={12}>
-                <FormControl fullWidth>
+                <FormControl fullWidth size="small">
                   <InputLabel>Занятие</InputLabel>
                   <Select
                     value={assignmentForm.schedule}
@@ -568,6 +579,7 @@ const AssignmentsManager = () => {
                   label="Название (RU)"
                   value={assignmentForm.titleRu}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, titleRu: e.target.value })}
+                  size="small"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -576,6 +588,7 @@ const AssignmentsManager = () => {
                   label="Название (RO)"
                   value={assignmentForm.titleRo}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, titleRo: e.target.value })}
+                  size="small"
                 />
               </Grid>
 
@@ -587,6 +600,7 @@ const AssignmentsManager = () => {
                   label="Описание (RU)"
                   value={assignmentForm.descriptionRu}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, descriptionRu: e.target.value })}
+                  size="small"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -597,6 +611,7 @@ const AssignmentsManager = () => {
                   label="Описание (RO)"
                   value={assignmentForm.descriptionRo}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, descriptionRo: e.target.value })}
+                  size="small"
                 />
               </Grid>
 
@@ -608,6 +623,7 @@ const AssignmentsManager = () => {
                   value={assignmentForm.deadline}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, deadline: e.target.value })}
                   InputLabelProps={{ shrink: true }}
+                  size="small"
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -618,6 +634,7 @@ const AssignmentsManager = () => {
                   value={assignmentForm.deadlineTime}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, deadlineTime: e.target.value })}
                   InputLabelProps={{ shrink: true }}
+                  size="small"
                 />
               </Grid>
 
@@ -629,6 +646,7 @@ const AssignmentsManager = () => {
                   value={assignmentForm.maxScore}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, maxScore: parseInt(e.target.value) })}
                   inputProps={{ min: 1, max: 100 }}
+                  size="small"
                 />
               </Grid>
 
@@ -654,6 +672,7 @@ const AssignmentsManager = () => {
                       value={assignmentForm.lateDeadline}
                       onChange={(e) => setAssignmentForm({ ...assignmentForm, lateDeadline: e.target.value })}
                       InputLabelProps={{ shrink: true }}
+                      size="small"
                     />
                   </Grid>
                   <Grid item xs={12} sm={4}>
@@ -664,6 +683,7 @@ const AssignmentsManager = () => {
                       value={assignmentForm.lateDeadlineTime}
                       onChange={(e) => setAssignmentForm({ ...assignmentForm, lateDeadlineTime: e.target.value })}
                       InputLabelProps={{ shrink: true }}
+                      size="small"
                     />
                   </Grid>
                 </>
@@ -677,6 +697,7 @@ const AssignmentsManager = () => {
                   label="Дополнительные инструкции (RU)"
                   value={assignmentForm.instructionsRu}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, instructionsRu: e.target.value })}
+                  size="small"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -687,6 +708,7 @@ const AssignmentsManager = () => {
                   label="Дополнительные инструкции (RO)"
                   value={assignmentForm.instructionsRo}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, instructionsRo: e.target.value })}
+                  size="small"
                 />
               </Grid>
 
@@ -737,12 +759,13 @@ const AssignmentsManager = () => {
             </Grid>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Отмена</Button>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, gap: 1 }}>
+          <Button onClick={() => setOpenDialog(false)} sx={{ minHeight: 40 }}>Отмена</Button>
           <Button
             variant="contained"
             onClick={handleCreateAssignment}
             disabled={loading || !assignmentForm.schedule || !assignmentForm.titleRu}
+            sx={{ minHeight: 40 }}
           >
             {editingAssignment ? 'Сохранить' : 'Создать'}
           </Button>
@@ -755,8 +778,14 @@ const AssignmentsManager = () => {
         onClose={() => setOpenSubmissionsDialog(false)}
         maxWidth="lg"
         fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: { xs: '100vh', sm: 'calc(100vh - 64px)' },
+            m: { xs: 0, sm: 2 },
+          }
+        }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ pb: { xs: 1, sm: 2 } }}>
           Сданные работы: {viewingSubmissions?.title[language]}
         </DialogTitle>
         <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
@@ -851,13 +880,13 @@ const AssignmentsManager = () => {
       <Dialog open={openGradeDialog} onClose={() => setOpenGradeDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Выставить оценку</DialogTitle>
         <DialogContent>
-          <Box sx={{ pt: 2 }}>
+          <Box sx={{ pt: { xs: 1, sm: 2 } }}>
             {gradingSubmission && (
               <>
-                <Typography variant="body2" gutterBottom>
+                <Typography variant="body2" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   <strong>Студент:</strong> {gradingSubmission.student?.name}
                 </Typography>
-                <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>
+                <Typography variant="body2" gutterBottom sx={{ mb: { xs: 1.5, sm: 2 }, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   <strong>Дата сдачи:</strong> {new Date(gradingSubmission.submittedAt).toLocaleString('ru-RU')}
                 </Typography>
 
@@ -899,7 +928,8 @@ const AssignmentsManager = () => {
                   value={gradeForm.grade}
                   onChange={(e) => setGradeForm({ ...gradeForm, grade: parseInt(e.target.value) })}
                   inputProps={{ min: 0, max: viewingSubmissions?.maxScore || 10 }}
-                  sx={{ mb: 2 }}
+                  size="small"
+                  sx={{ mb: { xs: 1.5, sm: 2 } }}
                 />
 
                 <TextField
@@ -909,17 +939,21 @@ const AssignmentsManager = () => {
                   label="Комментарий / Feedback"
                   value={gradeForm.feedback}
                   onChange={(e) => setGradeForm({ ...gradeForm, feedback: e.target.value })}
+                  size="small"
                 />
               </>
             )}
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenGradeDialog(false)}>Отмена</Button>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, gap: 1 }}>
+          <Button onClick={() => setOpenGradeDialog(false)} sx={{ minHeight: 40 }}>
+            Отмена
+          </Button>
           <Button
             variant="contained"
             onClick={handleGradeSubmission}
             disabled={loading}
+            sx={{ minHeight: 40 }}
           >
             Сохранить оценку
           </Button>
