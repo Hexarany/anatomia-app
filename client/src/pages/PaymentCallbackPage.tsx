@@ -32,27 +32,12 @@ const PaymentCallbackPage = () => {
   const [paymentDetails, setPaymentDetails] = useState<any>(null)
 
   useEffect(() => {
-    const processPayment = async () => {
-      const orderId = searchParams.get('token') // PayPal returns 'token' param
-      const tierId = searchParams.get('tierId')
-
-      if (!orderId) {
-        setStatus('error')
-        setError('Order ID отсутствует в URL')
-        return
-      }
-
-      if (!tierId) {
-        setStatus('error')
-        setError('Tier ID отсутствует в URL')
-        return
-      }
-
+    const processPayPalPayment = async (orderId: string, tierId: string) => {
       try {
         // Get promo code ID from session storage if exists
         const promoCodeId = sessionStorage.getItem('promoCodeId')
 
-        // Capture the payment
+        // Capture the PayPal payment
         const response = await axios.post(
           `${API_URL}/tier-payment/capture-order`,
           {
@@ -72,18 +57,77 @@ const PaymentCallbackPage = () => {
         updateUser(response.data.user)
         setStatus('success')
       } catch (err: any) {
-        console.error('Payment capture error:', err)
+        console.error('PayPal payment capture error:', err)
         setStatus('error')
-        setError(err.response?.data?.message || 'Ошибка при обработке платежа')
+        setError(err.response?.data?.message || 'Ошибка при обработке платежа PayPal')
       }
     }
 
-    // Check if user cancelled the payment
-    const cancelled = searchParams.get('cancelled')
-    if (cancelled === 'true') {
+    const processMAIBPayment = async (transactionId: string, tierId: string) => {
+      try {
+        // Get promo code ID from session storage if exists
+        const promoCodeId = sessionStorage.getItem('promoCodeId')
+
+        // Complete MAIB transaction
+        const response = await axios.post(
+          `${API_URL}/maib-payment/complete-transaction`,
+          {
+            transactionId,
+            tierId,
+            promoCodeId: promoCodeId || undefined,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+
+        // Clear session storage
+        sessionStorage.removeItem('promoCodeId')
+        sessionStorage.removeItem('maibTransactionId')
+        sessionStorage.removeItem('maibTierId')
+
+        setPaymentDetails(response.data.paymentDetails)
+        updateUser(response.data.user)
+        setStatus('success')
+      } catch (err: any) {
+        console.error('MAIB payment completion error:', err)
+        setStatus('error')
+        setError(err.response?.data?.message || 'Ошибка при завершении платежа MAIB')
+      }
+    }
+
+    const processPayment = async () => {
+      // Check if user cancelled the payment
+      const cancelled = searchParams.get('cancelled')
+      if (cancelled === 'true') {
+        setStatus('error')
+        setError('Платеж был отменен')
+        return
+      }
+
+      // Check for PayPal callback (has 'token' param)
+      const paypalOrderId = searchParams.get('token')
+      const tierId = searchParams.get('tierId')
+
+      if (paypalOrderId && tierId) {
+        // PayPal payment
+        await processPayPalPayment(paypalOrderId, tierId)
+        return
+      }
+
+      // Check for MAIB callback (uses sessionStorage)
+      const maibTransactionId = sessionStorage.getItem('maibTransactionId')
+      const maibTierId = sessionStorage.getItem('maibTierId')
+
+      if (maibTransactionId && maibTierId) {
+        // MAIB payment
+        await processMAIBPayment(maibTransactionId, maibTierId)
+        return
+      }
+
+      // No valid payment method found
       setStatus('error')
-      setError('Платеж был отменен')
-      return
+      setError('Не найдены данные платежа. Пожалуйста, попробуйте снова.')
     }
 
     processPayment()
@@ -189,8 +233,8 @@ const PaymentCallbackPage = () => {
               <List dense>
                 <ListItem>
                   <ListItemText
-                    primary="Order ID"
-                    secondary={paymentDetails.orderId}
+                    primary={paymentDetails.transactionId ? "Transaction ID" : "Order ID"}
+                    secondary={paymentDetails.transactionId || paymentDetails.orderId}
                     secondaryTypographyProps={{ sx: { wordBreak: 'break-all' } }}
                   />
                 </ListItem>
@@ -203,9 +247,17 @@ const PaymentCallbackPage = () => {
                 <ListItem>
                   <ListItemText
                     primary="Статус"
-                    secondary={paymentDetails.status}
+                    secondary={paymentDetails.status || paymentDetails.result}
                   />
                 </ListItem>
+                {paymentDetails.resultCode && (
+                  <ListItem>
+                    <ListItemText
+                      primary="Код результата"
+                      secondary={paymentDetails.resultCode}
+                    />
+                  </ListItem>
+                )}
               </List>
             </Paper>
           )}

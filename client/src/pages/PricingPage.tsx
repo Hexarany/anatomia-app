@@ -19,8 +19,12 @@ import {
   TextField,
   InputAdornment,
   IconButton,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Paper,
 } from '@mui/material'
-import { Check as CheckIcon, Star as StarIcon, LocalOffer as OfferIcon } from '@mui/icons-material'
+import { Check as CheckIcon, Star as StarIcon, LocalOffer as OfferIcon, CreditCard as CreditCardIcon } from '@mui/icons-material'
 import { useAuth } from '@/contexts/AuthContext'
 import { useMainButton } from '@/contexts/MainButtonContext'
 import { useTelegram } from '@/contexts/TelegramContext'
@@ -59,6 +63,7 @@ const PricingPage = () => {
   const [promoError, setPromoError] = useState('')
   const [validatingPromo, setValidatingPromo] = useState(false)
   const [selectedTier, setSelectedTier] = useState<string | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<'maib' | 'paypal'>('maib')
 
   // Определяем доступные планы
   const plans: TierPlan[] = [
@@ -213,7 +218,56 @@ const PricingPage = () => {
     }
   }
 
-  const handlePurchase = async (tierId: string) => {
+  const handleMAIBPurchase = async (tierId: string) => {
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+
+    if (tierId === 'free') {
+      return // Free tier doesn't require purchase
+    }
+
+    setLoading(tierId)
+    setError('')
+
+    try {
+      // Create MAIB transaction with optional promo code
+      const response = await axios.post(
+        `${API_URL}/maib-payment/create-transaction`,
+        {
+          tierId,
+          promoCode: appliedPromo ? promoCode : undefined
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+
+      const { paymentUrl, transactionId, appliedPromoCode } = response.data
+
+      // Store transaction info for completion
+      if (appliedPromoCode) {
+        sessionStorage.setItem('promoCodeId', appliedPromoCode._id)
+      }
+      sessionStorage.setItem('maibTransactionId', transactionId)
+      sessionStorage.setItem('maibTierId', tierId)
+
+      // Validate payment URL before redirect
+      if (!paymentUrl) {
+        throw new Error('Не получен URL для оплаты. Проверьте конфигурацию MAIB.')
+      }
+
+      // Redirect to MAIB payment page
+      window.location.href = paymentUrl
+    } catch (err: any) {
+      console.error('MAIB Payment error:', err)
+      setError(err.response?.data?.message || err.message || 'Ошибка при создании транзакции MAIB')
+      setLoading(null)
+    }
+  }
+
+  const handlePayPalPurchase = async (tierId: string) => {
     if (!isAuthenticated) {
       navigate('/login')
       return
@@ -254,9 +308,17 @@ const PricingPage = () => {
       // Redirect to PayPal
       window.location.href = approvalUrl
     } catch (err: any) {
-      console.error('Payment error:', err)
-      setError(err.response?.data?.message || err.message || 'Ошибка при создании заказа')
+      console.error('PayPal Payment error:', err)
+      setError(err.response?.data?.message || err.message || 'Ошибка при создании заказа PayPal')
       setLoading(null)
+    }
+  }
+
+  const handlePurchase = async (tierId: string) => {
+    if (paymentMethod === 'maib') {
+      await handleMAIBPurchase(tierId)
+    } else {
+      await handlePayPalPurchase(tierId)
     }
   }
 
@@ -379,13 +441,56 @@ const PricingPage = () => {
       )}
 
       {isAuthenticated && (
-        <Box sx={{ maxWidth: 500, mx: 'auto', mb: 4 }}>
-          <Card variant="outlined">
-            <CardContent>
+        <>
+          <Box sx={{ maxWidth: 500, mx: 'auto', mb: 3 }}>
+            <Paper variant="outlined" sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <OfferIcon color="primary" />
-                <Typography variant="h6">Есть промокод?</Typography>
+                <CreditCardIcon color="primary" />
+                <Typography variant="h6">Способ оплаты / Metodă de plată</Typography>
               </Box>
+              <RadioGroup
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value as 'maib' | 'paypal')}
+              >
+                <FormControlLabel
+                  value="maib"
+                  control={<Radio />}
+                  label={
+                    <Box>
+                      <Typography variant="body1" fontWeight={600}>
+                        MAIB E-Commerce (Рекомендуется)
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Карты Visa/Mastercard • Молдавский банк • Быстро и безопасно
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  value="paypal"
+                  control={<Radio />}
+                  label={
+                    <Box>
+                      <Typography variant="body1" fontWeight={600}>
+                        PayPal
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Международные платежи • Требуется аккаунт PayPal
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </RadioGroup>
+            </Paper>
+          </Box>
+
+          <Box sx={{ maxWidth: 500, mx: 'auto', mb: 4 }}>
+            <Card variant="outlined">
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <OfferIcon color="primary" />
+                  <Typography variant="h6">Есть промокод?</Typography>
+                </Box>
               <TextField
                 fullWidth
                 placeholder="Введите промокод"
@@ -434,6 +539,7 @@ const PricingPage = () => {
             </CardContent>
           </Card>
         </Box>
+        </>
       )}
 
       <Grid container spacing={4} justifyContent="center">
@@ -583,9 +689,12 @@ const PricingPage = () => {
 
       <Box sx={{ mt: 6, textAlign: 'center' }}>
         <Typography variant="body2" color="text.secondary">
-          Все платежи обрабатываются безопасно через PayPal или Stripe
+          Все платежи обрабатываются безопасно через MAIB E-Commerce или PayPal
         </Typography>
         <Typography variant="body2" color="text.secondary">
+          Toate plățile sunt procesate în siguranță prin MAIB E-Commerce sau PayPal
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Единоразовая оплата • Доступ на выбранный период • Без автопродления
         </Typography>
       </Box>
