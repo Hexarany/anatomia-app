@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Container,
@@ -14,6 +15,7 @@ import {
   ListItemText,
   Paper,
   Divider,
+  CircularProgress,
 } from '@mui/material'
 import {
   School as SchoolIcon,
@@ -22,39 +24,153 @@ import {
   Favorite as HeartIcon,
   CheckCircle as CheckIcon,
 } from '@mui/icons-material'
+import axios from 'axios'
+
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api')
+
+interface BilingualText {
+  ru: string
+  ro: string
+}
+
+interface EducationItem {
+  title: BilingualText
+  description: BilingualText
+}
+
+interface ExperienceItem {
+  title: BilingualText
+  description: BilingualText
+}
+
+interface Stats {
+  students: number
+  yearsOfExperience: number
+  protocols: number
+}
+
+interface InstructorProfile {
+  photo?: string
+  name: BilingualText
+  title: BilingualText
+  badges: BilingualText[]
+  bio: BilingualText
+  education: EducationItem[]
+  experience: ExperienceItem[]
+  philosophy: BilingualText
+  stats: Stats
+  whyPlatform: BilingualText
+  promise: BilingualText
+}
+
+// Default fallback content
+const DEFAULT_PROFILE: InstructorProfile = {
+  name: { ru: 'Денис Матиевич', ro: 'Denis Matievici' },
+  title: {
+    ru: 'Сертифицированный массажист • Преподаватель',
+    ro: 'Maseur certificat • Profesor',
+  },
+  badges: [
+    { ru: '10+ лет опыта', ro: '10+ ani experiență' },
+    { ru: 'Сертифицированный специалист', ro: 'Specialist certificat' },
+    { ru: 'Автор курса', ro: 'Autor curs' },
+  ],
+  bio: {
+    ru: 'Добро пожаловать! Меня зовут Денис Матиевич, и я рад приветствовать вас на платформе MateevMassage. За более чем 10 лет практики в области массажной терапии я помог сотням людей не только освоить профессиональные техники массажа, но и построить успешную карьеру в этой сфере.',
+    ro: 'Bine ați venit! Numele meu este Denis Matievici și sunt bucuros să vă salut pe platforma MateevMassage. În peste 10 ani de practică în domeniul terapiei prin masaj, am ajutat sute de persoane nu doar să stăpânească tehnicile profesionale de masaj, ci și să construiască o carieră de succes în acest domeniu.',
+  },
+  education: [],
+  experience: [],
+  philosophy: {
+    ru: 'Я верю, что качественное образование должно быть практичным и доступным.',
+    ro: 'Cred că educația de calitate trebuie să fie practică și accesibilă.',
+  },
+  stats: { students: 500, yearsOfExperience: 10, protocols: 15 },
+  whyPlatform: {
+    ru: 'На протяжении многих лет обучения студентов я заметил, что многим не хватает структурированного подхода к изучению массажа.',
+    ro: 'Pe parcursul multor ani de predare, am observat că multor studenți le lipsește o abordare structurată în învățarea masajului.',
+  },
+  promise: {
+    ru: 'Я буду постоянно обновлять и улучшать эту платформу, добавлять новые протоколы, отвечать на ваши вопросы и помогать вам становиться профессионалами в массажной терапии.',
+    ro: 'Voi actualiza și îmbunătăți constant această platformă, voi adăuga noi protocoale, voi răspunde la întrebările dvs. și vă voi ajuta să deveniți profesioniști în terapia prin masaj.',
+  },
+}
 
 const AboutInstructorPage = () => {
   const { t, i18n } = useTranslation()
   const isRu = i18n.language === 'ru'
+  const [profile, setProfile] = useState<InstructorProfile>(DEFAULT_PROFILE)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchProfile()
+  }, [])
+
+  const fetchProfile = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/instructor-profile`)
+      setProfile(response.data)
+    } catch (err) {
+      console.log('Using default instructor profile')
+      // Use default profile
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
       {/* Header Section */}
       <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <Avatar
-          sx={{
-            width: 180,
-            height: 180,
-            mx: 'auto',
-            mb: 3,
-            fontSize: '4rem',
-            bgcolor: 'primary.main',
-          }}
-        >
-          ДМ
-        </Avatar>
+        {profile.photo ? (
+          <Avatar
+            src={profile.photo}
+            sx={{
+              width: 180,
+              height: 180,
+              mx: 'auto',
+              mb: 3,
+            }}
+          />
+        ) : (
+          <Avatar
+            sx={{
+              width: 180,
+              height: 180,
+              mx: 'auto',
+              mb: 3,
+              fontSize: '4rem',
+              bgcolor: 'primary.main',
+            }}
+          >
+            {profile.name[isRu ? 'ru' : 'ro']
+              .split(' ')
+              .map((n) => n[0])
+              .join('')}
+          </Avatar>
+        )}
         <Typography variant="h3" component="h1" gutterBottom fontWeight={700}>
-          {isRu ? 'Денис Матиевич' : 'Denis Matievici'}
+          {profile.name[isRu ? 'ru' : 'ro']}
         </Typography>
         <Typography variant="h5" color="text.secondary" gutterBottom>
-          {isRu
-            ? 'Сертифицированный массажист • Преподаватель'
-            : 'Maseur certificat • Profesor'}
+          {profile.title[isRu ? 'ru' : 'ro']}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', mt: 2, flexWrap: 'wrap' }}>
-          <Chip label={isRu ? '10+ лет опыта' : '10+ ani experiență'} color="primary" />
-          <Chip label={isRu ? 'Сертифицированный специалист' : 'Specialist certificat'} color="success" />
-          <Chip label={isRu ? 'Автор курса' : 'Autor curs'} color="secondary" />
+          {profile.badges.map((badge, index) => (
+            <Chip
+              key={index}
+              label={badge[isRu ? 'ru' : 'ro']}
+              color={index === 0 ? 'primary' : index === 1 ? 'success' : 'secondary'}
+            />
+          ))}
         </Box>
       </Box>
 

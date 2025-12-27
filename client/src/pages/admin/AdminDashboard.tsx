@@ -41,6 +41,7 @@ import EventNoteIcon from '@mui/icons-material/EventNote'
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import PeopleIcon from '@mui/icons-material/People'
+import PersonIcon from '@mui/icons-material/Person'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import CategoriesManager from './CategoriesManager'
@@ -59,6 +60,7 @@ import GroupsManager from './GroupsManager'
 import GroupFilesManager from './GroupFilesManager'
 import ScheduleManager from './ScheduleManager'
 import AssignmentsManager from './AssignmentsManager'
+import InstructorProfileManager from './InstructorProfileManager'
 
 type AdminGroupKey = 'content' | 'workflow' | 'operations' | 'access'
 
@@ -274,6 +276,16 @@ const ADMIN_SECTIONS: AdminSection[] = [
     group: 'access',
     adminOnly: true,
     quickAccess: true,
+  },
+  {
+    key: 'instructor-profile',
+    label: 'Профиль преподавателя / Profilul profesorului',
+    shortLabel: 'Профиль',
+    description: 'Информация о преподавателе на странице "О нас".',
+    icon: PersonIcon,
+    component: InstructorProfileManager,
+    group: 'operations',
+    adminOnly: false,
   },
 ]
 
