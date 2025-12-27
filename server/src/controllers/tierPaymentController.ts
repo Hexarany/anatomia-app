@@ -39,8 +39,8 @@ export const createTierOrder = async (req: Request, res: Response) => {
     } else if (currentTier === 'premium' && planTierLevel === 'premium') {
       // Already premium, can extend/renew but not upgrade
       isUpgrade = false
-    } else if (currentTier === planTierLevel && currentTier !== 'free') {
-      // Same tier, this is renewal/extension
+    } else if (currentTier === planTierLevel) {
+      // Same tier, this is renewal/extension (planTierLevel can only be 'basic' or 'premium')
       isUpgrade = false
     }
 
