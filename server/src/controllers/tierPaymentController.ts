@@ -29,15 +29,19 @@ export const createTierOrder = async (req: Request, res: Response) => {
     let originalPrice = plan.price
     let isUpgrade = false
     const currentTier = user.accessLevel || 'free'
+    const planTierLevel = plan.tierLevel // 'basic' or 'premium'
 
-    if (tierId === 'premium' && currentTier === 'basic') {
+    // Check if upgrade from basic to premium
+    if (planTierLevel === 'premium' && currentTier === 'basic') {
       // Upgrade from basic to premium
-      originalPrice = plan.upgradeFromBasic || 30
+      originalPrice = plan.upgradeFromBasic || plan.price
       isUpgrade = true
-    } else if (currentTier === 'premium') {
-      return res.status(400).json({ message: 'У вас уже есть премиум доступ' })
-    } else if (currentTier === tierId) {
-      return res.status(400).json({ message: 'У вас уже есть этот уровень доступа' })
+    } else if (currentTier === 'premium' && planTierLevel === 'premium') {
+      // Already premium, can extend/renew but not upgrade
+      isUpgrade = false
+    } else if (currentTier === planTierLevel && currentTier !== 'free') {
+      // Same tier, this is renewal/extension
+      isUpgrade = false
     }
 
     // Handle promo code if provided
@@ -149,6 +153,10 @@ export const captureTierOrder = async (req: Request, res: Response) => {
       }
     }
 
+    // Calculate subscription end date based on plan duration
+    const now = new Date()
+    const subscriptionEndsAt = new Date(now.getTime() + plan.duration * 24 * 60 * 60 * 1000)
+
     // Record payment in history
     const fromTier = user.accessLevel || 'free'
     if (!user.paymentHistory) {
@@ -158,15 +166,16 @@ export const captureTierOrder = async (req: Request, res: Response) => {
     user.paymentHistory.push({
       amount: paidAmount,
       fromTier: fromTier,
-      toTier: tierId,
+      toTier: plan.tierLevel, // Use tierLevel (basic/premium) not plan ID
       paymentMethod: 'paypal',
       paypalOrderId: orderId,
       paypalPayerId: payerId,
       date: new Date(),
     } as any)
 
-    // Update user tier
-    user.accessLevel = tierId
+    // Update user tier and subscription end date
+    user.accessLevel = plan.tierLevel // Set to 'basic' or 'premium'
+    user.subscriptionEndsAt = subscriptionEndsAt
     user.paymentAmount = (user.paymentAmount || 0) + paidAmount
     user.paymentDate = new Date()
 
@@ -181,6 +190,7 @@ export const captureTierOrder = async (req: Request, res: Response) => {
         lastName: user.lastName,
         role: user.role,
         accessLevel: user.accessLevel,
+        subscriptionEndsAt: user.subscriptionEndsAt,
         paymentAmount: user.paymentAmount,
       },
       paymentDetails: {
@@ -189,6 +199,11 @@ export const captureTierOrder = async (req: Request, res: Response) => {
         amount: paymentDetails.amount.value,
         currency: paymentDetails.amount.currency_code,
         status: captureData.status,
+      },
+      subscription: {
+        tier: plan.tierLevel,
+        duration: plan.duration,
+        endsAt: subscriptionEndsAt,
       },
     })
   } catch (error: any) {

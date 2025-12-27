@@ -113,24 +113,25 @@
         },
         {
           "name": "Basic",
-          "price": "20",
-          "description": "Acces 3 luni: baza pentru practică și anatomie.",
+          "price": "9.99",
+          "description": "De la $9.99/lună • Baza tehnicilor și anatomiei • 3 zile gratuit",
           "highlighted": true,
           "features": [
             "4 protocoale de masaj: clasic, cu ventuze, anticelulitic și cu miere",
             "Secțiuni anatomice esențiale",
-            "Igienă",
+            "Igienă și standarde profesionale",
             "Suport în Telegram"
           ]
         },
         {
           "name": "Premium",
-          "price": "50",
-          "description": "Acces complet la întreaga platformă.",
+          "price": "29.99",
+          "description": "De la $29.99/lună • Acces complet la întreaga platformă",
           "features": [
-            "Toate protocoalele și exercițiile practice",
-            "Teme, evaluări și certificate",
-            "Suport prin Telegram"
+            "Toate protocoalele de masaj și exercițiile practice",
+            "Puncte trigger și modele 3D de anatomie",
+            "Teste, teme, evaluări și certificate",
+            "Suport prioritar în Telegram"
           ]
         }
       ]

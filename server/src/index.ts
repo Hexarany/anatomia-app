@@ -22,6 +22,7 @@ import hygieneGuidelineRoutes from './routes/hygieneGuidelineRoutes'
 import anatomyModel3DRoutes from './routes/anatomyModel3DRoutes'
 import triggerPointRoutes from './routes/triggerPointRoutes'
 import tierPaymentRoutes from './routes/tierPaymentRoutes'
+import trialRoutes from './routes/trialRoutes'
 import usersManagementRoutes from './routes/usersManagementRoutes'
 import userRoutes from './routes/userRoutes'
 import promoCodeRoutes from './routes/promoCodeRoutes'
@@ -174,6 +175,7 @@ app.use('/api/hygiene-guidelines', hygieneGuidelineRoutes)
 app.use('/api/anatomy-models-3d', anatomyModel3DRoutes)
 app.use('/api/trigger-points', triggerPointRoutes)
 app.use('/api/tier-payment', tierPaymentRoutes)
+app.use('/api/trial', trialRoutes)
 app.use('/api/users-management', usersManagementRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/chat', chatRoutes)
