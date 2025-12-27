@@ -53,7 +53,7 @@ interface TierPlan {
 
 const PricingPage = () => {
   const navigate = useNavigate()
-  const { user, isAuthenticated, token } = useAuth()
+  const { user, isAuthenticated, token, updateUser } = useAuth()
   const { setMainButton, hideMainButton } = useMainButton()
   const { isInTelegram } = useTelegram()
   const [loading, setLoading] = useState<string | null>(null)
@@ -64,6 +64,8 @@ const PricingPage = () => {
   const [validatingPromo, setValidatingPromo] = useState(false)
   const [selectedTier, setSelectedTier] = useState<string | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<'maib' | 'paypal'>('maib')
+  const [activatingTrial, setActivatingTrial] = useState(false)
+  const [trialSuccess, setTrialSuccess] = useState('')
 
   // Определяем доступные планы
   const plans: TierPlan[] = [
@@ -314,6 +316,46 @@ const PricingPage = () => {
     }
   }
 
+  const handleActivateTrial = async () => {
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+
+    try {
+      setActivatingTrial(true)
+      setError('')
+      setTrialSuccess('')
+
+      const response = await axios.post(
+        `${API_URL}/trial/activate`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+
+      setTrialSuccess(response.data.message || '3-дневный пробный период активирован!')
+
+      // Update user data
+      if (updateUser) {
+        // Refresh user data to show updated access level
+        const userResponse = await axios.get(`${API_URL}/users/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        updateUser(userResponse.data)
+      }
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setTrialSuccess(''), 5000)
+    } catch (err: any) {
+      console.error('Trial activation error:', err)
+      setError(err.response?.data?.message || 'Ошибка при активации пробного периода')
+    } finally {
+      setActivatingTrial(false)
+    }
+  }
+
   const handlePurchase = async (tierId: string) => {
     if (paymentMethod === 'maib') {
       await handleMAIBPurchase(tierId)
@@ -438,6 +480,59 @@ const PricingPage = () => {
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
           {error}
         </Alert>
+      )}
+
+      {trialSuccess && (
+        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setTrialSuccess('')}>
+          {trialSuccess}
+        </Alert>
+      )}
+
+      {/* Trial Activation Button */}
+      {isAuthenticated && user?.accessLevel === 'free' && !user?.trialEndsAt && (
+        <Box sx={{ maxWidth: 600, mx: 'auto', mb: 4 }}>
+          <Paper
+            elevation={3}
+            sx={{
+              p: 3,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <StarIcon sx={{ fontSize: 40 }} />
+              <Box>
+                <Typography variant="h5" fontWeight={700}>
+                  Попробуйте Basic бесплатно!
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Бесплатный доступ на 3 дня • Без привязки карты
+                </Typography>
+              </Box>
+            </Box>
+            <Typography variant="body2" sx={{ mb: 2, opacity: 0.95 }}>
+              Получите полный доступ к протоколам массажа, анатомическим разделам и
+              сопровождению в Telegram на 3 дня совершенно бесплатно!
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              onClick={handleActivateTrial}
+              disabled={activatingTrial}
+              sx={{
+                bgcolor: 'white',
+                color: 'primary.main',
+                fontWeight: 700,
+                '&:hover': {
+                  bgcolor: 'rgba(255,255,255,0.9)',
+                },
+              }}
+            >
+              {activatingTrial ? <CircularProgress size={24} /> : 'Активировать 3 дня бесплатно'}
+            </Button>
+          </Paper>
+        </Box>
       )}
 
       {isAuthenticated && (
